@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getContract } from "@/server/contracts/queries";
 import { formatTime } from "@/lib/dates";
-import { createServiceTemplateAction, setServiceTemplateActiveAction } from "../actions";
+import { setServiceTemplateActiveAction } from "../actions";
+import { ServiceTemplateForm } from "./ServiceTemplateForm";
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Brouillon",
@@ -20,10 +21,13 @@ function formatDate(date: Date) {
 
 export default async function ContractDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ contractId: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { contractId } = await params;
+  const { error } = await searchParams;
   const user = await requireSession();
   const contract = await getContract(user, contractId);
 
@@ -106,103 +110,12 @@ export default async function ContractDetailPage({
 
       <div>
         <h2 className="text-sm font-medium text-zinc-700">Ajouter une vacation</h2>
-        <form action={createServiceTemplateAction} className="mt-2 space-y-4">
-          <input type="hidden" name="contractId" value={contract.id} />
-          <div>
-            <label htmlFor="name" className="block text-sm text-zinc-700">
-              Nom
-            </label>
-            <input
-              id="name"
-              name="name"
-              required
-              placeholder="Entretien quotidien bureaux"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
-            />
-          </div>
-          <fieldset>
-            <legend className="block text-sm text-zinc-700">Jours</legend>
-            <div className="mt-1 flex flex-wrap gap-3">
-              {DAY_LABELS.slice(1).map((label, index) => (
-                <label key={label} className="flex items-center gap-1 text-sm">
-                  <input type="checkbox" name="daysOfWeek" value={index + 1} />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="startTime" className="block text-sm text-zinc-700">
-                Heure de début
-              </label>
-              <input
-                id="startTime"
-                name="startTime"
-                type="time"
-                required
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
-              />
-            </div>
-            <div>
-              <label htmlFor="endTime" className="block text-sm text-zinc-700">
-                Heure de fin
-              </label>
-              <input
-                id="endTime"
-                name="endTime"
-                type="time"
-                required
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="durationMinutes" className="block text-sm text-zinc-700">
-                Durée estimée (min)
-              </label>
-              <input
-                id="durationMinutes"
-                name="durationMinutes"
-                type="number"
-                min={1}
-                required
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
-              />
-            </div>
-            <div>
-              <label htmlFor="requiredAgents" className="block text-sm text-zinc-700">
-                Agents requis
-              </label>
-              <input
-                id="requiredAgents"
-                name="requiredAgents"
-                type="number"
-                min={1}
-                defaultValue={1}
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
-              />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="instructions" className="block text-sm text-zinc-700">
-              Consignes
-            </label>
-            <textarea
-              id="instructions"
-              name="instructions"
-              rows={3}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
-            />
-          </div>
-          <button
-            type="submit"
-            className="rounded bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
-          >
-            Ajouter la vacation
-          </button>
-        </form>
+        {error && (
+          <p className="mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        <ServiceTemplateForm contractId={contract.id} />
       </div>
     </div>
   );

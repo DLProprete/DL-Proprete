@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listShiftsForDay, listAgents } from "@/server/planning/queries";
-import { addDays, dateOnlyUTC, formatDateOnly, formatTime, parisToday, parseDateOnly } from "@/lib/dates";
+import {
+  addDays,
+  dateOnlyUTC,
+  formatDateOnly,
+  formatTimeInParis,
+  parisToday,
+  parseDateOnly,
+} from "@/lib/dates";
 import { SHIFT_STATUS_LABELS } from "../shift-labels";
 import { assignAgentAction, cancelAssignmentAction } from "../actions";
 
@@ -70,7 +77,7 @@ export default async function PlanningDayPage({
                 <li key={shift.id} className="flex items-center justify-between gap-4 py-2">
                   <div>
                     <p>
-                      {formatTime(shift.startAt)}–{formatTime(shift.endAt)} —{" "}
+                      {formatTimeInParis(shift.startAt)}–{formatTimeInParis(shift.endAt)} —{" "}
                       {SHIFT_STATUS_LABELS[shift.status]} ({shift.assignments.length}/
                       {shift.requiredAgents} agent(s))
                     </p>

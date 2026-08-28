@@ -5,7 +5,7 @@ import {
   addDays,
   dateOnlyUTC,
   formatDateOnly,
-  formatTime,
+  formatTimeInParis,
   parisToday,
   parseDateOnly,
   startOfWeekMonday,
@@ -101,8 +101,8 @@ export default async function PlanningWeekPage({
               <ul className="mt-1 divide-y divide-zinc-100 text-sm">
                 {agentShifts.map((shift) => (
                   <li key={shift.id} className="py-1 text-zinc-600">
-                    {formatDay(shift.date)} · {shift.site.name} · {formatTime(shift.startAt)}–
-                    {formatTime(shift.endAt)}
+                    {formatDay(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
+                    {formatTimeInParis(shift.endAt)}
                   </li>
                 ))}
                 {agentShifts.length === 0 && (
@@ -122,8 +122,8 @@ export default async function PlanningWeekPage({
             <li key={shift.id} className="flex items-center justify-between gap-4 py-3">
               <div>
                 <p>
-                  {formatDay(shift.date)} · {shift.site.name} · {formatTime(shift.startAt)}–
-                  {formatTime(shift.endAt)}
+                  {formatDay(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
+                  {formatTimeInParis(shift.endAt)}
                 </p>
                 <p className="text-xs text-zinc-500">
                   {SHIFT_STATUS_LABELS[shift.status]} — {shift.assignments.length}/{shift.requiredAgents}{" "}

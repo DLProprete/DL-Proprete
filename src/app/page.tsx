@@ -10,6 +10,9 @@ export default async function Home() {
   if (user.role === "ADMIN" || user.role === "PLANNER") {
     redirect("/clients");
   }
+  if (user.role === "AGENT") {
+    redirect("/today");
+  }
 
   return (
     <div className="flex flex-1 items-center justify-center">
