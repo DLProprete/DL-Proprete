@@ -19,6 +19,7 @@ export default async function BackOfficeLayout({
         <div className="flex gap-4 text-sm font-medium">
           <Link href="/clients">Clients</Link>
           <Link href="/sites">Sites</Link>
+          <Link href="/contracts">Contrats</Link>
         </div>
         <form action={logoutAction}>
           <button type="submit" className="text-sm text-zinc-500 hover:text-zinc-900">

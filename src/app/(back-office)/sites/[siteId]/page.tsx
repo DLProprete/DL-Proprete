@@ -53,6 +53,28 @@ export default async function SiteDetailPage({
         <dt className="text-zinc-500">Consignes d&apos;accès</dt>
         <dd>{site.accessNotes ?? "—"}</dd>
       </dl>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-zinc-700">Contrats</h2>
+          <Link href={`/contracts/new?siteId=${site.id}`} className="text-sm underline">
+            Ajouter un contrat
+          </Link>
+        </div>
+        <ul className="mt-2 divide-y divide-zinc-100 text-sm">
+          {site.contracts.map((contract) => (
+            <li key={contract.id} className="py-2">
+              <Link href={`/contracts/${contract.id}`} className="text-zinc-900 underline">
+                {contract.reference}
+              </Link>
+              <span className="ml-2 text-zinc-400">{contract.status}</span>
+            </li>
+          ))}
+          {site.contracts.length === 0 && (
+            <li className="py-2 text-zinc-400">Aucun contrat pour l&apos;instant.</li>
+          )}
+        </ul>
+      </div>
     </div>
   );
 }
