@@ -1,5 +1,6 @@
 "use server";
 
+import { ZodError } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
@@ -26,17 +27,28 @@ export async function createContractAction(formData: FormData) {
 export async function createServiceTemplateAction(formData: FormData) {
   const user = await requireSession();
   const contractId = String(formData.get("contractId") ?? "");
-  await createServiceTemplate(user, {
-    contractId,
-    name: formData.get("name"),
-    daysOfWeek: formData.getAll("daysOfWeek"),
-    startTime: formData.get("startTime"),
-    endTime: formData.get("endTime"),
-    durationMinutes: formData.get("durationMinutes"),
-    requiredAgents: formData.get("requiredAgents"),
-    instructions: formData.get("instructions"),
-  });
+
+  try {
+    await createServiceTemplate(user, {
+      contractId,
+      name: formData.get("name"),
+      daysOfWeek: formData.getAll("daysOfWeek"),
+      startTime: formData.get("startTime"),
+      endTime: formData.get("endTime"),
+      durationMinutes: formData.get("durationMinutes"),
+      requiredAgents: formData.get("requiredAgents"),
+      instructions: formData.get("instructions"),
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const message = error.issues[0]?.message ?? "Données invalides.";
+      redirect(`/contracts/${contractId}?error=${encodeURIComponent(message)}`);
+    }
+    throw error;
+  }
+
   revalidatePath(`/contracts/${contractId}`);
+  redirect(`/contracts/${contractId}`);
 }
 
 export async function setServiceTemplateActiveAction(

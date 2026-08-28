@@ -6,6 +6,11 @@ export function timeStringToDate(hhmm: string): Date {
   return new Date(Date.UTC(1970, 0, 1, hours, minutes));
 }
 
+// N'utiliser que pour ServiceTemplate.startTime/endTime (heure murale sans
+// fuseau, voir ci-dessus). Pour un instant réel (Shift.startAt/endAt,
+// TimeEntry.clockInAt/clockOutAt), utiliser formatTimeInParis ci-dessous :
+// getUTCHours() sur un vrai timestamp affiche l'heure UTC, pas l'heure
+// française (Paris n'est jamais UTC+0).
 export function formatTime(date: Date): string {
   const hours = String(date.getUTCHours()).padStart(2, "0");
   const minutes = String(date.getUTCMinutes()).padStart(2, "0");
@@ -87,6 +92,19 @@ export function startOfWeekMonday(dateOnly: Date): Date {
 export function parseDateOnly(value: string): Date {
   const [year, month, day] = value.split("-").map(Number);
   return dateOnlyUTC(year, month, day);
+}
+
+const parisTimeFormatter = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: PARIS_TZ,
+  hourCycle: "h23",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+// Affiche un instant réel (Shift.startAt/endAt, TimeEntry.clockInAt/…) en
+// heure locale Paris, quel que soit le fuseau du serveur.
+export function formatTimeInParis(date: Date): string {
+  return parisTimeFormatter.format(date);
 }
 
 export function formatDateOnly(date: Date): string {
