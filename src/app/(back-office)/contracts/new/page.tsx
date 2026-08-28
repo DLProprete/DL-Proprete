@@ -1,0 +1,130 @@
+import { requireSession } from "@/server/auth/session";
+import { listSites } from "@/server/sites/queries";
+import { createContractAction } from "../actions";
+
+export default async function NewContractPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ siteId?: string; error?: string }>;
+}) {
+  const { siteId, error } = await searchParams;
+  const user = await requireSession();
+  const sites = await listSites(user);
+
+  return (
+    <div className="max-w-lg space-y-4">
+      <h1 className="text-xl font-semibold">Nouveau contrat</h1>
+      {error === "overlap" && (
+        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          Un contrat actif existe déjà sur ce site pour une période qui chevauche.
+        </p>
+      )}
+      <form action={createContractAction} className="space-y-4">
+        <div>
+          <label htmlFor="siteId" className="block text-sm text-zinc-700">
+            Site
+          </label>
+          <select
+            id="siteId"
+            name="siteId"
+            required
+            defaultValue={siteId ?? ""}
+            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          >
+            <option value="" disabled>
+              Sélectionner un site
+            </option>
+            {sites.map((site) => (
+              <option key={site.id} value={site.id}>
+                {site.client.legalName} — {site.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="reference" className="block text-sm text-zinc-700">
+            Référence
+          </label>
+          <input
+            id="reference"
+            name="reference"
+            required
+            placeholder="C-2026-001"
+            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="startsOn" className="block text-sm text-zinc-700">
+              Début
+            </label>
+            <input
+              id="startsOn"
+              name="startsOn"
+              type="date"
+              required
+              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="endsOn" className="block text-sm text-zinc-700">
+              Fin
+            </label>
+            <input
+              id="endsOn"
+              name="endsOn"
+              type="date"
+              required
+              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="hourlyRateHT" className="block text-sm text-zinc-700">
+            Tarif horaire HT (€)
+          </label>
+          <input
+            id="hourlyRateHT"
+            name="hourlyRateHT"
+            type="number"
+            step="0.01"
+            min="0"
+            required
+            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          />
+        </div>
+        <div>
+          <label htmlFor="status" className="block text-sm text-zinc-700">
+            Statut initial
+          </label>
+          <select
+            id="status"
+            name="status"
+            defaultValue="DRAFT"
+            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          >
+            <option value="DRAFT">Brouillon</option>
+            <option value="ACTIVE">Actif</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="notes" className="block text-sm text-zinc-700">
+            Notes
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          />
+        </div>
+        <button
+          type="submit"
+          className="rounded bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+        >
+          Créer le contrat
+        </button>
+      </form>
+    </div>
+  );
+}
