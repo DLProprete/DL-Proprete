@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@/lib/prisma";
 
 // Pas d'inscription libre-service ni de reset de mot de passe par e-mail au
@@ -40,4 +41,7 @@ export const auth = betterAuth({
       },
     },
   },
+  // Doit rester le dernier plugin : permet d'appeler auth.api.* depuis une
+  // Server Action (login, logout) sans passer par /api/auth côté client.
+  plugins: [nextCookies()],
 });
