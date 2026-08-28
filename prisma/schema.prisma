@@ -1,0 +1,432 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PLANNER
+  AGENT
+}
+
+enum BillingMode {
+  TIME_AND_MATERIALS_PLANNED
+}
+
+enum BillingBasis {
+  CALENDAR_SHIFTS
+  FLAT_INDICATIVE_HOURS
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  ENDED
+}
+
+enum ShiftStatus {
+  PLANNED
+  PARTIALLY_STAFFED
+  UNSTAFFED
+  DONE
+  CANCELLED
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  REPLACED
+  CANCELLED
+}
+
+enum TimeEntryStatus {
+  OPEN
+  SUBMITTED
+  VALIDATED
+  REJECTED
+}
+
+enum TimeEntrySource {
+  MOBILE
+  ADMIN
+}
+
+enum AbsenceType {
+  PAID_LEAVE
+  RTT
+  SICK
+  OTHER
+}
+
+enum AbsenceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum ElectronicStatus {
+  NOT_APPLICABLE
+}
+
+enum InvoiceLineSource {
+  PLANNED_HOURS
+  ADHOC
+}
+
+enum PaymentMethod {
+  TRANSFER
+  CHEQUE
+  CASH
+  OTHER
+}
+
+// --- Authentification (Better Auth) ---
+// User porte à la fois l'identité Better Auth (email, emailVerified, name,
+// image) et les données métier (role, firstName/lastName, etc.).
+// Le mot de passe hashé n'est pas stocké ici : Better Auth le place dans
+// Account (provider "credential"), voir docs/ARCHITECTURE.md section 3.
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  emailVerified       Boolean   @default(false)
+  name                String
+  image               String?
+  firstName           String
+  lastName            String
+  phone               String?
+  role                Role      @default(AGENT)
+  weeklyContractHours Decimal?  @db.Decimal(5, 2)
+  classification      String?
+  isActive            Boolean   @default(true)
+  hiredAt             DateTime?
+  endedAt             DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  sessions             Session[]
+  accounts             Account[]
+  assignments          Assignment[]
+  timeEntries          TimeEntry[]
+  absences             Absence[]
+  validatedTimeEntries TimeEntry[] @relation("TimeEntryValidatedBy")
+  auditLogs            AuditLog[]
+
+  @@index([role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  // Identifiant synthétique de la méthode d'auth, ex. "local:credential"
+  // pour email+mot de passe. C'est la clé réellement utilisée par Better
+  // Auth pour retrouver un compte (voir @better-auth/core/db/schema/account),
+  // pas providerId seul.
+  issuer                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([issuer, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// --- Métier ---
+
+model Client {
+  id              String   @id @default(cuid())
+  legalName       String
+  tradeName       String?
+  siret           String?
+  vatNumber       String?
+  billingAddress  String
+  email           String?
+  phone           String?
+  paymentTermDays Int      @default(30)
+  notes           String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  sites     Site[]
+  contracts Contract[]
+  invoices  Invoice[]
+}
+
+model Site {
+  id                 String   @id @default(cuid())
+  clientId           String
+  name               String
+  address            String
+  city               String
+  postalCode         String
+  accessNotes        String?
+  onSiteContactName  String?
+  onSiteContactPhone String?
+  surfaceM2          Decimal? @db.Decimal(8, 2)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  client      Client      @relation(fields: [clientId], references: [id])
+  contracts   Contract[]
+  shifts      Shift[]
+  timeEntries TimeEntry[]
+
+  @@index([clientId])
+}
+
+model Contract {
+  id                   String         @id @default(cuid())
+  clientId             String
+  siteId               String
+  reference            String
+  startsOn             DateTime       @db.Date
+  endsOn               DateTime       @db.Date
+  billingMode          BillingMode    @default(TIME_AND_MATERIALS_PLANNED)
+  billingBasis         BillingBasis   @default(CALENDAR_SHIFTS)
+  hourlyRateHT         Decimal        @db.Decimal(8, 2)
+  indicativeMonthlyHours Decimal?     @db.Decimal(7, 2)
+  vatRate              Decimal        @default(20) @db.Decimal(4, 2)
+  billingDayOfMonth    Int            @default(1)
+  status               ContractStatus @default(DRAFT)
+  renewalNoticeDays    Int            @default(60)
+  notes                String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  client           Client             @relation(fields: [clientId], references: [id])
+  site             Site               @relation(fields: [siteId], references: [id])
+  serviceTemplates ServiceTemplate[]
+  shifts           Shift[]
+  invoices         Invoice[]
+
+  @@index([endsOn, status])
+  @@index([siteId, status])
+}
+
+model ServiceTemplate {
+  id              String   @id @default(cuid())
+  contractId      String
+  name            String
+  daysOfWeek      Int[]
+  startTime       DateTime @db.Time
+  endTime         DateTime @db.Time
+  durationMinutes Int
+  requiredAgents  Int      @default(1)
+  instructions    String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  contract Contract @relation(fields: [contractId], references: [id])
+  shifts   Shift[]
+
+  @@index([contractId])
+}
+
+model Shift {
+  id                    String      @id @default(cuid())
+  serviceTemplateId     String?
+  siteId                String
+  contractId            String
+  date                  DateTime    @db.Date
+  startAt               DateTime
+  endAt                 DateTime
+  requiredAgents        Int
+  status                ShiftStatus @default(UNSTAFFED)
+  generatedFromTemplate Boolean     @default(true)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  serviceTemplate ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
+  site            Site             @relation(fields: [siteId], references: [id])
+  contract        Contract         @relation(fields: [contractId], references: [id])
+  assignments     Assignment[]
+  timeEntries     TimeEntry[]
+
+  @@index([date, siteId])
+  @@index([contractId, date])
+  @@unique([serviceTemplateId, date, startAt], name: "uniq_generated_occurrence")
+}
+
+model Assignment {
+  id                     String           @id @default(cuid())
+  shiftId                String
+  userId                 String
+  status                 AssignmentStatus @default(ASSIGNED)
+  replacedByAssignmentId String?          @unique
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  shift                Shift        @relation(fields: [shiftId], references: [id])
+  user                 User         @relation(fields: [userId], references: [id])
+  replacedByAssignment Assignment?  @relation("Replacement", fields: [replacedByAssignmentId], references: [id])
+  replacementOf        Assignment[] @relation("Replacement")
+
+  @@index([userId, shiftId])
+}
+
+model TimeEntry {
+  id                String           @id @default(cuid())
+  userId            String
+  siteId            String
+  shiftId           String?
+  clockInAt         DateTime
+  clockOutAt        DateTime?
+  status            TimeEntryStatus  @default(OPEN)
+  source            TimeEntrySource  @default(MOBILE)
+  note              String?
+  validatedById     String?
+  validatedAt       DateTime?
+  payrollExportable Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  user        User   @relation(fields: [userId], references: [id])
+  site        Site   @relation(fields: [siteId], references: [id])
+  shift       Shift? @relation(fields: [shiftId], references: [id])
+  validatedBy User?  @relation("TimeEntryValidatedBy", fields: [validatedById], references: [id])
+
+  @@index([userId, clockInAt])
+}
+
+model Absence {
+  id           String        @id @default(cuid())
+  userId       String
+  type         AbsenceType
+  startsOn     DateTime      @db.Date
+  endsOn       DateTime      @db.Date
+  status       AbsenceStatus @default(PENDING)
+  documentPath String?
+  comment      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, startsOn])
+}
+
+model Invoice {
+  id               String           @id @default(cuid())
+  clientId         String
+  contractId       String?
+  number           String?          @unique
+  issuedOn         DateTime?        @db.Date
+  dueOn            DateTime?        @db.Date
+  status           InvoiceStatus    @default(DRAFT)
+  electronicStatus ElectronicStatus @default(NOT_APPLICABLE)
+  amountHT         Decimal          @default(0) @db.Decimal(10, 2)
+  vatAmount        Decimal          @default(0) @db.Decimal(10, 2)
+  amountTTC        Decimal          @default(0) @db.Decimal(10, 2)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  client   Client        @relation(fields: [clientId], references: [id])
+  contract Contract?     @relation(fields: [contractId], references: [id])
+  lines    InvoiceLine[]
+  payments Payment[]
+
+  @@index([status, issuedOn])
+}
+
+model InvoiceLine {
+  id          String            @id @default(cuid())
+  invoiceId   String
+  label       String
+  quantity    Decimal           @db.Decimal(8, 2)
+  unitPriceHT Decimal           @db.Decimal(10, 2)
+  vatRate     Decimal           @db.Decimal(4, 2)
+  source      InvoiceLineSource
+  hours       Decimal?          @db.Decimal(7, 2)
+  createdAt   DateTime          @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  invoiceId String
+  paidOn    DateTime      @db.Date
+  amount    Decimal       @db.Decimal(10, 2)
+  method    PaymentMethod
+  reference String?
+  createdAt DateTime      @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+// Numérotation de facture F-YYYY-NNNN sans trou, remise à zéro chaque année
+// civile (voir docs/ARCHITECTURE.md section 3) — pas dans docs/DATA-MODEL.md.
+model InvoiceSequence {
+  year       Int @id
+  lastNumber Int @default(0)
+}

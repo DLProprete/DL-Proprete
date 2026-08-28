@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # DL Propreté — instructions Claude Code
 
 Outil interne pour une entreprise de nettoyage (Calvados) : contrats de sites
@@ -7,6 +11,37 @@ client. Paie externalisée (export uniquement). Hébergement France.
 
 Lire `docs/SPEC.md` et `docs/DATA-MODEL.md` avant toute conception.
 Ne pas inventer de module hors spec.
+
+## État du dépôt
+
+Fondation posée (Session 1) : Next.js + TypeScript + Tailwind + Prisma +
+Better Auth, schéma complet, première migration, seed minimal. Aucune page
+métier. `docs/PROMPTS.md` détaille le déroulé prévu session par session
+(2+ = modules métier). Suivre cet ordre, une session à la fois, un commit
+par fonctionnalité.
+
+**Avant de développer**, créer un `.env` local (non commité, Claude Code n'a
+pas le droit de le lire/écrire) avec :
+
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/dlproprete?schema=public"
+BETTER_AUTH_SECRET="une valeur aléatoire longue"
+BETTER_AUTH_URL="http://localhost:3000"
+```
+
+La migration initiale (`prisma/migrations/*_init/`) avait été générée hors
+ligne (pas de Postgres en Session 1) puis appliquée et complétée une fois la
+base disponible. Une deuxième migration (`*_add_account_issuer`) ajoute
+`Account.issuer`, requis par Better Auth pour retrouver le compte
+email+mot de passe (voir `docs/ARCHITECTURE.md` section 3). Les deux sont
+appliquées et vérifiées : seed rejoué, connexion testée avec
+`auth.api.signInEmail` (bon mot de passe accepté, mauvais rejeté).
+
+Le seed insère `User` + `Account` directement en Prisma avec
+`hashPassword` de `better-auth/crypto` (pas de compte auto-créable :
+`disableSignUp: true`). Identifiants de démo : `admin@dlproprete.fr`,
+`agent1@dlproprete.fr`, `agent2@dlproprete.fr`, mot de passe `changeme123`
+pour les trois — **à changer avant tout déploiement au-delà du poste local**.
 
 ## Stack imposée
 
@@ -20,20 +55,26 @@ Ne pas inventer de module hors spec.
 
 ## Commandes
 
-Remplir après initialisation du projet, puis garder à jour :
-
 - Dev : `npm run dev`
+- Build : `npm run build`
 - Test : `npm test`
-- Test ciblé : `npm test -- chemin`
+- Test ciblé : `npm test -- chemin` (ex. `npm test -- src/server/auth`)
 - Lint / types : `npm run lint` et `npx tsc --noEmit`
-- Prisma : `npx prisma migrate dev` et `npx prisma generate`
+- Prisma :
+  - `npx prisma generate` — régénère le client (pas besoin de base connectée)
+  - `npx prisma migrate dev` — applique les migrations en attente sur une base locale
+  - `npm run prisma:seed` — rejoue `prisma/seed.ts` (1 admin, 2 agents, 1 client, 1 site, 1 contrat)
+- Config Prisma centralisée dans `prisma.config.ts` (Prisma 6.19+, remplace `package.json#prisma`).
 
 ## Architecture
 
-- `src/app` — pages et route handlers
-- `src/server` — actions métier (planning, billing, time, absences)
-- `src/lib` — auth, prisma, dates
-- `prisma/schema.prisma`
+Détail complet (arborescence, schéma commenté, ordre des modules) dans
+`docs/ARCHITECTURE.md`. Résumé :
+
+- `src/app` — pages (route groups `(auth)`, `(back-office)`, `(agent)`) et route handlers
+- `src/server` — actions métier (planning, billing, time, absences), jamais dupliquées entre page et API
+- `src/lib` — `auth.ts` (config Better Auth), `prisma.ts` (client singleton), `dates.ts`, `zod/`
+- `prisma/schema.prisma` — schéma complet ; `prisma/seed.ts` — seed minimal
 - `docs/` — spec figée ; mettre à jour si une règle métier change
 
 Séparer clairement heures contractualisées, heures planifiées, heures réalisées.
