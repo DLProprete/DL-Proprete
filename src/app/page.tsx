@@ -7,7 +7,10 @@ export default async function Home() {
   if (!user) {
     redirect("/login");
   }
-  if (user.role === "ADMIN" || user.role === "PLANNER") {
+  if (user.role === "ADMIN") {
+    redirect("/dashboard");
+  }
+  if (user.role === "PLANNER") {
     redirect("/clients");
   }
   if (user.role === "AGENT") {
