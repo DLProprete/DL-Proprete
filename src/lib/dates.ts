@@ -113,3 +113,10 @@ export function formatDateOnly(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+// Bornes [start, end) d'un mois calendaire (UTC, jour pur).
+export function monthRange(year: number, month: number): { start: Date; end: Date } {
+  const start = dateOnlyUTC(year, month, 1);
+  const end = month === 12 ? dateOnlyUTC(year + 1, 1, 1) : dateOnlyUTC(year, month + 1, 1);
+  return { start, end };
+}

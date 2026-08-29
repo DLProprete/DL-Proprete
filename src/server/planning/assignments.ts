@@ -7,7 +7,7 @@ const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 export class AssignmentConflictError extends Error {}
 export class InvalidAssigneeError extends Error {}
 
-async function recomputeShiftStatus(shiftId: string) {
+export async function recomputeShiftStatus(shiftId: string) {
   const shift = await prisma.shift.findUniqueOrThrow({ where: { id: shiftId } });
   if (shift.status === "DONE" || shift.status === "CANCELLED") return;
 

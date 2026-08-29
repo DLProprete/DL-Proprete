@@ -33,6 +33,8 @@ export async function createContract(user: SessionUser, input: unknown) {
       endsOn: data.endsOn,
       hourlyRateHT: data.hourlyRateHT,
       status: data.status,
+      billingBasis: data.billingBasis,
+      indicativeMonthlyHours: data.indicativeMonthlyHours,
       notes: data.notes,
     },
   });
