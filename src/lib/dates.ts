@@ -120,3 +120,7 @@ export function monthRange(year: number, month: number): { start: Date; end: Dat
   const end = month === 12 ? dateOnlyUTC(year + 1, 1, 1) : dateOnlyUTC(year, month + 1, 1);
   return { start, end };
 }
+
+export function daysBetween(a: Date, b: Date): number {
+  return Math.round((b.getTime() - a.getTime()) / DAY_MS);
+}

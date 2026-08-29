@@ -17,6 +17,7 @@ export default async function BackOfficeLayout({
     <div className="flex min-h-full flex-1 flex-col">
       <nav className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
         <div className="flex gap-4 text-sm font-medium">
+          {user.role === "ADMIN" && <Link href="/dashboard">Tableau de bord</Link>}
           <Link href="/clients">Clients</Link>
           <Link href="/sites">Sites</Link>
           <Link href="/contracts">Contrats</Link>
