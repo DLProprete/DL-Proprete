@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getContract } from "@/server/contracts/queries";
 import { formatTime } from "@/lib/dates";
-import { setServiceTemplateActiveAction } from "../actions";
+import { setServiceTemplateActiveAction, createServiceExceptionAction } from "../actions";
 import { ServiceTemplateForm } from "./ServiceTemplateForm";
+
+const EXCEPTION_TYPE_LABELS: Record<string, string> = { SKIP: "Annulée", EXTRA: "Ajoutée" };
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Brouillon",
@@ -93,6 +95,41 @@ export default async function ContractDetailPage({
                   {template.instructions && (
                     <p className="text-zinc-500">{template.instructions}</p>
                   )}
+                  {template.serviceExceptions.length > 0 && (
+                    <ul className="mt-1 text-xs text-zinc-500">
+                      {template.serviceExceptions.map((exception) => (
+                        <li key={exception.id}>
+                          {formatDate(exception.date)} —{" "}
+                          {EXCEPTION_TYPE_LABELS[exception.type] ?? exception.type}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <form
+                    action={createServiceExceptionAction.bind(null, contract.id, template.id)}
+                    className="mt-1 flex items-center gap-2"
+                  >
+                    <input
+                      type="date"
+                      name="date"
+                      required
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                    />
+                    <select
+                      name="type"
+                      defaultValue="SKIP"
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                    >
+                      <option value="SKIP">Annuler ce jour</option>
+                      <option value="EXTRA">Ajouter ce jour</option>
+                    </select>
+                    <button
+                      type="submit"
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50"
+                    >
+                      Exception
+                    </button>
+                  </form>
                 </div>
                 <form action={toggleActive}>
                   <button type="submit" className="text-xs text-zinc-500 underline">

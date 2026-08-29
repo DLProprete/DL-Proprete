@@ -10,8 +10,14 @@ import {
   parseDateOnly,
   startOfWeekMonday,
 } from "@/lib/dates";
+import { listHolidays } from "@/server/holidays/queries";
 import { SHIFT_STATUS_LABELS } from "./shift-labels";
-import { assignAgentAction, cancelAssignmentAction, generateShiftsAction } from "./actions";
+import {
+  assignAgentAction,
+  cancelAssignmentAction,
+  generateShiftsAction,
+  importHolidaysAction,
+} from "./actions";
 
 type Shift = Awaited<ReturnType<typeof listShiftsForWeek>>[number];
 
@@ -36,7 +42,11 @@ export default async function PlanningWeekPage({
   const nextWeek = addDays(weekStart, 7);
   const returnTo = `/planning?week=${formatDateOnly(weekStart)}`;
 
-  const [shifts, agents] = await Promise.all([listShiftsForWeek(user, weekStart), listAgents(user)]);
+  const [shifts, agents, holidays] = await Promise.all([
+    listShiftsForWeek(user, weekStart),
+    listAgents(user),
+    user.role === "ADMIN" ? listHolidays(user, today.year) : Promise.resolve([]),
+  ]);
 
   const shiftsByAgent = new Map<string, Shift[]>();
   for (const agent of agents) shiftsByAgent.set(agent.id, []);
@@ -76,6 +86,45 @@ export default async function PlanningWeekPage({
         <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           Affectation refusée : conflit d&apos;horaire avec une autre vacation, ou agent invalide.
         </p>
+      )}
+      {error && error !== "conflict" && (
+        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          Affectation refusée — {error}
+        </p>
+      )}
+
+      {user.role === "ADMIN" && (
+        <div className="rounded border border-zinc-200 p-4 text-sm">
+          <h2 className="font-medium text-zinc-700">Jours fériés</h2>
+          <form action={importHolidaysAction.bind(null, returnTo)} className="mt-2 flex items-end gap-2">
+            <div>
+              <label htmlFor="year" className="block text-xs text-zinc-500">
+                Année
+              </label>
+              <input
+                id="year"
+                name="year"
+                type="number"
+                defaultValue={today.year}
+                className="mt-1 w-24 rounded border border-zinc-300 px-2 py-1"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded border border-zinc-300 px-3 py-2 text-xs hover:bg-zinc-50"
+            >
+              Importer jours fériés année
+            </button>
+          </form>
+          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+            {holidays.map((holiday) => (
+              <li key={holiday.id}>
+                {formatDay(holiday.date)} — {holiday.name}
+              </li>
+            ))}
+            {holidays.length === 0 && <li>Aucun jour férié importé pour {today.year}.</li>}
+          </ul>
+        </div>
       )}
 
       <div className="flex items-center justify-between text-sm">

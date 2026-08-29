@@ -9,11 +9,13 @@ import {
   cancelAssignment,
   AssignmentConflictError,
   InvalidAssigneeError,
+  AgentConstraintViolationError,
 } from "@/server/planning/assignments";
+import { importHolidays } from "@/server/holidays/actions";
 
-function withConflictError(returnTo: string): string {
+function withError(returnTo: string, error: string): string {
   const separator = returnTo.includes("?") ? "&" : "?";
-  return `${returnTo}${separator}error=conflict`;
+  return `${returnTo}${separator}error=${encodeURIComponent(error)}`;
 }
 
 export async function generateShiftsAction(returnTo: string) {
@@ -32,7 +34,10 @@ export async function assignAgentAction(shiftId: string, returnTo: string, formD
     await assignAgent(user, shiftId, agentUserId);
   } catch (error) {
     if (error instanceof AssignmentConflictError || error instanceof InvalidAssigneeError) {
-      redirect(withConflictError(returnTo));
+      redirect(withError(returnTo, "conflict"));
+    }
+    if (error instanceof AgentConstraintViolationError) {
+      redirect(withError(returnTo, error.message));
     }
     throw error;
   }
@@ -47,5 +52,13 @@ export async function cancelAssignmentAction(assignmentId: string, returnTo: str
   await cancelAssignment(user, assignmentId);
   revalidatePath("/planning");
   revalidatePath("/planning/day");
+  redirect(returnTo);
+}
+
+export async function importHolidaysAction(returnTo: string, formData: FormData) {
+  const user = await requireSession();
+  const year = Number(formData.get("year"));
+  await importHolidays(user, year);
+  revalidatePath("/planning");
   redirect(returnTo);
 }

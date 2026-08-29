@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
-import { addDays, dateOnlyUTC, parisToday, parisWallTimeToUTC } from "@/lib/dates";
+import { addDays, dateOnlyUTC, formatDateOnly, parisToday, parisWallTimeToUTC } from "@/lib/dates";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 const WINDOW_DAYS = 56; // 8 semaines glissantes
@@ -21,6 +21,25 @@ export async function generateShifts(user: SessionUser) {
     include: { serviceTemplates: { where: { isActive: true } } },
   });
 
+  const holidays = await prisma.holiday.findMany({
+    where: { date: { gte: windowStart, lte: windowEnd } },
+  });
+  const holidaySet = new Set(holidays.map((h) => formatDateOnly(h.date)));
+
+  const exceptions = await prisma.serviceException.findMany({
+    where: { date: { gte: windowStart, lte: windowEnd } },
+  });
+  // SKIP l'emporte toujours ; EXTRA force la génération un jour normalement
+  // non planifié ou un jour férié (voir docs de session : priorité générateur).
+  const skipKeys = new Set<string>();
+  const extraKeys = new Set<string>();
+  for (const exception of exceptions) {
+    const dateKey = formatDateOnly(exception.date);
+    const bucket = exception.type === "SKIP" ? skipKeys : extraKeys;
+    if (exception.serviceTemplateId) bucket.add(`t:${exception.serviceTemplateId}:${dateKey}`);
+    if (exception.siteId) bucket.add(`s:${exception.siteId}:${dateKey}`);
+  }
+
   const rows: Prisma.ShiftCreateManyInput[] = [];
 
   for (const contract of contracts) {
@@ -28,9 +47,17 @@ export async function generateShifts(user: SessionUser) {
       for (let cursor = windowStart; cursor <= windowEnd; cursor = addDays(cursor, 1)) {
         if (cursor < contract.startsOn || cursor > contract.endsOn) continue;
 
+        const dateKey = formatDateOnly(cursor);
+        const templateKey = `t:${template.id}:${dateKey}`;
+        const siteKey = `s:${contract.siteId}:${dateKey}`;
+        if (skipKeys.has(templateKey) || skipKeys.has(siteKey)) continue;
+
+        const isExtra = extraKeys.has(templateKey) || extraKeys.has(siteKey);
         const weekday = cursor.getUTCDay(); // 0=dimanche..6=samedi
         const dayOfWeek = weekday === 0 ? 7 : weekday; // 1=lundi..7=dimanche
-        if (!template.daysOfWeek.includes(dayOfWeek)) continue;
+        const isScheduledWeekday = template.daysOfWeek.includes(dayOfWeek);
+        if (!isScheduledWeekday && !isExtra) continue;
+        if (holidaySet.has(dateKey) && !isExtra) continue;
 
         const year = cursor.getUTCFullYear();
         const month = cursor.getUTCMonth() + 1;
