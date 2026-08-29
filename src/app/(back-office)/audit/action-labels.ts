@@ -1,0 +1,16 @@
+export const AUDIT_ACTION_LABELS: Record<string, string> = {
+  TIME_VALIDATED: "Pointage validé",
+  TIME_REJECTED: "Pointage rejeté",
+  CONTRACT_CREATED: "Contrat créé",
+  CONTRACT_UPDATED: "Contrat modifié",
+  CONTRACT_ACTIVATED: "Contrat activé",
+  INVOICE_ISSUED: "Facture émise",
+  INVOICE_PAYMENT: "Paiement enregistré",
+  ABSENCE_APPROVED: "Absence approuvée",
+  ABSENCE_REJECTED: "Absence rejetée",
+  AGENT_CREATED: "Agent créé",
+  AGENT_DEACTIVATED: "Agent désactivé",
+  PASSWORD_RESET: "Mot de passe réinitialisé",
+  ASSIGNMENT_CREATED: "Affectation créée",
+  ASSIGNMENT_REMOVED: "Affectation retirée",
+};

@@ -104,7 +104,11 @@ Cible Prisma / PostgreSQL. Les noms d’entités restent en anglais dans le code
 - reference
 
 ### AuditLog
-- id, actorId, action, entity, entityId, createdAt, payload (JSON)
+- id, createdAt, actorUserId, action, entityType, entityId
+- summary (texte court, lisible humainement)
+- metadata (JSON optionnel)
+- Jamais de mot de passe ni de contenu de justificatif dans summary/metadata.
+- Aucune suppression (règle dure) ; ADMIN uniquement en lecture (page `/audit`).
 
 ## Règles d’intégrité
 

@@ -26,6 +26,7 @@ export default async function BackOfficeLayout({
           {user.role === "ADMIN" && <Link href="/absence-review">Absences</Link>}
           {user.role === "ADMIN" && <Link href="/invoices">Factures</Link>}
           {user.role === "ADMIN" && <Link href="/team">Équipe</Link>}
+          {user.role === "ADMIN" && <Link href="/audit">Audit</Link>}
           {user.role === "ADMIN" && <Link href="/settings">Paramètres</Link>}
         </div>
         <form action={logoutAction}>

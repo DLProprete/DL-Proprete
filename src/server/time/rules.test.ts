@@ -80,6 +80,7 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
   });
 
   afterAll(async () => {
+    await prisma.auditLog.deleteMany({ where: { actorUserId: adminUser.id } });
     await prisma.timeEntry.deleteMany({ where: { userId: agentUser.id } });
     await prisma.shift.delete({ where: { id: shiftId } });
     await prisma.contract.deleteMany({ where: { siteId } });
@@ -116,6 +117,12 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
     });
     const validated = await validateTimeEntry(adminUser, submitted.id);
     expect(validated.status).toBe("VALIDATED");
+
+    const auditRows = await prisma.auditLog.findMany({
+      where: { action: "TIME_VALIDATED", entityType: "TimeEntry", entityId: validated.id },
+    });
+    expect(auditRows).toHaveLength(1);
+    expect(auditRows[0].actorUserId).toBe(adminUser.id);
 
     await expect(endTimeEntry(agentUser, validated.id)).rejects.toBeInstanceOf(
       TimeEntryNotModifiableError,

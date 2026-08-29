@@ -482,18 +482,21 @@ model Payment {
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  actorId   String?
-  action    String
-  entity    String
-  entityId  String
-  payload   Json?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String
+  summary     String
+  metadata    Json?
 
-  actor User? @relation(fields: [actorId], references: [id])
+  actor User? @relation(fields: [actorUserId], references: [id])
 
-  @@index([entity, entityId])
+  @@index([entityType, entityId])
   @@index([createdAt])
+  @@index([actorUserId])
+  @@index([action])
 }
 
 // Utilitaire technique — voir section 3, non présent dans DATA-MODEL.md.
