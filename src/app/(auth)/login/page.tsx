@@ -14,7 +14,10 @@ export default async function LoginPage({
         className="w-full max-w-sm space-y-4 rounded border border-zinc-200 p-6"
       >
         <h1 className="text-lg font-semibold">DL Propreté — Connexion</h1>
-        {error && (
+        {error === "rate_limit" && (
+          <p className="text-sm text-red-600">Trop de tentatives, réessayez plus tard.</p>
+        )}
+        {error && error !== "rate_limit" && (
           <p className="text-sm text-red-600">Identifiants incorrects.</p>
         )}
         <div>

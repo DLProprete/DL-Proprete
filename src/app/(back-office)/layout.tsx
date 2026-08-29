@@ -25,6 +25,7 @@ export default async function BackOfficeLayout({
           <Link href="/time-entries">Pointages</Link>
           {user.role === "ADMIN" && <Link href="/absence-review">Absences</Link>}
           {user.role === "ADMIN" && <Link href="/invoices">Factures</Link>}
+          {user.role === "ADMIN" && <Link href="/settings">Paramètres</Link>}
         </div>
         <form action={logoutAction}>
           <button type="submit" className="text-sm text-zinc-500 hover:text-zinc-900">

@@ -1,19 +1,14 @@
 import PDFDocument from "pdfkit";
-import type { Prisma } from "@prisma/client";
+import type { CompanyProfile, Prisma } from "@prisma/client";
 
 type InvoiceForPdf = Prisma.InvoiceGetPayload<{
   include: { client: true; lines: true };
 }>;
 
-const COMPANY = {
-  name: "DL PROPRETE",
-  form: "SAS",
-  address: "3 rue de Verdun, 14460 Colombelles",
-  siret: "531 739 241 00044",
-  vat: "FR64 531 739 241",
-};
-
-export async function generateInvoicePdf(invoice: InvoiceForPdf): Promise<Buffer> {
+export async function generateInvoicePdf(
+  invoice: InvoiceForPdf,
+  company: CompanyProfile,
+): Promise<Buffer> {
   const doc = new PDFDocument({ size: "A4", margin: 50 });
   const chunks: Buffer[] = [];
   doc.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -21,13 +16,10 @@ export async function generateInvoicePdf(invoice: InvoiceForPdf): Promise<Buffer
     doc.on("end", () => resolve(Buffer.concat(chunks)));
   });
 
-  doc.fontSize(16).text(COMPANY.name, { continued: false });
-  doc
-    .fontSize(9)
-    .text(COMPANY.form)
-    .text(COMPANY.address)
-    .text(`SIRET ${COMPANY.siret}`)
-    .text(`TVA intracommunautaire ${COMPANY.vat}`);
+  doc.fontSize(16).text(company.legalName, { continued: false });
+  doc.fontSize(9).text(company.address);
+  if (company.siret) doc.text(`SIRET ${company.siret}`);
+  if (company.vatNumber) doc.text(`TVA intracommunautaire ${company.vatNumber}`);
 
   doc.moveDown(2);
   doc
@@ -90,6 +82,9 @@ export async function generateInvoicePdf(invoice: InvoiceForPdf): Promise<Buffer
       "Facturation en régie au prévu (heures planifiées du mois × tarif horaire du contrat). Aucune pénalité de retard sans mention contractuelle contraire.",
       { align: "left" },
     );
+  if (company.iban) {
+    doc.text(`IBAN : ${company.iban}`, { align: "left" });
+  }
 
   doc.end();
   return done;
