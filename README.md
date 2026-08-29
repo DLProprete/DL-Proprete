@@ -1,4 +1,4 @@
-# DL Propreté — dossier de cadrage pour Claude Code
+# DL Propreté — dossier de cadrage
 
 Ce dossier sert de point de départ pour développer l’outil interne de gestion
 (contrats de sites, planning agents, pointage, absences, facturation mensuelle).
