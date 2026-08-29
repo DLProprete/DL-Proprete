@@ -107,6 +107,35 @@ export default async function NewContractPage({
             <option value="ACTIVE">Actif</option>
           </select>
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="billingBasis" className="block text-sm text-zinc-700">
+              Base de facturation
+            </label>
+            <select
+              id="billingBasis"
+              name="billingBasis"
+              defaultValue="CALENDAR_SHIFTS"
+              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            >
+              <option value="CALENDAR_SHIFTS">Vacations du mois (régie au prévu)</option>
+              <option value="FLAT_INDICATIVE_HOURS">Forfait mensuel fixe</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="indicativeMonthlyHours" className="block text-sm text-zinc-700">
+              Heures mensuelles (si forfait)
+            </label>
+            <input
+              id="indicativeMonthlyHours"
+              name="indicativeMonthlyHours"
+              type="number"
+              step="0.01"
+              min="0"
+              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            />
+          </div>
+        </div>
         <div>
           <label htmlFor="notes" className="block text-sm text-zinc-700">
             Notes

@@ -1,0 +1,100 @@
+import PDFDocument from "pdfkit";
+import type { Prisma } from "@prisma/client";
+
+type InvoiceForPdf = Prisma.InvoiceGetPayload<{
+  include: { client: true; lines: true };
+}>;
+
+const COMPANY = {
+  name: "DL PROPRETE",
+  form: "SAS",
+  address: "3 rue de Verdun, 14460 Colombelles",
+  siret: "531 739 241 00044",
+  vat: "FR64 531 739 241",
+};
+
+export async function generateInvoicePdf(invoice: InvoiceForPdf): Promise<Buffer> {
+  const doc = new PDFDocument({ size: "A4", margin: 50 });
+  const chunks: Buffer[] = [];
+  doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+  const done = new Promise<Buffer>((resolve) => {
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+  });
+
+  doc.fontSize(16).text(COMPANY.name, { continued: false });
+  doc
+    .fontSize(9)
+    .text(COMPANY.form)
+    .text(COMPANY.address)
+    .text(`SIRET ${COMPANY.siret}`)
+    .text(`TVA intracommunautaire ${COMPANY.vat}`);
+
+  doc.moveDown(2);
+  doc
+    .fontSize(14)
+    .text(invoice.status === "DRAFT" ? "BROUILLON" : `Facture ${invoice.number}`, { align: "right" });
+  doc
+    .fontSize(9)
+    .text(invoice.issuedOn ? `Date d'émission : ${formatDate(invoice.issuedOn)}` : "Non émise", {
+      align: "right",
+    })
+    .text(invoice.dueOn ? `Échéance : ${formatDate(invoice.dueOn)}` : "", { align: "right" });
+
+  doc.moveDown(1);
+  doc.fontSize(11).text(invoice.client.legalName);
+  doc.fontSize(9).text(invoice.client.billingAddress);
+  if (invoice.client.siret) doc.text(`SIRET ${invoice.client.siret}`);
+
+  doc.moveDown(2);
+  const tableTop = doc.y;
+  doc.fontSize(9).font("Helvetica-Bold");
+  doc.text("Désignation", 50, tableTop, { width: 220 });
+  doc.text("Qté", 280, tableTop, { width: 60, align: "right" });
+  doc.text("PU HT", 340, tableTop, { width: 70, align: "right" });
+  doc.text("TVA", 410, tableTop, { width: 50, align: "right" });
+  doc.text("Total HT", 460, tableTop, { width: 90, align: "right" });
+  doc.moveDown(0.5);
+  doc
+    .moveTo(50, doc.y)
+    .lineTo(550, doc.y)
+    .stroke();
+  doc.font("Helvetica");
+
+  for (const line of invoice.lines) {
+    const y = doc.y + 4;
+    const lineHT = Number(line.quantity) * Number(line.unitPriceHT);
+    doc.text(line.label, 50, y, { width: 220 });
+    doc.text(Number(line.quantity).toFixed(2), 280, y, { width: 60, align: "right" });
+    doc.text(`${Number(line.unitPriceHT).toFixed(2)} €`, 340, y, { width: 70, align: "right" });
+    doc.text(`${Number(line.vatRate).toFixed(0)} %`, 410, y, { width: 50, align: "right" });
+    doc.text(`${lineHT.toFixed(2)} €`, 460, y, { width: 90, align: "right" });
+    doc.moveDown(1.2);
+  }
+
+  doc
+    .moveTo(50, doc.y)
+    .lineTo(550, doc.y)
+    .stroke();
+  doc.moveDown(0.5);
+
+  doc.font("Helvetica-Bold");
+  doc.text(`Total HT : ${Number(invoice.amountHT).toFixed(2)} €`, { align: "right" });
+  doc.text(`TVA : ${Number(invoice.vatAmount).toFixed(2)} €`, { align: "right" });
+  doc.text(`Total TTC : ${Number(invoice.amountTTC).toFixed(2)} €`, { align: "right" });
+
+  doc.moveDown(2);
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .text(
+      "Facturation en régie au prévu (heures planifiées du mois × tarif horaire du contrat). Aucune pénalité de retard sans mention contractuelle contraire.",
+      { align: "left" },
+    );
+
+  doc.end();
+  return done;
+}
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC" }).format(date);
+}

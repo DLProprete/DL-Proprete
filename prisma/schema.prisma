@@ -360,6 +360,12 @@ model Invoice {
   id               String           @id @default(cuid())
   clientId         String
   contractId       String?
+  // Mois de prestation facturé (pas la date d'émission, qui peut être le
+  // mois suivant — cf. Contract.billingDayOfMonth). Sert à empêcher de
+  // refacturer une même période pour un même contrat une fois émise ;
+  // absent de docs/DATA-MODEL.md, ajout technique voir docs/ARCHITECTURE.md.
+  periodYear       Int?
+  periodMonth      Int?
   number           String?          @unique
   issuedOn         DateTime?        @db.Date
   dueOn            DateTime?        @db.Date
@@ -377,6 +383,7 @@ model Invoice {
   payments Payment[]
 
   @@index([status, issuedOn])
+  @@index([contractId, periodYear, periodMonth])
 }
 
 model InvoiceLine {

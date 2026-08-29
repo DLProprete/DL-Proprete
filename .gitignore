@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# justificatifs uploadés (arrêts maladie, etc.) — jamais dans le dépôt
+/uploads
+
 # vercel
 .vercel
 
