@@ -43,6 +43,15 @@ enum AssignmentStatus {
   CANCELLED
 }
 
+enum HolidayScope {
+  COMPANY
+}
+
+enum ServiceExceptionType {
+  SKIP
+  EXTRA
+}
+
 enum TimeEntryStatus {
   OPEN
   SUBMITTED
@@ -113,6 +122,20 @@ model User {
   isActive            Boolean   @default(true)
   hiredAt             DateTime?
   endedAt             DateTime?
+  // --- Profil agent (Session 10) ---
+  birthDate           DateTime? @db.Date
+  homeAddress         String?
+  homeCity            String?
+  homePostalCode      String?
+  homeLat             Float?
+  homeLng             Float?
+  hasDrivingLicense   Boolean   @default(false)
+  // Heure murale (ancrée 1970-01-01 UTC), même convention que
+  // ServiceTemplate.startTime/endTime — voir src/lib/dates.ts.
+  maxEndTime          DateTime? @db.Time
+  minStartTime        DateTime? @db.Time
+  noWorkWeekdays      Int[]     @default([])
+  notes               String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -121,7 +144,7 @@ model User {
   assignments          Assignment[]
   timeEntries          TimeEntry[]
   absences             Absence[]
-  validatedTimeEntries TimeEntry[] @relation("TimeEntryValidatedBy")
+  validatedTimeEntries TimeEntry[]  @relation("TimeEntryValidatedBy")
   auditLogs            AuditLog[]
 
   @@index([role])
@@ -216,35 +239,36 @@ model Site {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  client      Client      @relation(fields: [clientId], references: [id])
-  contracts   Contract[]
-  shifts      Shift[]
-  timeEntries TimeEntry[]
+  client            Client             @relation(fields: [clientId], references: [id])
+  contracts         Contract[]
+  shifts            Shift[]
+  timeEntries       TimeEntry[]
+  serviceExceptions ServiceException[]
 
   @@index([clientId])
 }
 
 model Contract {
-  id                   String         @id @default(cuid())
-  clientId             String
-  siteId               String
-  reference            String
-  startsOn             DateTime       @db.Date
-  endsOn               DateTime       @db.Date
-  billingMode          BillingMode    @default(TIME_AND_MATERIALS_PLANNED)
-  billingBasis         BillingBasis   @default(CALENDAR_SHIFTS)
-  hourlyRateHT         Decimal        @db.Decimal(8, 2)
-  indicativeMonthlyHours Decimal?     @db.Decimal(7, 2)
-  vatRate              Decimal        @default(20) @db.Decimal(4, 2)
-  billingDayOfMonth    Int            @default(1)
-  status               ContractStatus @default(DRAFT)
-  renewalNoticeDays    Int            @default(60)
-  notes                String?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  id                     String         @id @default(cuid())
+  clientId               String
+  siteId                 String
+  reference              String
+  startsOn               DateTime       @db.Date
+  endsOn                 DateTime       @db.Date
+  billingMode            BillingMode    @default(TIME_AND_MATERIALS_PLANNED)
+  billingBasis           BillingBasis   @default(CALENDAR_SHIFTS)
+  hourlyRateHT           Decimal        @db.Decimal(8, 2)
+  indicativeMonthlyHours Decimal?       @db.Decimal(7, 2)
+  vatRate                Decimal        @default(20) @db.Decimal(4, 2)
+  billingDayOfMonth      Int            @default(1)
+  status                 ContractStatus @default(DRAFT)
+  renewalNoticeDays      Int            @default(60)
+  notes                  String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
 
-  client           Client             @relation(fields: [clientId], references: [id])
-  site             Site               @relation(fields: [siteId], references: [id])
+  client           Client            @relation(fields: [clientId], references: [id])
+  site             Site              @relation(fields: [siteId], references: [id])
   serviceTemplates ServiceTemplate[]
   shifts           Shift[]
   invoices         Invoice[]
@@ -267,8 +291,9 @@ model ServiceTemplate {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  contract Contract @relation(fields: [contractId], references: [id])
-  shifts   Shift[]
+  contract          Contract           @relation(fields: [contractId], references: [id])
+  shifts            Shift[]
+  serviceExceptions ServiceException[]
 
   @@index([contractId])
 }
@@ -293,9 +318,9 @@ model Shift {
   assignments     Assignment[]
   timeEntries     TimeEntry[]
 
+  @@unique([serviceTemplateId, date, startAt], name: "uniq_generated_occurrence")
   @@index([date, siteId])
   @@index([contractId, date])
-  @@unique([serviceTemplateId, date, startAt], name: "uniq_generated_occurrence")
 }
 
 model Assignment {
@@ -316,20 +341,20 @@ model Assignment {
 }
 
 model TimeEntry {
-  id                String           @id @default(cuid())
+  id                String          @id @default(cuid())
   userId            String
   siteId            String
   shiftId           String?
   clockInAt         DateTime
   clockOutAt        DateTime?
-  status            TimeEntryStatus  @default(OPEN)
-  source            TimeEntrySource  @default(MOBILE)
+  status            TimeEntryStatus @default(OPEN)
+  source            TimeEntrySource @default(MOBILE)
   note              String?
   validatedById     String?
   validatedAt       DateTime?
-  payrollExportable Boolean          @default(true)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  payrollExportable Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   user        User   @relation(fields: [userId], references: [id])
   site        Site   @relation(fields: [siteId], references: [id])
@@ -448,4 +473,34 @@ model CompanyProfile {
   vatNumber String?
   iban      String?
   updatedAt DateTime @updatedAt
+}
+
+// Jours fériés France (Calvados = métropole, pas de jour local spécifique) —
+// le générateur de Shift (docs/ARCHITECTURE.md module 4) ignore ces dates.
+model Holiday {
+  id    String       @id @default(cuid())
+  date  DateTime     @db.Date
+  name  String
+  scope HolidayScope @default(COMPANY)
+
+  @@unique([date, scope])
+}
+
+// SKIP (n'exécute pas ce créneau normalement planifié) ou EXTRA (force une
+// occurrence hors planning habituel), rattaché à une ServiceTemplate ou à un
+// Site entier — au moins l'un des deux, validé en Zod/action (comme
+// Absence.documentPath pour SICK), pas en contrainte SQL.
+model ServiceException {
+  id                String               @id @default(cuid())
+  serviceTemplateId String?
+  siteId            String?
+  date              DateTime             @db.Date
+  type              ServiceExceptionType
+  notes             String?
+  createdAt         DateTime             @default(now())
+
+  serviceTemplate ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
+  site            Site?            @relation(fields: [siteId], references: [id])
+
+  @@index([date])
 }

@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { addDays, dateOnlyUTC, daysBetween, parisToday } from "@/lib/dates";
+import { agentConstraintViolation } from "@/server/planning/agent-constraints";
+import { hasSchedulingConflict } from "@/server/planning/conflicts";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
+const MAX_SUGGESTIONS = 3;
 
 // Vacations non pourvues aujourd'hui ou demain (Europe/Paris).
 export async function getUnstaffedShiftsTodayTomorrow(user: SessionUser) {
@@ -19,6 +22,27 @@ export async function getUnstaffedShiftsTodayTomorrow(user: SessionUser) {
     include: { site: { select: { name: true } } },
     orderBy: [{ date: "asc" }, { startAt: "asc" }],
   });
+}
+
+// Jusqu'à 3 agents actifs compatibles (contraintes + pas de chevauchement)
+// pour une vacation non pourvue — pas de notion de proximité géographique
+// (pas d'appel Google Maps, pas d'itinéraire inventé).
+export async function suggestAgentsForShift(user: SessionUser, shiftId: string) {
+  requireRole(user, [...MANAGE_ROLES]);
+  const shift = await prisma.shift.findUniqueOrThrow({ where: { id: shiftId } });
+  const agents = await prisma.user.findMany({
+    where: { role: "AGENT", isActive: true },
+    orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+  });
+
+  const suggestions: { id: string; firstName: string; lastName: string }[] = [];
+  for (const agent of agents) {
+    if (suggestions.length >= MAX_SUGGESTIONS) break;
+    if (agentConstraintViolation(agent, shift)) continue;
+    if (await hasSchedulingConflict(agent.id, shift.startAt, shift.endAt)) continue;
+    suggestions.push({ id: agent.id, firstName: agent.firstName, lastName: agent.lastName });
+  }
+  return suggestions;
 }
 
 // Pointages en cours depuis plus de 12h — a priori un oubli de "Terminer".

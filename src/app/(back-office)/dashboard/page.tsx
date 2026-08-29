@@ -6,6 +6,7 @@ import {
   getLongOpenTimeEntries,
   getUnpaidIssuedInvoices,
   getContractsEndingSoon,
+  suggestAgentsForShift,
 } from "@/server/dashboard/queries";
 import { formatTimeInParis } from "@/lib/dates";
 
@@ -27,6 +28,14 @@ export default async function DashboardPage() {
   ]);
 
   const today = new Date();
+
+  const suggestionsByShiftId = new Map(
+    await Promise.all(
+      unstaffedShifts
+        .filter((shift) => shift.status === "UNSTAFFED")
+        .map(async (shift) => [shift.id, await suggestAgentsForShift(user, shift.id)] as const),
+    ),
+  );
 
   return (
     <div className="max-w-4xl space-y-8">
@@ -61,15 +70,27 @@ export default async function DashboardPage() {
           Vacations non pourvues — aujourd&apos;hui et demain
         </h2>
         <ul className="mt-2 divide-y divide-zinc-100 text-sm">
-          {unstaffedShifts.map((shift) => (
-            <li key={shift.id} className="py-2">
-              {formatDate(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
-              {formatTimeInParis(shift.endAt)}
-              <span className="ml-2 text-zinc-400">
-                {shift.status === "UNSTAFFED" ? "non pourvu" : "partiellement pourvu"}
-              </span>
-            </li>
-          ))}
+          {unstaffedShifts.map((shift) => {
+            const suggestions = suggestionsByShiftId.get(shift.id);
+            return (
+              <li key={shift.id} className="py-2">
+                {formatDate(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
+                {formatTimeInParis(shift.endAt)}
+                <span className="ml-2 text-zinc-400">
+                  {shift.status === "UNSTAFFED" ? "non pourvu" : "partiellement pourvu"}
+                </span>
+                {suggestions && (
+                  <p className="text-xs text-zinc-500">
+                    {suggestions.length > 0
+                      ? `Suggestions : ${suggestions
+                          .map((agent) => `${agent.firstName} ${agent.lastName}`)
+                          .join(", ")}`
+                      : "Aucun agent compatible trouvé."}
+                  </p>
+                )}
+              </li>
+            );
+          })}
           {unstaffedShifts.length === 0 && (
             <li className="py-2 text-zinc-400">Rien à signaler.</li>
           )}

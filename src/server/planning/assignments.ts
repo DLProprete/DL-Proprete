@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { hasSchedulingConflict } from "./conflicts";
+import { agentConstraintViolation } from "./agent-constraints";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
 export class AssignmentConflictError extends Error {}
 export class InvalidAssigneeError extends Error {}
+export class AgentConstraintViolationError extends Error {}
 
 export async function recomputeShiftStatus(shiftId: string) {
   const shift = await prisma.shift.findUniqueOrThrow({ where: { id: shiftId } });
@@ -31,6 +33,11 @@ export async function assignAgent(user: SessionUser, shiftId: string, agentUserI
   const conflict = await hasSchedulingConflict(agentUserId, shift.startAt, shift.endAt);
   if (conflict) {
     throw new AssignmentConflictError("Cet agent a déjà une vacation qui chevauche ce créneau.");
+  }
+
+  const violation = agentConstraintViolation(agent, shift);
+  if (violation) {
+    throw new AgentConstraintViolationError(violation);
   }
 
   await prisma.assignment.create({ data: { shiftId, userId: agentUserId, status: "ASSIGNED" } });

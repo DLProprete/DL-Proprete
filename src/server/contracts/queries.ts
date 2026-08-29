@@ -21,7 +21,10 @@ export async function getContract(user: SessionUser, id: string) {
     include: {
       client: true,
       site: true,
-      serviceTemplates: { orderBy: { name: "asc" } },
+      serviceTemplates: {
+        orderBy: { name: "asc" },
+        include: { serviceExceptions: { orderBy: { date: "asc" } } },
+      },
     },
   });
 }

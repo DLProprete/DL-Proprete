@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { createContract, ContractOverlapError } from "@/server/contracts/actions";
 import { createServiceTemplate, setServiceTemplateActive } from "@/server/service-templates/actions";
+import { createServiceException } from "@/server/service-templates/exceptions";
 
 export async function createContractAction(formData: FormData) {
   const user = await requireSession();
@@ -59,4 +60,27 @@ export async function setServiceTemplateActiveAction(
   const user = await requireSession();
   await setServiceTemplateActive(user, id, isActive);
   revalidatePath(`/contracts/${contractId}`);
+}
+
+export async function createServiceExceptionAction(
+  contractId: string,
+  serviceTemplateId: string,
+  formData: FormData,
+) {
+  const user = await requireSession();
+  try {
+    await createServiceException(user, {
+      serviceTemplateId,
+      date: formData.get("date"),
+      type: formData.get("type"),
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const message = error.issues[0]?.message ?? "Données invalides.";
+      redirect(`/contracts/${contractId}?error=${encodeURIComponent(message)}`);
+    }
+    throw error;
+  }
+  revalidatePath(`/contracts/${contractId}`);
+  redirect(`/contracts/${contractId}`);
 }
