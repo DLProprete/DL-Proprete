@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { adhocLineInputSchema, paymentInputSchema } from "@/lib/zod/invoice";
 import { nextInvoiceNumber } from "./numbering";
+import { logAudit } from "@/server/audit/log";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
 
@@ -67,10 +68,18 @@ export async function issueInvoice(user: SessionUser, invoiceId: string) {
 
   return prisma.$transaction(async (tx) => {
     const number = await nextInvoiceNumber(tx, issuedOn.getUTCFullYear());
-    return tx.invoice.update({
+    const issued = await tx.invoice.update({
       where: { id: invoiceId },
       data: { number, status: "ISSUED", issuedOn, dueOn },
     });
+    await logAudit(tx, {
+      actorUserId: user.id,
+      action: "INVOICE_ISSUED",
+      entityType: "Invoice",
+      entityId: invoiceId,
+      summary: `Facture émise : ${number} — ${invoice.client.legalName}`,
+    });
+    return issued;
   });
 }
 
@@ -102,4 +111,12 @@ export async function recordPayment(user: SessionUser, invoiceId: string, input:
     },
   });
   await recomputeInvoicePaymentStatus(invoiceId);
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "INVOICE_PAYMENT",
+    entityType: "Invoice",
+    entityId: invoiceId,
+    summary: `Paiement enregistré : ${data.amount} € (${data.method}) — facture ${invoice.number ?? invoiceId}`,
+    metadata: { amount: data.amount, method: data.method },
+  });
 }

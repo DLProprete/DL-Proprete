@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { absenceInputSchema } from "@/lib/zod/absence";
 import { recomputeShiftStatus } from "@/server/planning/assignments";
+import { logAudit } from "@/server/audit/log";
 
 export class AbsenceNotPendingError extends Error {}
 export class MissingSickDocumentError extends Error {}
@@ -29,7 +30,10 @@ export async function declareAbsence(user: SessionUser, input: unknown) {
 // (régie au prévu, indépendante du pointage/de l'affectation).
 export async function approveAbsence(user: SessionUser, id: string) {
   requireRole(user, ["ADMIN"]);
-  const absence = await prisma.absence.findUniqueOrThrow({ where: { id } });
+  const absence = await prisma.absence.findUniqueOrThrow({
+    where: { id },
+    include: { user: { select: { firstName: true, lastName: true } } },
+  });
   if (absence.status !== "PENDING") {
     throw new AbsenceNotPendingError("Cette absence n'est plus en attente.");
   }
@@ -46,12 +50,19 @@ export async function approveAbsence(user: SessionUser, id: string) {
     select: { id: true, shiftId: true },
   });
 
-  await prisma.$transaction([
-    prisma.absence.update({ where: { id }, data: { status: "APPROVED" } }),
-    ...affectedAssignments.map((assignment) =>
-      prisma.assignment.update({ where: { id: assignment.id }, data: { status: "REPLACED" } }),
-    ),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await tx.absence.update({ where: { id }, data: { status: "APPROVED" } });
+    for (const assignment of affectedAssignments) {
+      await tx.assignment.update({ where: { id: assignment.id }, data: { status: "REPLACED" } });
+    }
+    await logAudit(tx, {
+      actorUserId: user.id,
+      action: "ABSENCE_APPROVED",
+      entityType: "Absence",
+      entityId: id,
+      summary: `Absence ${absence.type} approuvée : ${absence.user.firstName} ${absence.user.lastName}`,
+    });
+  });
 
   for (const assignment of affectedAssignments) {
     await recomputeShiftStatus(assignment.shiftId);
@@ -62,9 +73,20 @@ export async function approveAbsence(user: SessionUser, id: string) {
 
 export async function rejectAbsence(user: SessionUser, id: string) {
   requireRole(user, ["ADMIN"]);
-  const absence = await prisma.absence.findUniqueOrThrow({ where: { id } });
+  const absence = await prisma.absence.findUniqueOrThrow({
+    where: { id },
+    include: { user: { select: { firstName: true, lastName: true } } },
+  });
   if (absence.status !== "PENDING") {
     throw new AbsenceNotPendingError("Cette absence n'est plus en attente.");
   }
-  return prisma.absence.update({ where: { id }, data: { status: "REJECTED" } });
+  const updated = await prisma.absence.update({ where: { id }, data: { status: "REJECTED" } });
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "ABSENCE_REJECTED",
+    entityType: "Absence",
+    entityId: id,
+    summary: `Absence ${absence.type} rejetée : ${absence.user.firstName} ${absence.user.lastName}`,
+  });
+  return updated;
 }

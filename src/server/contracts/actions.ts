@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { contractInputSchema } from "@/lib/zod/contract";
 import { hasOverlappingActiveContract } from "./overlap";
+import { logAudit } from "@/server/audit/log";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
@@ -24,7 +25,7 @@ export async function createContract(user: SessionUser, input: unknown) {
     }
   }
 
-  return prisma.contract.create({
+  const contract = await prisma.contract.create({
     data: {
       clientId: site.clientId,
       siteId: data.siteId,
@@ -38,4 +39,12 @@ export async function createContract(user: SessionUser, input: unknown) {
       notes: data.notes,
     },
   });
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "CONTRACT_CREATED",
+    entityType: "Contract",
+    entityId: contract.id,
+    summary: `Contrat créé : ${contract.reference} — ${site.name}`,
+  });
+  return contract;
 }

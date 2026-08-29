@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { hasSchedulingConflict } from "./conflicts";
 import { agentConstraintViolation } from "./agent-constraints";
+import { logAudit } from "@/server/audit/log";
+import { formatDateOnly } from "@/lib/dates";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
@@ -40,8 +42,17 @@ export async function assignAgent(user: SessionUser, shiftId: string, agentUserI
     throw new AgentConstraintViolationError(violation);
   }
 
-  await prisma.assignment.create({ data: { shiftId, userId: agentUserId, status: "ASSIGNED" } });
+  const assignment = await prisma.assignment.create({
+    data: { shiftId, userId: agentUserId, status: "ASSIGNED" },
+  });
   await recomputeShiftStatus(shiftId);
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "ASSIGNMENT_CREATED",
+    entityType: "Assignment",
+    entityId: assignment.id,
+    summary: `Affectation créée : ${agent.firstName} ${agent.lastName} — ${formatDateOnly(shift.date)}`,
+  });
 }
 
 export async function cancelAssignment(user: SessionUser, assignmentId: string) {
@@ -49,6 +60,14 @@ export async function cancelAssignment(user: SessionUser, assignmentId: string) 
   const assignment = await prisma.assignment.update({
     where: { id: assignmentId },
     data: { status: "CANCELLED" },
+    include: { user: { select: { firstName: true, lastName: true } }, shift: { select: { date: true } } },
   });
   await recomputeShiftStatus(assignment.shiftId);
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "ASSIGNMENT_REMOVED",
+    entityType: "Assignment",
+    entityId: assignment.id,
+    summary: `Affectation retirée : ${assignment.user.firstName} ${assignment.user.lastName} — ${formatDateOnly(assignment.shift.date)}`,
+  });
 }
