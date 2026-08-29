@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/server/auth/session";
 import { generateInvoicePdf } from "@/server/billing/pdf";
+import { getCompanyProfile } from "@/server/settings/queries";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,7 +19,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
   }
 
-  const pdf = await generateInvoicePdf(invoice);
+  const company = await getCompanyProfile();
+  const pdf = await generateInvoicePdf(invoice, company);
 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {

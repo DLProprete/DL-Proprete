@@ -437,3 +437,15 @@ model InvoiceSequence {
   year       Int @id
   lastNumber Int @default(0)
 }
+
+// Ligne unique (id fixe "default") : coordonnées de l'entreprise pour le
+// pied de page des factures PDF (docs/ARCHITECTURE.md section 4, module 9).
+model CompanyProfile {
+  id        String   @id @default("default")
+  legalName String
+  address   String
+  siret     String?
+  vatNumber String?
+  iban      String?
+  updatedAt DateTime @updatedAt
+}
