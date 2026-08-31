@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import type { ReactNode } from "react";
 
 export type NavGroup = {
   label: string;
-  items: { href: string; label: string }[];
+  items: { href: string; label: string; icon: ReactNode }[];
 };
 
 export function Sidebar({
@@ -65,12 +66,13 @@ export function Sidebar({
                       <Link
                         href={item.href}
                         onClick={() => setOpen(false)}
-                        className={`block rounded px-2 py-1.5 text-sm font-medium ${
+                        className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm font-medium ${
                           active
                             ? "bg-brand-50 text-brand-700"
                             : "text-zinc-700 hover:bg-zinc-100"
                         }`}
                       >
+                        {item.icon}
                         {item.label}
                       </Link>
                     </li>
