@@ -19,7 +19,7 @@ export default async function NewContractPage({
           Un contrat actif existe déjà sur ce site pour une période qui chevauche.
         </p>
       )}
-      <form action={createContractAction} className="space-y-4">
+      <form action={createContractAction} className="card space-y-4">
         <div>
           <label htmlFor="siteId" className="block text-sm text-zinc-700">
             Site

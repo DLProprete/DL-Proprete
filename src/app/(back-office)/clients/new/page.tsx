@@ -4,7 +4,7 @@ export default function NewClientPage() {
   return (
     <div className="max-w-lg space-y-4">
       <h1 className="text-xl font-semibold">Nouveau client</h1>
-      <form action={createClientAction} className="space-y-4">
+      <form action={createClientAction} className="card space-y-4">
         <div>
           <label htmlFor="legalName" className="block text-sm text-zinc-700">
             Raison sociale
