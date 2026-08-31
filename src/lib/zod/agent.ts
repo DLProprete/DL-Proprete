@@ -7,7 +7,9 @@ export const agentProfileSchema = z.object({
   firstName: z.string().min(1, "Prénom requis"),
   lastName: z.string().min(1, "Nom requis"),
   phone: z.string().optional(),
-  birthDate: z.union([z.coerce.date(), z.literal("")]).optional(),
+  // Même piège que homeLat/homeLng : "" ne doit pas coercer vers 0 (0h/semaine
+  // serait faux et silencieux, pas "non renseigné").
+  weeklyContractHours: z.union([z.literal(""), z.coerce.number().nonnegative()]).optional(),
   homeAddress: z.string().optional(),
   homeCity: z.string().optional(),
   homePostalCode: z.string().optional(),
