@@ -118,6 +118,11 @@ model User {
   phone               String?
   role                Role      @default(AGENT)
   weeklyContractHours Decimal?  @db.Decimal(5, 2)
+  // Solde de congés acquis, saisi manuellement (jours) — pas de moteur de
+  // paie/accrual ici (règle dure CLAUDE.md), la règle d'acquisition réelle
+  // (CCN, temps partiel, report) n'est pas dans la spec. Concerne tout
+  // salarié, pas seulement le terrain (audit du 31/08/2026, Mo9).
+  paidLeaveBalance    Decimal?  @db.Decimal(5, 2)
   classification      String?
   isActive            Boolean   @default(true)
   hiredAt             DateTime?

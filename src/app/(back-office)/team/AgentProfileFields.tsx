@@ -21,6 +21,7 @@ type AgentProfileValues = {
   lastName?: string;
   phone?: string | null;
   weeklyContractHours?: Prisma.Decimal | number | null;
+  paidLeaveBalance?: Prisma.Decimal | number | null;
   homeAddress?: string | null;
   homeCity?: string | null;
   homePostalCode?: string | null;
@@ -124,6 +125,23 @@ export function AgentProfileFields({
           />
           <p className="mt-1 text-xs text-zinc-400">Nécessaire pour l&apos;alerte dépassement 35 h.</p>
         </div>
+      </div>
+      <div>
+        <label htmlFor="paidLeaveBalance" className="block text-sm text-zinc-700">
+          Solde de congés acquis (jours)
+        </label>
+        <input
+          id="paidLeaveBalance"
+          name="paidLeaveBalance"
+          type="number"
+          step="0.5"
+          min="0"
+          defaultValue={v.paidLeaveBalance != null ? Number(v.paidLeaveBalance) : ""}
+          className="mt-1 w-40 rounded border border-zinc-300 px-3 py-2"
+        />
+        <p className="mt-1 text-xs text-zinc-400">
+          Saisi à la main (ex. depuis le logiciel de paie) — non calculé ici.
+        </p>
       </div>
       {isFieldAgent && (
         <>

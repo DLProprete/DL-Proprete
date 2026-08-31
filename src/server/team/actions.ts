@@ -29,6 +29,8 @@ function toProfileData(data: AgentProfileInput) {
       data.weeklyContractHours === "" || data.weeklyContractHours === undefined
         ? null
         : data.weeklyContractHours,
+    paidLeaveBalance:
+      data.paidLeaveBalance === "" || data.paidLeaveBalance === undefined ? null : data.paidLeaveBalance,
     homeAddress: data.homeAddress || null,
     homeCity: data.homeCity || null,
     homePostalCode: data.homePostalCode || null,

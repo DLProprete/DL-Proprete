@@ -10,6 +10,8 @@ export const agentProfileSchema = z.object({
   // Même piège que homeLat/homeLng : "" ne doit pas coercer vers 0 (0h/semaine
   // serait faux et silencieux, pas "non renseigné").
   weeklyContractHours: z.union([z.literal(""), z.coerce.number().nonnegative()]).optional(),
+  // Solde acquis saisi à la main (Mo9) — même piège "" que ci-dessus.
+  paidLeaveBalance: z.union([z.literal(""), z.coerce.number().nonnegative()]).optional(),
   homeAddress: z.string().optional(),
   homeCity: z.string().optional(),
   homePostalCode: z.string().optional(),
