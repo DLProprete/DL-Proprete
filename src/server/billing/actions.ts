@@ -4,12 +4,19 @@ import { adhocLineInputSchema, paymentInputSchema, reminderInputSchema } from "@
 import { nextInvoiceNumber } from "./numbering";
 import { logAudit } from "@/server/audit/log";
 import { formatDateOnly } from "@/lib/dates";
+import { getCompanyProfile } from "@/server/settings/queries";
+import {
+  companyProfileToLegalIdentity,
+  describeMissingMentions,
+  missingLegalMentions,
+} from "./legal-mentions";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
 
 export class InvoiceNotDraftError extends Error {}
 export class InvoiceNotIssuedError extends Error {}
 export class EmptyInvoiceError extends Error {}
+export class InvoiceLegalMentionsIncompleteError extends Error {}
 
 export async function recomputeInvoiceTotals(invoiceId: string) {
   const lines = await prisma.invoiceLine.findMany({ where: { invoiceId } });
@@ -62,6 +69,17 @@ export async function issueInvoice(user: SessionUser, invoiceId: string) {
   }
   if (invoice.lines.length === 0) {
     throw new EmptyInvoiceError("Une facture sans ligne ne peut pas être émise.");
+  }
+
+  // Controle avant emission, pas apres : une facture emise est verrouillee et
+  // ne se corrige que par un avoir. Un bandeau seul sur la fiche facture
+  // etait contournable en cliquant simplement sur "Emettre".
+  const company = await getCompanyProfile();
+  const missingMentions = missingLegalMentions(companyProfileToLegalIdentity(company));
+  if (missingMentions.length > 0) {
+    throw new InvoiceLegalMentionsIncompleteError(
+      `Mentions légales incomplètes : ${describeMissingMentions(missingMentions)}. Compléter les paramètres avant d'émettre.`,
+    );
   }
 
   const issuedOn = new Date();

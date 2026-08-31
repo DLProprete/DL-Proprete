@@ -3,7 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getInvoice, getValidatedHoursForContractMonth } from "@/server/billing/queries";
 import { getCompanyProfile } from "@/server/settings/queries";
-import { describeMissingMentions, missingLegalMentions } from "@/server/billing/legal-mentions";
+import {
+  companyProfileToLegalIdentity,
+  describeMissingMentions,
+  missingLegalMentions,
+} from "@/server/billing/legal-mentions";
+import { coverageWarningsForContract } from "@/server/billing/generate-invoices";
+import { describeCoverageWarning } from "@/server/billing/planned-hours";
 import { computeBalanceDue } from "@/server/billing/balance";
 import { dateOnlyUTC, parisToday } from "@/lib/dates";
 import { invoiceStatusBadge } from "@/lib/invoice-status";
@@ -59,17 +65,17 @@ export default async function InvoiceDetailPage({
   // Controle avant emission, pas apres : une facture emise est verrouillee et
   // ne se corrige que par un avoir.
   const company = await getCompanyProfile();
-  const missingMentions = missingLegalMentions({
-    legalName: company.legalName,
-    address: company.address,
-    legalForm: company.legalForm,
-    shareCapital: company.shareCapital === null ? null : Number(company.shareCapital),
-    rcsCity: company.rcsCity,
-    siret: company.siret,
-    vatNumber: company.vatNumber,
-    iban: company.iban,
-    latePenaltyRate: company.latePenaltyRate === null ? null : Number(company.latePenaltyRate),
-  });
+  const missingMentions = missingLegalMentions(companyProfileToLegalIdentity(company));
+
+  // Alerte de couverture (mois incomplet / ecart au volume contractuel),
+  // recalculee a chaque affichage : contrairement au flash affiche juste
+  // apres une generation groupee, elle doit rester visible si l'ADMIN emet
+  // le brouillon plus tard. N'a de sens que pour les contrats factures au
+  // calendrier (le forfait lisse ne depend pas des Shift generes).
+  const coverageWarningsList =
+    invoice.contract?.billingBasis === "CALENDAR_SHIFTS" && invoice.periodYear && invoice.periodMonth
+      ? await coverageWarningsForContract(invoice.contract, invoice.periodYear, invoice.periodMonth)
+      : [];
 
   return (
     <div className="max-w-3xl space-y-8">
@@ -112,6 +118,17 @@ export default async function InvoiceDetailPage({
             Compléter les paramètres
           </Link>{" "}
           avant d&apos;émettre : une facture émise ne se corrige que par un avoir.
+        </div>
+      )}
+
+      {invoice.status === "DRAFT" && coverageWarningsList.length > 0 && (
+        <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <span className="font-medium">À vérifier avant d&apos;émettre</span>
+          <ul className="mt-1 list-disc space-y-1 pl-5">
+            {coverageWarningsList.map((warning) => (
+              <li key={warning.kind}>{describeCoverageWarning(warning)}</li>
+            ))}
+          </ul>
         </div>
       )}
 

@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { monthRange } from "@/lib/dates";
@@ -27,6 +28,44 @@ export type GenerateInvoicesResult = {
   }>;
 };
 
+// Alertes de couverture pour un contrat facture au calendrier (CALENDAR_SHIFTS)
+// sur un mois donne. Extrait de la boucle de generation pour etre reutilise a
+// l'affichage de la fiche facture (le brouillon peut etre emis longtemps
+// apres sa generation, l'alerte doit rester visible a ce moment-la aussi).
+export async function coverageWarningsForContract(
+  contract: { id: string; indicativeMonthlyHours: Prisma.Decimal | number | null },
+  year: number,
+  month: number,
+): Promise<CoverageWarning[]> {
+  const { start, end } = monthRange(year, month);
+  const daysInMonth = Math.round((end.getTime() - start.getTime()) / 86_400_000);
+
+  const shifts = await prisma.shift.findMany({
+    where: {
+      contractId: contract.id,
+      date: { gte: start, lt: end },
+      status: { not: "CANCELLED" },
+    },
+    select: { date: true, billableMinutes: true, requiredAgents: true },
+  });
+
+  const plannedHours = plannedHoursFromShifts(shifts);
+  const coveredDayNumbers = new Set(shifts.map((shift) => shift.date.getUTCDate()));
+  const lastCoveredDay = coveredDayNumbers.size === 0 ? 0 : Math.max(...coveredDayNumbers);
+
+  return coverageWarnings(
+    {
+      coveredDays: coveredDayNumbers.size,
+      daysInMonth,
+      computedHours: plannedHours,
+      indicativeMonthlyHours: contract.indicativeMonthlyHours
+        ? Number(contract.indicativeMonthlyHours)
+        : null,
+    },
+    lastCoveredDay,
+  );
+}
+
 // Un contrat déjà facturé (DRAFT ou ISSUED+) pour ce mois n'est jamais
 // re-sommé depuis les Shift à l'identique deux fois côté ISSUED : une fois
 // émise, la facture est verrouillée (docs/ARCHITECTURE.md), donc aucun
@@ -49,8 +88,6 @@ export async function generateMonthlyInvoices(
   });
 
   const result: GenerateInvoicesResult = { created: [], updated: [], skipped: [], warnings: [] };
-
-  const daysInMonth = Math.round((end.getTime() - start.getTime()) / 86_400_000);
 
   for (const contract of contracts) {
     let plannedHours: number;
@@ -80,19 +117,7 @@ export async function generateMonthlyInvoices(
       // si un seul s'y rendait.
       plannedHours = plannedHoursFromShifts(shifts);
 
-      const coveredDayNumbers = new Set(shifts.map((shift) => shift.date.getUTCDate()));
-      const lastCoveredDay = coveredDayNumbers.size === 0 ? 0 : Math.max(...coveredDayNumbers);
-      contractWarnings = coverageWarnings(
-        {
-          coveredDays: coveredDayNumbers.size,
-          daysInMonth,
-          computedHours: plannedHours,
-          indicativeMonthlyHours: contract.indicativeMonthlyHours
-            ? Number(contract.indicativeMonthlyHours)
-            : null,
-        },
-        lastCoveredDay,
-      );
+      contractWarnings = await coverageWarningsForContract(contract, year, month);
     }
 
     const existing = await prisma.invoice.findFirst({
