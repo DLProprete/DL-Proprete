@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { href: "/today", label: "Aujourd'hui" },
   { href: "/absences", label: "Absences" },
+  { href: "/hours", label: "Mes heures" },
 ];
 
 export function AgentBottomNav({ logoutAction }: { logoutAction: () => void | Promise<void> }) {
