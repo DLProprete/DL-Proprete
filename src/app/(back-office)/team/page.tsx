@@ -19,13 +19,14 @@ export default async function TeamPage() {
           href="/team/new"
           className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
         >
-          Nouvel agent
+          Nouveau membre
         </Link>
       </div>
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-zinc-200 text-zinc-500">
             <th className="py-2 font-medium">Nom</th>
+            <th className="font-medium">Rôle</th>
             <th className="font-medium">Téléphone</th>
             <th className="font-medium">Permis</th>
             <th className="font-medium">Statut</th>
@@ -39,6 +40,7 @@ export default async function TeamPage() {
                   {agent.firstName} {agent.lastName}
                 </Link>
               </td>
+              <td className="text-zinc-600">{agent.role === "PLANNER" ? "Planificateur" : "Agent"}</td>
               <td className="text-zinc-600">{agent.phone ?? "—"}</td>
               <td className="text-zinc-600">{agent.hasDrivingLicense ? "Oui" : "Non"}</td>
               <td>
@@ -48,8 +50,8 @@ export default async function TeamPage() {
           ))}
           {agents.length === 0 && (
             <tr>
-              <td colSpan={4} className="py-4 text-zinc-400">
-                Aucun agent pour l&apos;instant.
+              <td colSpan={5} className="py-4 text-zinc-400">
+                Aucun membre pour l&apos;instant.
               </td>
             </tr>
           )}

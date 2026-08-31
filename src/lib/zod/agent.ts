@@ -29,6 +29,9 @@ export const agentProfileSchema = z.object({
 export const createAgentInputSchema = agentProfileSchema.extend({
   email: z.email(),
   password: z.string().min(8, "8 caractères minimum"),
+  // Le rôle ne se change qu'à la création — le modifier après coup n'est
+  // pas demandé (hors scope Mo6 de l'audit du 31/08/2026).
+  role: z.enum(["AGENT", "PLANNER"]).default("AGENT"),
 });
 
 export const resetPasswordSchema = z.object({
