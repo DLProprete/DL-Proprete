@@ -2,15 +2,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getInvoice, getValidatedHoursForContractMonth } from "@/server/billing/queries";
+import { computeBalanceDue } from "@/server/billing/balance";
+import { INVOICE_STATUS_LABELS } from "@/lib/invoice-status";
 import { addAdhocLineAction, issueInvoiceAction, recordPaymentAction } from "../actions";
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Brouillon",
-  ISSUED: "Émise",
-  PARTIALLY_PAID: "Partiellement payée",
-  PAID: "Payée",
-  CANCELLED: "Annulée",
-};
 
 const SOURCE_LABELS: Record<string, string> = {
   PLANNED_HOURS: "Heures prévues",
@@ -54,8 +48,7 @@ export default async function InvoiceDetailPage({
         )
       : null;
 
-  const totalPaid = invoice.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
-  const balanceDue = Number(invoice.amountTTC) - totalPaid;
+  const balanceDue = computeBalanceDue(invoice);
 
   return (
     <div className="max-w-3xl space-y-8">
@@ -68,7 +61,7 @@ export default async function InvoiceDetailPage({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm">{STATUS_LABELS[invoice.status] ?? invoice.status}</span>
+          <span className="text-sm">{INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}</span>
           <a
             href={`/api/invoices/${invoice.id}/pdf`}
             target="_blank"

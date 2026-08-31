@@ -3,15 +3,8 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { listInvoices } from "@/server/billing/queries";
 import { parisToday } from "@/lib/dates";
+import { INVOICE_STATUS_LABELS } from "@/lib/invoice-status";
 import { generateInvoicesAction } from "./actions";
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Brouillon",
-  ISSUED: "Émise",
-  PARTIALLY_PAID: "Partiellement payée",
-  PAID: "Payée",
-  CANCELLED: "Annulée",
-};
 
 function formatAmount(amount: unknown) {
   return `${Number(amount).toFixed(2)} €`;
@@ -29,7 +22,12 @@ export default async function InvoicesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Factures</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold">Factures</h1>
+          <Link href="/invoices/reminders" className="text-sm underline">
+            Relances
+          </Link>
+        </div>
         <form action={generateInvoicesAction} className="flex items-center gap-2">
           <input type="number" name="year" defaultValue={today.year} className="w-24 rounded border border-zinc-300 px-2 py-1 text-sm" />
           <input
@@ -48,6 +46,27 @@ export default async function InvoicesPage() {
           </button>
         </form>
       </div>
+
+      <form action="/api/exports/sales-journal" method="get" className="flex items-center gap-2 text-sm">
+        <span className="text-zinc-500">Export journal des ventes</span>
+        <input
+          type="number"
+          name="year"
+          defaultValue={today.year}
+          className="w-24 rounded border border-zinc-300 px-2 py-1"
+        />
+        <input
+          type="number"
+          name="month"
+          min={1}
+          max={12}
+          placeholder="Mois (facultatif)"
+          className="w-36 rounded border border-zinc-300 px-2 py-1"
+        />
+        <button type="submit" className="rounded border border-zinc-300 px-3 py-2 hover:bg-zinc-50">
+          Exporter
+        </button>
+      </form>
 
       <table className="w-full text-left text-sm">
         <thead>
@@ -76,7 +95,7 @@ export default async function InvoicesPage() {
                   : "—"}
               </td>
               <td className="text-zinc-600">{formatAmount(invoice.amountTTC)}</td>
-              <td>{STATUS_LABELS[invoice.status] ?? invoice.status}</td>
+              <td>{INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}</td>
             </tr>
           ))}
           {invoices.length === 0 && (

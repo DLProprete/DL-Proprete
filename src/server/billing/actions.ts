@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
-import { adhocLineInputSchema, paymentInputSchema } from "@/lib/zod/invoice";
+import { adhocLineInputSchema, paymentInputSchema, reminderInputSchema } from "@/lib/zod/invoice";
 import { nextInvoiceNumber } from "./numbering";
 import { logAudit } from "@/server/audit/log";
+import { formatDateOnly } from "@/lib/dates";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
 
@@ -118,5 +119,25 @@ export async function recordPayment(user: SessionUser, invoiceId: string, input:
     entityId: invoiceId,
     summary: `Paiement enregistré : ${data.amount} € (${data.method}) — facture ${invoice.number ?? invoiceId}`,
     metadata: { amount: data.amount, method: data.method },
+  });
+}
+
+export async function markInvoiceReminded(user: SessionUser, invoiceId: string, input: unknown) {
+  requireRole(user, [...MANAGE_ROLES]);
+  const data = reminderInputSchema.parse(input);
+  const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
+  if (invoice.status !== "ISSUED" && invoice.status !== "PARTIALLY_PAID") {
+    throw new InvoiceNotIssuedError("Une relance ne peut être notée que sur une facture émise.");
+  }
+
+  // Jamais de contenu de relance envoyé par e-mail ici (hors périmètre) —
+  // juste une note courte de ce qui a été fait par un autre moyen.
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "INVOICE_REMINDED",
+    entityType: "Invoice",
+    entityId: invoiceId,
+    summary: `Relance : ${invoice.number ?? invoiceId} le ${formatDateOnly(data.remindedOn)}${data.note ? ` — ${data.note}` : ""}`,
+    metadata: { remindedOn: formatDateOnly(data.remindedOn), note: data.note ?? null },
   });
 }

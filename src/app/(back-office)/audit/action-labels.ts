@@ -6,6 +6,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   CONTRACT_ACTIVATED: "Contrat activé",
   INVOICE_ISSUED: "Facture émise",
   INVOICE_PAYMENT: "Paiement enregistré",
+  INVOICE_REMINDED: "Relance envoyée",
   ABSENCE_APPROVED: "Absence approuvée",
   ABSENCE_REJECTED: "Absence rejetée",
   AGENT_CREATED: "Agent créé",

@@ -1,17 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { monthRange } from "@/lib/dates";
+import { CSV_BOM, csvField } from "@/lib/csv";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
-
-// Champ CSV échappé : entoure de guillemets si nécessaire, double les
-// guillemets internes (RFC 4180).
-function csvField(value: string): string {
-  if (/[";\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
 
 // Point-virgule (pas virgule) et virgule décimale : Excel en locale fr-FR
 // interprète mal un CSV séparé par des virgules. Destiné à l'expert-comptable.
@@ -56,5 +48,5 @@ export async function exportValidatedTimeEntriesCsv(
     ].join(";");
   });
 
-  return ["﻿" + header, ...rows].join("\r\n");
+  return [CSV_BOM + header, ...rows].join("\r\n");
 }
