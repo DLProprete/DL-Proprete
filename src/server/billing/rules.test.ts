@@ -5,10 +5,12 @@ import { generateMonthlyInvoices } from "./generate-invoices";
 import {
   addAdhocLine,
   issueInvoice,
+  markInvoiceReminded,
   recordPayment,
   InvoiceNotDraftError,
   InvoiceNotIssuedError,
 } from "./actions";
+import { listInvoicesForReminders } from "./reminders";
 import { getValidatedHoursForContractMonth } from "./queries";
 
 // Test d'intégration : la facturation est une chaîne d'états multi-table
@@ -269,5 +271,134 @@ describe("règles Facturation (intégration DB)", () => {
       include: { lines: true },
     });
     expect(Number(invoice.lines[0]?.quantity ?? 0)).not.toBe(control.totalHours);
+  });
+});
+
+// Test d'intégration séparé (fixtures propres) : les relances lisent
+// directement des factures ISSUED/PARTIALLY_PAID, pas besoin de rejouer la
+// chaîne génération -> émission du describe ci-dessus.
+describe("relances facture (intégration DB)", () => {
+  const suffix = Date.now();
+  let clientId: string;
+  let adminUser: SessionUser;
+  let dueSoonInvoiceId: string;
+  let dueFarInvoiceId: string;
+  let fallbackInvoiceId: string;
+  let draftInvoiceId: string;
+
+  beforeAll(async () => {
+    const client = await prisma.client.create({
+      data: {
+        legalName: "Client Test Relances",
+        billingAddress: "1 rue Test",
+        paymentTermDays: 30,
+      },
+    });
+    const adminRow = await prisma.user.create({
+      data: {
+        email: `test-reminders-admin-${suffix}@dlproprete.fr`,
+        name: "Admin Relances",
+        firstName: "Admin",
+        lastName: "Relances",
+        role: "ADMIN",
+        emailVerified: true,
+      },
+    });
+    clientId = client.id;
+    adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
+
+    const now = Date.now();
+    const in3Days = new Date(now + 3 * 86_400_000);
+    const in60Days = new Date(now + 60 * 86_400_000);
+    // issuedOn = J-35 : sans dueOn, le repli (issuedOn + 30j) tombe à J-5,
+    // donc dans la fenêtre de relance (due ou à J+7).
+    const issued35DaysAgo = new Date(now - 35 * 86_400_000);
+
+    const dueSoon = await prisma.invoice.create({
+      data: {
+        clientId,
+        status: "ISSUED",
+        number: `F-TEST-REM-${suffix}-SOON`,
+        issuedOn: new Date(now),
+        dueOn: in3Days,
+        amountHT: 100,
+        vatAmount: 20,
+        amountTTC: 120,
+      },
+    });
+    const dueFar = await prisma.invoice.create({
+      data: {
+        clientId,
+        status: "ISSUED",
+        number: `F-TEST-REM-${suffix}-FAR`,
+        issuedOn: new Date(now),
+        dueOn: in60Days,
+        amountHT: 100,
+        vatAmount: 20,
+        amountTTC: 120,
+      },
+    });
+    const fallback = await prisma.invoice.create({
+      data: {
+        clientId,
+        status: "PARTIALLY_PAID",
+        number: `F-TEST-REM-${suffix}-FALLBACK`,
+        issuedOn: issued35DaysAgo,
+        dueOn: null,
+        amountHT: 100,
+        vatAmount: 20,
+        amountTTC: 120,
+      },
+    });
+    const draft = await prisma.invoice.create({
+      data: { clientId, status: "DRAFT", amountHT: 0, vatAmount: 0, amountTTC: 0 },
+    });
+
+    dueSoonInvoiceId = dueSoon.id;
+    dueFarInvoiceId = dueFar.id;
+    fallbackInvoiceId = fallback.id;
+    draftInvoiceId = draft.id;
+  });
+
+  afterAll(async () => {
+    await prisma.auditLog.deleteMany({ where: { entityType: "Invoice", entityId: { in: [dueSoonInvoiceId, dueFarInvoiceId, fallbackInvoiceId, draftInvoiceId] } } });
+    await prisma.invoice.deleteMany({ where: { clientId } });
+    await prisma.client.delete({ where: { id: clientId } });
+    await prisma.user.delete({ where: { id: adminUser.id } });
+  });
+
+  it("rejette une relance sur une facture non émise", async () => {
+    await expect(
+      markInvoiceReminded(adminUser, draftInvoiceId, { remindedOn: "2026-01-01" }),
+    ).rejects.toBeInstanceOf(InvoiceNotIssuedError);
+  });
+
+  it("note une relance sur une facture émise et journalise INVOICE_REMINDED", async () => {
+    await markInvoiceReminded(adminUser, dueSoonInvoiceId, {
+      remindedOn: "2026-01-05",
+      note: "Appel client",
+    });
+    const log = await prisma.auditLog.findFirstOrThrow({
+      where: { action: "INVOICE_REMINDED", entityId: dueSoonInvoiceId },
+    });
+    expect(log.summary).toContain("Relance");
+    expect((log.metadata as { note: string | null } | null)?.note).toBe("Appel client");
+  });
+
+  it("liste les factures dues ou à J+7 avec solde et dernière relance", async () => {
+    const list = await listInvoicesForReminders(adminUser);
+    const ids = list.map((invoice) => invoice.id);
+    expect(ids).toContain(dueSoonInvoiceId);
+    expect(ids).not.toContain(dueFarInvoiceId);
+    expect(ids).not.toContain(draftInvoiceId);
+
+    const dueSoonRow = list.find((invoice) => invoice.id === dueSoonInvoiceId);
+    expect(dueSoonRow?.balanceDue).toBe(120);
+    expect(dueSoonRow?.lastRemindedAt).not.toBeNull();
+  });
+
+  it("applique le repli échéance = émission + 30 jours quand dueOn est absent", async () => {
+    const list = await listInvoicesForReminders(adminUser);
+    expect(list.map((invoice) => invoice.id)).toContain(fallbackInvoiceId);
   });
 });

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { generateMonthlyInvoices } from "@/server/billing/generate-invoices";
-import { addAdhocLine, issueInvoice, recordPayment } from "@/server/billing/actions";
+import { addAdhocLine, issueInvoice, markInvoiceReminded, recordPayment } from "@/server/billing/actions";
 
 export async function generateInvoicesAction(formData: FormData) {
   const user = await requireSession();
@@ -50,4 +50,17 @@ export async function recordPaymentAction(invoiceId: string, formData: FormData)
   }
   revalidatePath(`/invoices/${invoiceId}`);
   redirect(`/invoices/${invoiceId}`);
+}
+
+export async function markInvoiceRemindedAction(invoiceId: string, formData: FormData) {
+  const user = await requireSession();
+  try {
+    await markInvoiceReminded(user, invoiceId, Object.fromEntries(formData));
+  } catch (error) {
+    if (error instanceof ZodError) {
+      redirect(`/invoices/reminders?error=${encodeURIComponent(error.issues[0]?.message ?? "Données invalides.")}`);
+    }
+    throw error;
+  }
+  revalidatePath("/invoices/reminders");
 }

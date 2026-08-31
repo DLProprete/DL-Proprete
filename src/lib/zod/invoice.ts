@@ -17,3 +17,10 @@ export const paymentInputSchema = z.object({
 });
 
 export type PaymentInput = z.infer<typeof paymentInputSchema>;
+
+export const reminderInputSchema = z.object({
+  remindedOn: z.coerce.date(),
+  note: z.string().max(200, "200 caractères maximum").optional(),
+});
+
+export type ReminderInput = z.infer<typeof reminderInputSchema>;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ForbiddenError, type SessionUser } from "@/server/auth/session";
 import { generateMonthlyInvoices } from "./generate-invoices";
-import { addAdhocLine, issueInvoice, recordPayment } from "./actions";
+import { addAdhocLine, issueInvoice, markInvoiceReminded, recordPayment } from "./actions";
 import { listInvoices, getInvoice, getValidatedHoursForContractMonth } from "./queries";
 
 const agent: SessionUser = { id: "u-agent", email: "agent@dlproprete.fr", role: "AGENT", isActive: true };
@@ -38,6 +38,18 @@ describe("droits Facturation — ADMIN seulement", () => {
         amount: 100,
         method: "TRANSFER",
       }),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("markInvoiceReminded rejette un PLANNER", async () => {
+    await expect(
+      markInvoiceReminded(planner, "any-id", { remindedOn: "2026-09-01" }),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("markInvoiceReminded rejette un AGENT", async () => {
+    await expect(
+      markInvoiceReminded(agent, "any-id", { remindedOn: "2026-09-01" }),
     ).rejects.toBeInstanceOf(ForbiddenError);
   });
 
