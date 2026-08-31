@@ -4,7 +4,7 @@ import { requireSession } from "@/server/auth/session";
 import { getInvoice, getValidatedHoursForContractMonth } from "@/server/billing/queries";
 import { computeBalanceDue } from "@/server/billing/balance";
 import { dateOnlyUTC, parisToday } from "@/lib/dates";
-import { INVOICE_STATUS_LABELS, invoiceStatusTone } from "@/lib/invoice-status";
+import { invoiceStatusBadge } from "@/lib/invoice-status";
 import { Badge } from "@/components/badge";
 import { addAdhocLineAction, issueInvoiceAction, recordPaymentAction } from "../actions";
 
@@ -65,10 +65,7 @@ export default async function InvoiceDetailPage({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge
-            tone={invoiceStatusTone({ status: invoice.status, dueOn: invoice.dueOn, balanceDue }, todayDate)}
-            label={INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
-          />
+          <Badge {...invoiceStatusBadge({ status: invoice.status, dueOn: invoice.dueOn, balanceDue }, todayDate)} />
           <a
             href={`/api/invoices/${invoice.id}/pdf`}
             target="_blank"

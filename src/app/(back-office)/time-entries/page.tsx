@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listTimeEntriesForReview } from "@/server/time/review";
 import { formatTimeInParis } from "@/lib/dates";
@@ -58,7 +59,7 @@ export default async function TimeEntriesReviewPage() {
           {entries.length === 0 && (
             <tr>
               <td colSpan={6} className="py-4 text-zinc-400">
-                Aucun pointage à valider.
+                Aucun pointage à valider. <Link href="/planning" className="underline">Ouvrir le planning</Link>
               </td>
             </tr>
           )}

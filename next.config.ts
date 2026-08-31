@@ -9,6 +9,11 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // Le badge Next (dev only) est en bas à gauche par défaut, comme le bouton
+  // Déconnexion de la sidebar : on le déplace pour qu'il ne le recouvre pas.
+  devIndicators: {
+    position: "bottom-right",
+  },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

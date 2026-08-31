@@ -78,7 +78,7 @@ export default async function SettingsPage() {
         </div>
         <button
           type="submit"
-          className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
         >
           Enregistrer
         </button>

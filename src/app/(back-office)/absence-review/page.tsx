@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { listPendingAbsences, listShiftsNeedingReplacement } from "@/server/absences/queries";
@@ -76,7 +77,9 @@ export default async function AbsencesReviewPage() {
             </li>
           ))}
           {pending.length === 0 && (
-            <li className="py-3 text-zinc-400">Aucune absence en attente.</li>
+            <li className="py-3 text-zinc-400">
+              Aucune absence en attente. <Link href="/planning" className="underline">Ouvrir le planning</Link>
+            </li>
           )}
         </ul>
       </div>

@@ -4,7 +4,7 @@ import { requireSession } from "@/server/auth/session";
 import { listInvoices } from "@/server/billing/queries";
 import { computeBalanceDue } from "@/server/billing/balance";
 import { dateOnlyUTC, parisToday } from "@/lib/dates";
-import { INVOICE_STATUS_LABELS, invoiceStatusTone } from "@/lib/invoice-status";
+import { invoiceStatusBadge } from "@/lib/invoice-status";
 import { Badge } from "@/components/badge";
 import { generateInvoicesAction } from "./actions";
 
@@ -100,11 +100,10 @@ export default async function InvoicesPage() {
               <td className="text-zinc-600">{formatAmount(invoice.amountTTC)}</td>
               <td>
                 <Badge
-                  tone={invoiceStatusTone(
+                  {...invoiceStatusBadge(
                     { status: invoice.status, dueOn: invoice.dueOn, balanceDue: computeBalanceDue(invoice) },
                     todayDate,
                   )}
-                  label={INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
                 />
               </td>
             </tr>
