@@ -11,6 +11,7 @@ import {
   startOfWeekMonday,
 } from "@/lib/dates";
 import { listHolidays } from "@/server/holidays/queries";
+import { weeklyCcnAlerts, describeCcnAlert } from "@/server/planning/ccn-alerts";
 import { SHIFT_STATUS_LABELS, SHIFT_STATUS_TONE } from "./shift-labels";
 import {
   assignAgentAction,
@@ -160,10 +161,22 @@ export default async function PlanningWeekPage({
           <tbody>
             {agents.map((agent) => {
               const byDay = shiftsByAgentAndDay.get(agent.id) ?? new Map<string, Shift[]>();
+              const weekShifts = [...byDay.values()].flat();
+              const ccnAlerts = weeklyCcnAlerts(
+                weekShifts,
+                agent.weeklyContractHours ? Number(agent.weeklyContractHours) : null,
+              );
               return (
                 <tr key={agent.id} className="border-b border-zinc-100 align-top">
                   <td className="py-2 pr-2 font-medium text-zinc-700">
                     {agent.firstName} {agent.lastName}
+                    {ccnAlerts.length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-xs font-normal text-amber-700">
+                        {ccnAlerts.map((alert, index) => (
+                          <li key={index}>⚠ {describeCcnAlert(alert)}</li>
+                        ))}
+                      </ul>
+                    )}
                   </td>
                   {weekDays.map((day) => {
                     const dayKey = formatDateOnly(day);
