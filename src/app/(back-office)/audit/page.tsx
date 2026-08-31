@@ -15,13 +15,22 @@ const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", {
 export default async function AuditPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; actorUserId?: string; action?: string; page?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+    actorUserId?: string;
+    action?: string;
+    page?: string;
+    hideTest?: string;
+  }>;
 }) {
-  const { from, to, actorUserId, action, page } = await searchParams;
+  const { from, to, actorUserId, action, page, hideTest } = await searchParams;
   const user = await requireSession();
   if (user.role !== "ADMIN") {
     redirect("/");
   }
+
+  const hideTestData = hideTest === "1";
 
   const [actors, result] = await Promise.all([
     listActors(user),
@@ -31,6 +40,7 @@ export default async function AuditPage({
       actorUserId: actorUserId || undefined,
       action: (action || undefined) as AuditAction | undefined,
       page: page ? Number(page) : 1,
+      hideTestData,
     }),
   ]);
 
@@ -43,6 +53,7 @@ export default async function AuditPage({
     if (to) params.set("to", to);
     if (actorUserId) params.set("actorUserId", actorUserId);
     if (action) params.set("action", action);
+    if (hideTestData) params.set("hideTest", "1");
     params.set("page", String(targetPage));
     return `/audit?${params.toString()}`;
   }
@@ -112,6 +123,10 @@ export default async function AuditPage({
             ))}
           </select>
         </div>
+        <label className="flex items-center gap-2 pb-2 text-zinc-700">
+          <input type="checkbox" name="hideTest" value="1" defaultChecked={hideTestData} className="h-4 w-4" />
+          Masquer les données de test
+        </label>
         <button type="submit" className="rounded border border-zinc-300 px-3 py-2 hover:bg-zinc-50">
           Filtrer
         </button>
@@ -131,7 +146,14 @@ export default async function AuditPage({
             <tr key={log.id} className="border-b border-zinc-100">
               <td className="py-2 whitespace-nowrap text-zinc-500">{dateTimeFormatter.format(log.createdAt)}</td>
               <td className="whitespace-nowrap">
-                {log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "—"}
+                {log.actor ? (
+                  <>
+                    {log.actor.firstName} {log.actor.lastName}{" "}
+                    <span className="text-zinc-400">· {log.actor.email}</span>
+                  </>
+                ) : (
+                  "Système"
+                )}
               </td>
               <td className="whitespace-nowrap text-zinc-600">
                 {AUDIT_ACTION_LABELS[log.action] ?? log.action}

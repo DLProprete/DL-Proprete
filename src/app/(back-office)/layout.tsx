@@ -1,7 +1,41 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
+import { Sidebar, type NavGroup } from "@/components/sidebar";
 import { logoutAction } from "../actions";
+
+// Groupes et gates de rôle : reprend exactement les droits de l'ancienne
+// barre horizontale (aucun changement d'accès), juste regroupés par thème.
+const NAV_GROUPS: { label: string; items: { href: string; label: string; adminOnly?: boolean }[] }[] = [
+  {
+    label: "Exploitation",
+    items: [
+      { href: "/dashboard", label: "Tableau de bord", adminOnly: true },
+      { href: "/planning", label: "Planning" },
+      { href: "/time-entries", label: "Pointages" },
+      { href: "/absence-review", label: "Absences", adminOnly: true },
+    ],
+  },
+  {
+    label: "Commercial",
+    items: [
+      { href: "/clients", label: "Clients" },
+      { href: "/sites", label: "Sites" },
+      { href: "/contracts", label: "Contrats" },
+      { href: "/invoices", label: "Factures", adminOnly: true },
+    ],
+  },
+  {
+    label: "RH",
+    items: [{ href: "/team", label: "Équipe", adminOnly: true }],
+  },
+  {
+    label: "Pilotage",
+    items: [
+      { href: "/audit", label: "Audit", adminOnly: true },
+      { href: "/settings", label: "Paramètres", adminOnly: true },
+    ],
+  },
+];
 
 export default async function BackOfficeLayout({
   children,
@@ -13,28 +47,16 @@ export default async function BackOfficeLayout({
     redirect("/login");
   }
 
+  const groups: NavGroup[] = NAV_GROUPS.map((group) => ({
+    label: group.label,
+    items: group.items
+      .filter((item) => !item.adminOnly || user.role === "ADMIN")
+      .map(({ href, label }) => ({ href, label })),
+  })).filter((group) => group.items.length > 0);
+
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <nav className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
-        <div className="flex gap-4 text-sm font-medium">
-          {user.role === "ADMIN" && <Link href="/dashboard">Tableau de bord</Link>}
-          <Link href="/clients">Clients</Link>
-          <Link href="/sites">Sites</Link>
-          <Link href="/contracts">Contrats</Link>
-          <Link href="/planning">Planning</Link>
-          <Link href="/time-entries">Pointages</Link>
-          {user.role === "ADMIN" && <Link href="/absence-review">Absences</Link>}
-          {user.role === "ADMIN" && <Link href="/invoices">Factures</Link>}
-          {user.role === "ADMIN" && <Link href="/team">Équipe</Link>}
-          {user.role === "ADMIN" && <Link href="/audit">Audit</Link>}
-          {user.role === "ADMIN" && <Link href="/settings">Paramètres</Link>}
-        </div>
-        <form action={logoutAction}>
-          <button type="submit" className="text-sm text-zinc-500 hover:text-zinc-900">
-            Déconnexion
-          </button>
-        </form>
-      </nav>
+    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 lg:flex-row">
+      <Sidebar groups={groups} logoutAction={logoutAction} />
       <main className="flex-1 px-6 py-6">{children}</main>
     </div>
   );

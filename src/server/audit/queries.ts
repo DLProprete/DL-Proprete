@@ -12,6 +12,12 @@ export type AuditLogFilters = {
   actorUserId?: string;
   action?: AuditAction;
   page?: number;
+  /**
+   * Filtre texte, pas une jointure Client : l'audit est polymorphique
+   * (entityType/entityId), jamais "Client" en pratique, et le nom du
+   * client apparaît déjà dans `summary` pour les actions facture.
+   */
+  hideTestData?: boolean;
 };
 
 export async function listAuditLogs(user: SessionUser, filters: AuditLogFilters = {}) {
@@ -24,12 +30,22 @@ export async function listAuditLogs(user: SessionUser, filters: AuditLogFilters 
       : {}),
     ...(filters.actorUserId ? { actorUserId: filters.actorUserId } : {}),
     ...(filters.action ? { action: filters.action } : {}),
+    ...(filters.hideTestData
+      ? {
+          NOT: {
+            OR: [
+              { entityType: { contains: "Test", mode: "insensitive" as const } },
+              { summary: { contains: "Test", mode: "insensitive" as const } },
+            ],
+          },
+        }
+      : {}),
   };
 
   const [items, total] = await Promise.all([
     prisma.auditLog.findMany({
       where,
-      include: { actor: { select: { firstName: true, lastName: true } } },
+      include: { actor: { select: { firstName: true, lastName: true, email: true } } },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,

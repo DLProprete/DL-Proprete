@@ -243,6 +243,10 @@ describe("règles Facturation (intégration DB)", () => {
     });
     let updated = await prisma.invoice.findUniqueOrThrow({ where: { id: invoice.id } });
     expect(updated.status).toBe("PARTIALLY_PAID");
+    // Un paiement enregistré = une seule ligne d'audit (pas de double appel).
+    expect(
+      await prisma.auditLog.count({ where: { action: "INVOICE_PAYMENT", entityId: invoice.id } }),
+    ).toBe(1);
 
     await recordPayment(adminUser, invoice.id, {
       paidOn: "2031-04-15",
@@ -251,6 +255,9 @@ describe("règles Facturation (intégration DB)", () => {
     });
     updated = await prisma.invoice.findUniqueOrThrow({ where: { id: invoice.id } });
     expect(updated.status).toBe("PAID");
+    expect(
+      await prisma.auditLog.count({ where: { action: "INVOICE_PAYMENT", entityId: invoice.id } }),
+    ).toBe(2);
   });
 
   it("un paiement ne peut pas être saisi sur un brouillon", async () => {

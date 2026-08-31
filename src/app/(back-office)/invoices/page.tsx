@@ -2,8 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { listInvoices } from "@/server/billing/queries";
-import { parisToday } from "@/lib/dates";
-import { INVOICE_STATUS_LABELS } from "@/lib/invoice-status";
+import { computeBalanceDue } from "@/server/billing/balance";
+import { dateOnlyUTC, parisToday } from "@/lib/dates";
+import { INVOICE_STATUS_LABELS, invoiceStatusTone } from "@/lib/invoice-status";
+import { Badge } from "@/components/badge";
 import { generateInvoicesAction } from "./actions";
 
 function formatAmount(amount: unknown) {
@@ -18,6 +20,7 @@ export default async function InvoicesPage() {
 
   const invoices = await listInvoices(user);
   const today = parisToday();
+  const todayDate = dateOnlyUTC(today.year, today.month, today.day);
 
   return (
     <div className="space-y-6">
@@ -40,7 +43,7 @@ export default async function InvoicesPage() {
           />
           <button
             type="submit"
-            className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+            className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
           >
             Générer les factures du mois
           </button>
@@ -95,7 +98,15 @@ export default async function InvoicesPage() {
                   : "—"}
               </td>
               <td className="text-zinc-600">{formatAmount(invoice.amountTTC)}</td>
-              <td>{INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}</td>
+              <td>
+                <Badge
+                  tone={invoiceStatusTone(
+                    { status: invoice.status, dueOn: invoice.dueOn, balanceDue: computeBalanceDue(invoice) },
+                    todayDate,
+                  )}
+                  label={INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
+                />
+              </td>
             </tr>
           ))}
           {invoices.length === 0 && (

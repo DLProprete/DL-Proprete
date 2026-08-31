@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listSites } from "@/server/sites/queries";
+import { Badge } from "@/components/badge";
 
 export default async function SitesPage() {
   const user = await requireSession();
@@ -12,7 +13,7 @@ export default async function SitesPage() {
         <h1 className="text-xl font-semibold">Sites</h1>
         <Link
           href="/sites/new"
-          className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
         >
           Nouveau site
         </Link>
@@ -37,9 +38,7 @@ export default async function SitesPage() {
               <td className="text-zinc-600">{site.client.legalName}</td>
               <td className="text-zinc-600">{site.city}</td>
               <td>
-                <span className={site.isActive ? "text-green-700" : "text-zinc-400"}>
-                  {site.isActive ? "Actif" : "Désactivé"}
-                </span>
+                <Badge tone={site.isActive ? "success" : "muted"} label={site.isActive ? "Actif" : "Désactivé"} />
               </td>
             </tr>
           ))}

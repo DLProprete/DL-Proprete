@@ -3,7 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getInvoice, getValidatedHoursForContractMonth } from "@/server/billing/queries";
 import { computeBalanceDue } from "@/server/billing/balance";
-import { INVOICE_STATUS_LABELS } from "@/lib/invoice-status";
+import { dateOnlyUTC, parisToday } from "@/lib/dates";
+import { INVOICE_STATUS_LABELS, invoiceStatusTone } from "@/lib/invoice-status";
+import { Badge } from "@/components/badge";
 import { addAdhocLineAction, issueInvoiceAction, recordPaymentAction } from "../actions";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -49,6 +51,8 @@ export default async function InvoiceDetailPage({
       : null;
 
   const balanceDue = computeBalanceDue(invoice);
+  const today = parisToday();
+  const todayDate = dateOnlyUTC(today.year, today.month, today.day);
 
   return (
     <div className="max-w-3xl space-y-8">
@@ -61,7 +65,10 @@ export default async function InvoiceDetailPage({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm">{INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}</span>
+          <Badge
+            tone={invoiceStatusTone({ status: invoice.status, dueOn: invoice.dueOn, balanceDue }, todayDate)}
+            label={INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
+          />
           <a
             href={`/api/invoices/${invoice.id}/pdf`}
             target="_blank"
@@ -74,7 +81,7 @@ export default async function InvoiceDetailPage({
             <form action={issueInvoiceAction.bind(null, invoice.id)}>
               <button
                 type="submit"
-                className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+                className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
               >
                 Émettre
               </button>

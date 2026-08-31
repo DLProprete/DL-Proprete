@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { listTeam } from "@/server/team/queries";
+import { Badge } from "@/components/badge";
 
 export default async function TeamPage() {
   const user = await requireSession();
@@ -16,7 +17,7 @@ export default async function TeamPage() {
         <h1 className="text-xl font-semibold">Équipe</h1>
         <Link
           href="/team/new"
-          className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
         >
           Nouvel agent
         </Link>
@@ -41,9 +42,7 @@ export default async function TeamPage() {
               <td className="text-zinc-600">{agent.phone ?? "—"}</td>
               <td className="text-zinc-600">{agent.hasDrivingLicense ? "Oui" : "Non"}</td>
               <td>
-                <span className={agent.isActive ? "text-green-700" : "text-zinc-400"}>
-                  {agent.isActive ? "Actif" : "Désactivé"}
-                </span>
+                <Badge tone={agent.isActive ? "success" : "muted"} label={agent.isActive ? "Actif" : "Désactivé"} />
               </td>
             </tr>
           ))}

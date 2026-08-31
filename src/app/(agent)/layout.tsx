@@ -10,11 +10,15 @@ export default async function AgentLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <nav className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
+    <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
+      <nav className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4">
         <div className="flex gap-4 text-sm font-medium">
-          <Link href="/today">Aujourd&apos;hui</Link>
-          <Link href="/absences">Absences</Link>
+          <Link href="/today" className="text-zinc-700 hover:text-teal-700">
+            Aujourd&apos;hui
+          </Link>
+          <Link href="/absences" className="text-zinc-700 hover:text-teal-700">
+            Absences
+          </Link>
         </div>
         <form action={logoutAction}>
           <button type="submit" className="text-sm text-zinc-500 hover:text-zinc-900">

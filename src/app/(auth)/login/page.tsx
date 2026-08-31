@@ -8,12 +8,12 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex flex-1 items-center justify-center">
+    <div className="flex flex-1 items-center justify-center bg-zinc-50">
       <form
         action={loginAction}
-        className="w-full max-w-sm space-y-4 rounded border border-zinc-200 p-6"
+        className="w-full max-w-sm space-y-4 rounded border border-zinc-200 bg-white p-6 shadow-sm"
       >
-        <h1 className="text-lg font-semibold">DL Propreté — Connexion</h1>
+        <h1 className="text-lg font-semibold text-zinc-900">DL Propreté — Connexion</h1>
         {error === "rate_limit" && (
           <p className="text-sm text-red-600">Trop de tentatives, réessayez plus tard.</p>
         )}
@@ -48,7 +48,7 @@ export default async function LoginPage({
         </div>
         <button
           type="submit"
-          className="w-full rounded bg-zinc-900 px-3 py-2 text-white hover:bg-zinc-800"
+          className="w-full rounded bg-teal-700 px-3 py-2 text-white hover:bg-teal-800"
         >
           Se connecter
         </button>
