@@ -89,13 +89,17 @@ describe("planning de la semaine et heures du mois (intégration DB)", () => {
         status: "VALIDATED",
       },
     });
-    // Heures SUBMITTED (pas encore validées) — comptent dans pendingCount, pas dans le total.
+    // Heures SUBMITTED (pas encore validées) — comptent dans pendingCount, pas
+    // dans le total. Ancrées sur inMonth comme l'entrée VALIDATED ci-dessus
+    // (pas "il y a 3h") : un "il y a 3h" calculé après minuit déborde sur le
+    // mois précédent et rend le test flaky au changement de mois — constaté
+    // en direct le 01/09/2026.
     const submitted = await prisma.timeEntry.create({
       data: {
         userId: agentARow.id,
         siteId: site.id,
-        clockInAt: new Date(Date.now() - 3 * 3_600_000),
-        clockOutAt: new Date(Date.now() - 2 * 3_600_000),
+        clockInAt: new Date(inMonth.getTime() + 3 * 3_600_000),
+        clockOutAt: new Date(inMonth.getTime() + 4 * 3_600_000),
         status: "SUBMITTED",
       },
     });
