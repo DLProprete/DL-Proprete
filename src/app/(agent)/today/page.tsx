@@ -119,7 +119,7 @@ export default async function TodayPage({
       )}
 
       {justEndedShift && (
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm">
+        <div className="card text-sm">
           <p className="font-medium text-zinc-900">Terminé — en attente de validation</p>
           <p className="text-zinc-600">
             {justEndedShift.site.name} · {formatTimeInParis(justEndedShift.startAt)}–
@@ -130,7 +130,7 @@ export default async function TodayPage({
 
       {activeShift ? (
         <>
-          <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="card">
             {openEntry ? (
               <>
                 <p className="text-sm font-medium text-zinc-600">Pointage en cours</p>
@@ -185,11 +185,11 @@ export default async function TodayPage({
           )}
         </>
       ) : shifts.length > 0 ? (
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 text-center text-sm text-zinc-600 shadow-sm">
+        <div className="card text-center text-sm text-zinc-600">
           Journée terminée.
         </div>
       ) : (
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 text-center text-sm text-zinc-600 shadow-sm">
+        <div className="card text-center text-sm text-zinc-600">
           Aucune vacation prévue aujourd&apos;hui.
         </div>
       )}

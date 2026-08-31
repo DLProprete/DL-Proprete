@@ -43,7 +43,7 @@ export default async function HoursPage({
         </Link>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-5 text-center shadow-sm">
+      <div className="card text-center">
         <p className="text-sm font-medium text-zinc-600">Heures validées</p>
         <p className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-zinc-900">
           {totalHours.toFixed(2)} h
