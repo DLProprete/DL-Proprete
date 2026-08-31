@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getContract } from "@/server/contracts/queries";
+import { contractMonthlyProjection } from "@/server/contracts/projection";
 import { formatTime } from "@/lib/dates";
 import { setServiceTemplateActiveAction, createServiceExceptionAction } from "../actions";
 import { ServiceTemplateForm } from "./ServiceTemplateForm";
@@ -13,6 +14,11 @@ const STATUS_LABELS: Record<string, string> = {
   ACTIVE: "Actif",
   SUSPENDED: "Suspendu",
   ENDED: "Terminé",
+};
+
+const BILLING_BASIS_LABELS: Record<string, string> = {
+  CALENDAR_SHIFTS: "Au calendrier (heures planifiées du mois)",
+  FLAT_INDICATIVE_HOURS: "Forfait mensuel lissé",
 };
 
 const DAY_LABELS = ["", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -36,6 +42,13 @@ export default async function ContractDetailPage({
   if (!contract) {
     notFound();
   }
+
+  const projection = contractMonthlyProjection({
+    billingBasis: contract.billingBasis,
+    hourlyRateHT: Number(contract.hourlyRateHT),
+    indicativeMonthlyHours: contract.indicativeMonthlyHours ? Number(contract.indicativeMonthlyHours) : null,
+    serviceTemplates: contract.serviceTemplates,
+  });
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -64,12 +77,25 @@ export default async function ContractDetailPage({
             {formatDate(contract.startsOn)} – {formatDate(contract.endsOn)}
           </dd>
           <dt className="text-zinc-500">Facturation</dt>
-          <dd>Régie au prévu</dd>
+          <dd>{BILLING_BASIS_LABELS[contract.billingBasis] ?? contract.billingBasis}</dd>
           <dt className="text-zinc-500">Tarif horaire HT</dt>
           <dd>{contract.hourlyRateHT.toString()} €/h</dd>
+          <dt className="text-zinc-500">Taux de TVA</dt>
+          <dd>{contract.vatRate.toString()} %</dd>
+          <dt className="text-zinc-500">Jour de facturation</dt>
+          <dd>{contract.billingDayOfMonth}</dd>
+          <dt className="text-zinc-500">Préavis de reconduction</dt>
+          <dd>{contract.renewalNoticeDays} jours</dd>
+          <dt className="text-zinc-500">Volume mensuel indicatif</dt>
+          <dd>{contract.indicativeMonthlyHours ? `${contract.indicativeMonthlyHours.toString()} h` : "—"}</dd>
           <dt className="text-zinc-500">Notes</dt>
           <dd>{contract.notes ?? "—"}</dd>
         </dl>
+        <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-900">
+          Ce contrat représente environ{" "}
+          <span className="font-semibold">{projection.monthlyHours.toFixed(1)} h/mois</span> ≈{" "}
+          <span className="font-semibold">{projection.monthlyAmountHT.toFixed(0)} € HT/mois</span>
+        </div>
       </div>
 
       <div>
