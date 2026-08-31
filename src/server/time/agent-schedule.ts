@@ -1,6 +1,6 @@
 import { formatTimeInParis } from "@/lib/dates";
 
-const SCHEDULE_TOLERANCE_MINUTES = 15;
+export const SCHEDULE_TOLERANCE_MINUTES = 15;
 
 type ShiftWithEntries = {
   timeEntries: { status: string }[];
