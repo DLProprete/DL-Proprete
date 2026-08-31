@@ -15,7 +15,7 @@ export default async function NewContractPage({
     <div className="max-w-lg space-y-4">
       <h1 className="text-xl font-semibold">Nouveau contrat</h1>
       {error === "overlap" && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           Un contrat actif existe déjà sur ce site pour une période qui chevauche.
         </p>
       )}
@@ -29,7 +29,7 @@ export default async function NewContractPage({
             name="siteId"
             required
             defaultValue={siteId ?? ""}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           >
             <option value="" disabled>
               Sélectionner un site
@@ -50,7 +50,7 @@ export default async function NewContractPage({
             name="reference"
             required
             placeholder="C-2026-001"
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -63,7 +63,7 @@ export default async function NewContractPage({
               name="startsOn"
               type="date"
               required
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div>
@@ -75,7 +75,7 @@ export default async function NewContractPage({
               name="endsOn"
               type="date"
               required
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ export default async function NewContractPage({
             step="0.01"
             min="0"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -101,7 +101,7 @@ export default async function NewContractPage({
             id="status"
             name="status"
             defaultValue="DRAFT"
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           >
             <option value="DRAFT">Brouillon</option>
             <option value="ACTIVE">Actif</option>
@@ -116,7 +116,7 @@ export default async function NewContractPage({
               id="billingBasis"
               name="billingBasis"
               defaultValue="CALENDAR_SHIFTS"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             >
               <option value="CALENDAR_SHIFTS">Vacations du mois (régie au prévu)</option>
               <option value="FLAT_INDICATIVE_HOURS">Forfait mensuel fixe</option>
@@ -132,7 +132,7 @@ export default async function NewContractPage({
               type="number"
               step="0.01"
               min="0"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -144,12 +144,12 @@ export default async function NewContractPage({
             id="notes"
             name="notes"
             rows={3}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <button
           type="submit"
-          className="rounded bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+          className="btn btn-dark"
         >
           Créer le contrat
         </button>

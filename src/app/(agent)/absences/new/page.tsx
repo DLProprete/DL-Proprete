@@ -11,7 +11,7 @@ export default async function NewAbsencePage({
     <div className="max-w-lg space-y-4">
       <h1 className="text-xl font-semibold">Déclarer une absence</h1>
       {error && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           {error}
         </p>
       )}

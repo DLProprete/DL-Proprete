@@ -22,7 +22,7 @@ export default async function MyAbsencesPage() {
       <h1 className="text-xl font-semibold">Mes absences</h1>
 
       <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm">
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
           Congés payés {currentYear}
         </p>
         {leaveBalance.acquired !== null ? (
@@ -31,7 +31,7 @@ export default async function MyAbsencesPage() {
             restants — {leaveBalance.acquired} j acquis, {leaveBalance.taken} j pris.
           </p>
         ) : (
-          <p className="mt-1 text-zinc-500">
+          <p className="mt-1 text-zinc-600">
             {leaveBalance.taken} j pris — solde acquis non renseigné, demandez à votre employeur.
           </p>
         )}
@@ -42,7 +42,7 @@ export default async function MyAbsencesPage() {
           <li key={absence.id} className="flex items-center justify-between gap-4 py-3">
             <div>
               <p className="font-medium">{ABSENCE_TYPE_LABELS[absence.type] ?? absence.type}</p>
-              <p className="text-zinc-500">
+              <p className="text-zinc-600">
                 {formatDate(absence.startsOn)} – {formatDate(absence.endsOn)}
               </p>
             </div>
@@ -53,12 +53,12 @@ export default async function MyAbsencesPage() {
           </li>
         ))}
         {absences.length === 0 && (
-          <li className="py-3 text-zinc-400">Aucune absence déclarée.</li>
+          <li className="py-3 text-zinc-500">Aucune absence déclarée.</li>
         )}
       </ul>
       <Link
         href="/absences/new"
-        className="flex min-h-14 w-full items-center justify-center rounded-xl bg-teal-700 text-base font-semibold text-white hover:bg-teal-800"
+        className="btn btn-primary btn-field"
       >
         Déclarer
       </Link>

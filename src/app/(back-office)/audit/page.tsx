@@ -69,7 +69,7 @@ export default async function AuditPage({
 
       <form method="get" className="flex flex-wrap items-end gap-3 text-sm">
         <div>
-          <label htmlFor="from" className="block text-xs text-zinc-500">
+          <label htmlFor="from" className="block text-xs text-zinc-600">
             Du
           </label>
           <input
@@ -77,11 +77,11 @@ export default async function AuditPage({
             name="from"
             type="date"
             defaultValue={from ?? ""}
-            className="mt-1 rounded border border-zinc-300 px-2 py-1"
+            className="mt-1 field field-sm"
           />
         </div>
         <div>
-          <label htmlFor="to" className="block text-xs text-zinc-500">
+          <label htmlFor="to" className="block text-xs text-zinc-600">
             Au
           </label>
           <input
@@ -89,18 +89,18 @@ export default async function AuditPage({
             name="to"
             type="date"
             defaultValue={to ?? ""}
-            className="mt-1 rounded border border-zinc-300 px-2 py-1"
+            className="mt-1 field field-sm"
           />
         </div>
         <div>
-          <label htmlFor="actorUserId" className="block text-xs text-zinc-500">
+          <label htmlFor="actorUserId" className="block text-xs text-zinc-600">
             Acteur
           </label>
           <select
             id="actorUserId"
             name="actorUserId"
             defaultValue={actorUserId ?? ""}
-            className="mt-1 rounded border border-zinc-300 px-2 py-1"
+            className="mt-1 field field-sm"
           >
             <option value="">Tous</option>
             {actors.map((actor) => (
@@ -111,14 +111,14 @@ export default async function AuditPage({
           </select>
         </div>
         <div>
-          <label htmlFor="action" className="block text-xs text-zinc-500">
+          <label htmlFor="action" className="block text-xs text-zinc-600">
             Type
           </label>
           <select
             id="action"
             name="action"
             defaultValue={action ?? ""}
-            className="mt-1 rounded border border-zinc-300 px-2 py-1"
+            className="mt-1 field field-sm"
           >
             <option value="">Tous</option>
             {Object.entries(AUDIT_ACTION_LABELS).map(([value, label]) => (
@@ -133,14 +133,14 @@ export default async function AuditPage({
           <input type="checkbox" name="hideTest" value="1" defaultChecked={hideTestData} className="h-4 w-4" />
           Masquer les données de test
         </label>
-        <button type="submit" className="rounded border border-zinc-300 px-3 py-2 hover:bg-zinc-50">
+        <button type="submit" className="btn btn-secondary">
           Filtrer
         </button>
       </form>
 
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-zinc-500">
+          <tr className="border-b border-zinc-200 text-zinc-600">
             <th className="py-2 font-medium">Date</th>
             <th className="font-medium">Acteur</th>
             <th className="font-medium">Type</th>
@@ -150,7 +150,7 @@ export default async function AuditPage({
         <tbody>
           {items.map((log) => (
             <tr key={log.id} className="border-b border-zinc-100">
-              <td className="py-2 whitespace-nowrap text-zinc-500">{dateTimeFormatter.format(log.createdAt)}</td>
+              <td className="py-2 whitespace-nowrap text-zinc-600">{dateTimeFormatter.format(log.createdAt)}</td>
               <td className="whitespace-nowrap">{log.actorLabel ?? "Acteur supprimé"}</td>
               <td className="whitespace-nowrap text-zinc-600">
                 {AUDIT_ACTION_LABELS[log.action] ?? log.action}
@@ -160,7 +160,7 @@ export default async function AuditPage({
           ))}
           {items.length === 0 && (
             <tr>
-              <td colSpan={4} className="py-4 text-zinc-400">
+              <td colSpan={4} className="py-4 text-zinc-500">
                 Aucun événement pour ces filtres.
               </td>
             </tr>
@@ -176,7 +176,7 @@ export default async function AuditPage({
         ) : (
           <span className="text-zinc-300">&larr; Page précédente</span>
         )}
-        <span className="text-zinc-500">
+        <span className="text-zinc-600">
           Page {currentPage} / {totalPages}
         </span>
         {currentPage < totalPages ? (

@@ -24,7 +24,7 @@ export default async function NewSitePage({
             name="clientId"
             required
             defaultValue={clientId ?? ""}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           >
             <option value="" disabled>
               Sélectionner un client
@@ -44,7 +44,7 @@ export default async function NewSitePage({
             id="name"
             name="name"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -55,7 +55,7 @@ export default async function NewSitePage({
             id="address"
             name="address"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -67,7 +67,7 @@ export default async function NewSitePage({
               id="postalCode"
               name="postalCode"
               required
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div>
@@ -78,7 +78,7 @@ export default async function NewSitePage({
               id="city"
               name="city"
               required
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ export default async function NewSitePage({
             <input
               id="onSiteContactName"
               name="onSiteContactName"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div>
@@ -100,7 +100,7 @@ export default async function NewSitePage({
             <input
               id="onSiteContactPhone"
               name="onSiteContactPhone"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -112,12 +112,12 @@ export default async function NewSitePage({
             id="accessNotes"
             name="accessNotes"
             rows={3}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <button
           type="submit"
-          className="rounded bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+          className="btn btn-dark"
         >
           Créer le site
         </button>

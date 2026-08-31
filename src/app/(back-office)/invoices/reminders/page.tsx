@@ -36,18 +36,18 @@ export default async function InvoiceRemindersPage({
           Retour aux factures
         </Link>
       </div>
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-zinc-600">
         Factures émises ou partiellement payées, échéance dépassée ou dans les 7 prochains jours.
       </p>
       {error && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           {error}
         </p>
       )}
 
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-zinc-500">
+          <tr className="border-b border-zinc-200 text-zinc-600">
             <th className="py-2 font-medium">Numéro</th>
             <th className="font-medium">Client</th>
             <th className="font-medium">Échéance</th>
@@ -67,7 +67,7 @@ export default async function InvoiceRemindersPage({
               <td className="text-zinc-600">{invoice.client.legalName}</td>
               <td className="text-zinc-600">{formatDate(invoice.dueOn)}</td>
               <td className="text-zinc-600">{amount(invoice.balanceDue)}</td>
-              <td className="text-zinc-500">
+              <td className="text-zinc-600">
                 {invoice.lastRemindedAt ? formatDate(invoice.lastRemindedAt) : "—"}
               </td>
               <td>
@@ -80,18 +80,18 @@ export default async function InvoiceRemindersPage({
                     name="remindedOn"
                     required
                     defaultValue={todayValue}
-                    className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                    className="field field-sm text-xs"
                   />
                   <input
                     type="text"
                     name="note"
                     placeholder="Note (facultatif)"
                     maxLength={200}
-                    className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                    className="field field-sm text-xs"
                   />
                   <button
                     type="submit"
-                    className="rounded border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50"
+                    className="btn btn-secondary btn-xs"
                   >
                     Marquer relancé le
                   </button>
@@ -101,7 +101,7 @@ export default async function InvoiceRemindersPage({
           ))}
           {invoices.length === 0 && (
             <tr>
-              <td colSpan={6} className="py-4 text-zinc-400">
+              <td colSpan={6} className="py-4 text-zinc-500">
                 Aucune relance à faire.
               </td>
             </tr>

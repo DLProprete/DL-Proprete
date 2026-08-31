@@ -13,14 +13,14 @@ export default async function ClientsPage() {
         <h1 className="text-xl font-semibold">Clients</h1>
         <Link
           href="/clients/new"
-          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
+          className="btn btn-primary"
         >
           Nouveau client
         </Link>
       </div>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-zinc-500">
+          <tr className="border-b border-zinc-200 text-zinc-600">
             <th className="py-2 font-medium">Raison sociale</th>
             <th className="font-medium">Adresse de facturation</th>
             <th className="font-medium">Statut</th>
@@ -42,7 +42,7 @@ export default async function ClientsPage() {
           ))}
           {clients.length === 0 && (
             <tr>
-              <td colSpan={3} className="py-4 text-zinc-400">
+              <td colSpan={3} className="py-4 text-zinc-500">
                 Aucun client pour l&apos;instant.
               </td>
             </tr>

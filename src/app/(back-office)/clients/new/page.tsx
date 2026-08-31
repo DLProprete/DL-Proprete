@@ -13,7 +13,7 @@ export default function NewClientPage() {
             id="legalName"
             name="legalName"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -23,7 +23,7 @@ export default function NewClientPage() {
           <input
             id="tradeName"
             name="tradeName"
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -34,7 +34,7 @@ export default function NewClientPage() {
             id="billingAddress"
             name="billingAddress"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -45,7 +45,7 @@ export default function NewClientPage() {
             <input
               id="siret"
               name="siret"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div>
@@ -55,7 +55,7 @@ export default function NewClientPage() {
             <input
               id="vatNumber"
               name="vatNumber"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function NewClientPage() {
               id="email"
               name="email"
               type="email"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div>
@@ -78,7 +78,7 @@ export default function NewClientPage() {
             <input
               id="phone"
               name="phone"
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function NewClientPage() {
             type="number"
             min={0}
             defaultValue={30}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -103,12 +103,12 @@ export default function NewClientPage() {
             id="notes"
             name="notes"
             rows={3}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <button
           type="submit"
-          className="rounded bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+          className="btn btn-dark"
         >
           Créer le client
         </button>

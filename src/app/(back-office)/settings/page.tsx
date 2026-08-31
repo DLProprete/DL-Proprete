@@ -25,11 +25,11 @@ export default async function SettingsPage() {
   return (
     <div className="max-w-lg space-y-4">
       <h1 className="text-xl font-semibold">Paramètres entreprise</h1>
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-zinc-600">
         Ces informations composent l&apos;en-tête et les mentions légales des factures PDF.
       </p>
       {missing.length > 0 && (
-        <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="alert alert-warning">
           <p className="font-medium">Mentions légales incomplètes</p>
           <p className="mt-1">
             Manque : {describeMissingMentions(missing)}. Une facture émise ne se corrige que par un
@@ -47,7 +47,7 @@ export default async function SettingsPage() {
             name="legalName"
             required
             defaultValue={company.legalName}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -59,7 +59,7 @@ export default async function SettingsPage() {
             name="address"
             required
             defaultValue={company.address}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -72,7 +72,7 @@ export default async function SettingsPage() {
               name="legalForm"
               placeholder="SAS"
               defaultValue={company.legalForm ?? ""}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div>
@@ -86,7 +86,7 @@ export default async function SettingsPage() {
               step="0.01"
               min="0"
               defaultValue={company.shareCapital === null ? "" : String(company.shareCapital)}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -100,9 +100,9 @@ export default async function SettingsPage() {
               name="rcsCity"
               placeholder="Caen"
               defaultValue={company.rcsCity ?? ""}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
-            <p className="mt-1 text-xs text-zinc-400">
+            <p className="mt-1 text-xs text-zinc-500">
               Le SIREN affiché à côté est déduit du SIRET.
             </p>
           </div>
@@ -117,9 +117,9 @@ export default async function SettingsPage() {
               step="0.01"
               min="0"
               defaultValue={company.latePenaltyRate === null ? "" : String(company.latePenaltyRate)}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
-            <p className="mt-1 text-xs text-zinc-400">
+            <p className="mt-1 text-xs text-zinc-500">
               Laisser vide applique le repli légal : trois fois le taux d&apos;intérêt légal.
             </p>
           </div>
@@ -133,7 +133,7 @@ export default async function SettingsPage() {
               id="siret"
               name="siret"
               defaultValue={company.siret ?? ""}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div>
@@ -144,7 +144,7 @@ export default async function SettingsPage() {
               id="vatNumber"
               name="vatNumber"
               defaultValue={company.vatNumber ?? ""}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
         </div>
@@ -156,15 +156,15 @@ export default async function SettingsPage() {
             id="iban"
             name="iban"
             defaultValue={company.iban ?? ""}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
-          <p className="mt-1 text-xs text-zinc-400">
+          <p className="mt-1 text-xs text-zinc-500">
             Sans IBAN sur la facture, le client n&apos;a aucun moyen de payer.
           </p>
         </div>
         <button
           type="submit"
-          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
+          className="btn btn-primary"
         >
           Enregistrer
         </button>

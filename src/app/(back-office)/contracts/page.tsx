@@ -31,14 +31,14 @@ export default async function ContractsPage() {
         <h1 className="text-xl font-semibold">Contrats</h1>
         <Link
           href="/contracts/new"
-          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
+          className="btn btn-primary"
         >
           Nouveau contrat
         </Link>
       </div>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-zinc-500">
+          <tr className="border-b border-zinc-200 text-zinc-600">
             <th className="py-2 font-medium">Référence</th>
             <th className="font-medium">Client</th>
             <th className="font-medium">Site</th>
@@ -71,7 +71,7 @@ export default async function ContractsPage() {
           ))}
           {contracts.length === 0 && (
             <tr>
-              <td colSpan={6} className="py-4 text-zinc-400">
+              <td colSpan={6} className="py-4 text-zinc-500">
                 Aucun contrat pour l&apos;instant.
               </td>
             </tr>

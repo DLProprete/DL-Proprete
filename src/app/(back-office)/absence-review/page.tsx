@@ -48,7 +48,7 @@ export default async function AbsencesReviewPage() {
                   {absence.user.firstName} {absence.user.lastName} —{" "}
                   {TYPE_LABELS[absence.type] ?? absence.type}
                 </p>
-                <p className="text-zinc-500">
+                <p className="text-zinc-600">
                   {formatDate(absence.startsOn)} – {formatDate(absence.endsOn)}
                 </p>
                 {absence.documentPath && (
@@ -77,7 +77,7 @@ export default async function AbsencesReviewPage() {
             </li>
           ))}
           {pending.length === 0 && (
-            <li className="py-3 text-zinc-400">
+            <li className="py-3 text-zinc-500">
               Aucune absence en attente. <Link href="/planning" className="underline">Ouvrir le planning</Link>
             </li>
           )}
@@ -96,7 +96,7 @@ export default async function AbsencesReviewPage() {
                     {formatDate(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
                     {formatTimeInParis(shift.endAt)}
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-zinc-600">
                     Remplace{" "}
                     {shift.assignments
                       .map((a) => `${a.user.firstName} ${a.user.lastName}`)
@@ -111,7 +111,7 @@ export default async function AbsencesReviewPage() {
                     name="agentUserId"
                     required
                     defaultValue=""
-                    className="rounded border border-zinc-300 px-2 py-1 text-sm"
+                    className="field field-sm"
                   >
                     <option value="" disabled>
                       {candidates.length === 0 ? "Aucun candidat sans conflit" : "Affecter…"}
@@ -125,7 +125,7 @@ export default async function AbsencesReviewPage() {
                   <button
                     type="submit"
                     disabled={candidates.length === 0}
-                    className="rounded border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50 disabled:opacity-40"
+                    className="btn btn-secondary btn-xs disabled:opacity-40"
                   >
                     OK
                   </button>
@@ -134,7 +134,7 @@ export default async function AbsencesReviewPage() {
             );
           })}
           {shiftsWithCandidates.length === 0 && (
-            <li className="py-3 text-zinc-400">Rien à repourvoir.</li>
+            <li className="py-3 text-zinc-500">Rien à repourvoir.</li>
           )}
         </ul>
       </div>

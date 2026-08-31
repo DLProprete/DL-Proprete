@@ -32,11 +32,11 @@ export default async function WeekPage({
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">Cette semaine</h1>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-600">
             {shifts.length} vacation{shifts.length > 1 ? "s" : ""}
           </p>
         </div>
-        <Link href="/today" className="pt-1 text-sm text-teal-700 underline">
+        <Link href="/today" className="pt-1 text-sm text-brand-700 underline">
           Aujourd&apos;hui
         </Link>
       </div>
@@ -53,11 +53,11 @@ export default async function WeekPage({
       <div className="space-y-3">
         {days.map(({ date, shifts: dayShifts }) => (
           <div key={date.toISOString()} className="rounded-xl border border-zinc-200 bg-white p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
               {DAY_LABEL.format(date)}
             </p>
             {dayShifts.length === 0 ? (
-              <p className="mt-1 text-sm text-zinc-400">Aucune vacation</p>
+              <p className="mt-1 text-sm text-zinc-500">Aucune vacation</p>
             ) : (
               <ul className="mt-2 space-y-2">
                 {dayShifts.map((shift) => (
@@ -66,7 +66,7 @@ export default async function WeekPage({
                       {formatTimeInParis(shift.startAt)}–{formatTimeInParis(shift.endAt)} ·{" "}
                       {shift.site.name}
                     </span>
-                    <span className="text-xs text-zinc-500">{STATE_LABEL[shiftState(shift)]}</span>
+                    <span className="text-xs text-zinc-600">{STATE_LABEL[shiftState(shift)]}</span>
                   </li>
                 ))}
               </ul>

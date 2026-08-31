@@ -37,14 +37,14 @@ export default async function AgentDetailPage({
           <h1 className="text-xl font-semibold">
             {agent.firstName} {agent.lastName}
           </h1>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-600">
             {agent.role === "PLANNER" ? "Planificateur" : "Agent"}
           </p>
         </div>
         <form action={toggleActive}>
           <button
             type="submit"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            className="btn btn-secondary"
           >
             {agent.isActive ? "Désactiver" : "Réactiver"}
           </button>
@@ -52,7 +52,7 @@ export default async function AgentDetailPage({
       </div>
 
       {error && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           {error}
         </p>
       )}
@@ -63,7 +63,7 @@ export default async function AgentDetailPage({
           initialRole={agent.role === "PLANNER" ? "PLANNER" : "AGENT"}
         />
         {leaveBalance && (
-          <p className="-mt-2 text-xs text-zinc-400">
+          <p className="-mt-2 text-xs text-zinc-500">
             Pris en {currentYear} : {leaveBalance.taken} j (calculé depuis les absences approuvées).
           </p>
         )}
@@ -88,12 +88,12 @@ export default async function AgentDetailPage({
               type="password"
               required
               minLength={8}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <button
             type="submit"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            className="btn btn-secondary"
           >
             Réinitialiser
           </button>

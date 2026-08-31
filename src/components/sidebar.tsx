@@ -54,7 +54,7 @@ export function Sidebar({
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
           {groups.map((group) => (
             <div key={group.label}>
-              <h2 className="px-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+              <h2 className="px-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 {group.label}
               </h2>
               <ul className="mt-1 space-y-0.5">
@@ -67,7 +67,7 @@ export function Sidebar({
                         onClick={() => setOpen(false)}
                         className={`block rounded px-2 py-1.5 text-sm font-medium ${
                           active
-                            ? "bg-teal-50 text-teal-700"
+                            ? "bg-brand-50 text-brand-700"
                             : "text-zinc-700 hover:bg-zinc-100"
                         }`}
                       >
@@ -83,7 +83,7 @@ export function Sidebar({
         <form action={logoutAction} className="border-t border-zinc-200 p-3">
           <button
             type="submit"
-            className="w-full rounded px-2 py-1.5 text-left text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            className="w-full rounded px-2 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
           >
             Déconnexion
           </button>

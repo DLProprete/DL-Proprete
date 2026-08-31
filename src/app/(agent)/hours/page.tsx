@@ -37,14 +37,14 @@ export default async function HoursPage({
         <Link href={`/hours?year=${prev.year}&month=${prev.month}`} className="underline">
           &larr; Mois précédent
         </Link>
-        <span className="capitalize text-zinc-500">{monthLabel(year, month)}</span>
+        <span className="capitalize text-zinc-600">{monthLabel(year, month)}</span>
         <Link href={`/hours?year=${next.year}&month=${next.month}`} className="underline">
           Mois suivant &rarr;
         </Link>
       </div>
 
       <div className="rounded-xl border border-zinc-200 bg-white p-5 text-center shadow-sm">
-        <p className="text-sm font-medium text-zinc-500">Heures validées</p>
+        <p className="text-sm font-medium text-zinc-600">Heures validées</p>
         <p className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-zinc-900">
           {totalHours.toFixed(2)} h
         </p>
@@ -65,13 +65,13 @@ export default async function HoursPage({
             <span>
               {formatDate(entry.clockInAt)} · {entry.site.name}
             </span>
-            <span className="text-zinc-500">
+            <span className="text-zinc-600">
               {formatTimeInParis(entry.clockInAt)}–{entry.clockOutAt ? formatTimeInParis(entry.clockOutAt) : "?"}
             </span>
           </div>
         ))}
         {entries.length === 0 && (
-          <p className="rounded-lg border border-zinc-200 bg-white px-3 py-4 text-center text-sm text-zinc-400">
+          <p className="rounded-lg border border-zinc-200 bg-white px-3 py-4 text-center text-sm text-zinc-500">
             Aucun pointage validé pour ce mois.
           </p>
         )}
