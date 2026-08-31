@@ -82,6 +82,7 @@ describe("règles Facturation (intégration DB)", () => {
           startAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 6, 0)),
           endAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 8, 0)),
           requiredAgents: 1,
+          billableMinutes: 120,
           status: "PLANNED",
           generatedFromTemplate: false,
         },
@@ -95,6 +96,7 @@ describe("règles Facturation (intégration DB)", () => {
         startAt: new Date(Date.UTC(YEAR, MONTH - 1, 10, 6, 0)),
         endAt: new Date(Date.UTC(YEAR, MONTH - 1, 10, 11, 0)),
         requiredAgents: 1,
+        billableMinutes: 120,
         status: "CANCELLED",
         generatedFromTemplate: false,
       },
@@ -141,6 +143,15 @@ describe("règles Facturation (intégration DB)", () => {
   });
 
   afterAll(async () => {
+    // Le journal d'audit n'est pas nettoye par cascade. Sans ces deux lignes,
+    // chaque execution de la suite laissait en base des paiements de test
+    // orphelins (leur acteur supprime, ils s'affichaient "Système") qui
+    // polluaient l'ecran Audit en developpement.
+    const invoiceIds = (
+      await prisma.invoice.findMany({ where: { clientId }, select: { id: true } })
+    ).map((invoice) => invoice.id);
+    await prisma.auditLog.deleteMany({ where: { entityId: { in: invoiceIds } } });
+    await prisma.auditLog.deleteMany({ where: { actorUserId: adminUser.id } });
     await prisma.payment.deleteMany({ where: { invoice: { clientId } } });
     await prisma.invoiceLine.deleteMany({ where: { invoice: { clientId } } });
     await prisma.invoice.deleteMany({ where: { clientId } });
@@ -407,5 +418,129 @@ describe("relances facture (intégration DB)", () => {
   it("applique le repli échéance = émission + 30 jours quand dueOn est absent", async () => {
     const list = await listInvoicesForReminders(adminUser);
     expect(list.map((invoice) => invoice.id)).toContain(fallbackInvoiceId);
+  });
+});
+
+// Regression Lot 1 : une vacation a plusieurs agents vend autant d'heures de
+// main-d'oeuvre qu'elle mobilise d'agents, et une facture assise sur un mois
+// partiellement planifie doit se signaler avant emission.
+describe("heures d'agent et complétude du mois (intégration DB)", () => {
+  const suffix = Date.now();
+  const YEAR = 2032;
+  const MONTH = 3;
+  let clientId: string;
+  let siteId: string;
+  let contractId: string;
+  let adminUser: SessionUser;
+
+  beforeAll(async () => {
+    const client = await prisma.client.create({
+      data: {
+        legalName: "Client Test Multi-agents",
+        billingAddress: "2 rue Test",
+        paymentTermDays: 30,
+      },
+    });
+    const site = await prisma.site.create({
+      data: {
+        clientId: client.id,
+        name: "Site Test Multi-agents",
+        address: "2 rue Test",
+        city: "Caen",
+        postalCode: "14000",
+      },
+    });
+    const contract = await prisma.contract.create({
+      data: {
+        clientId: client.id,
+        siteId: site.id,
+        reference: `C-TEST-MULTI-${suffix}`,
+        startsOn: new Date(Date.UTC(YEAR, 0, 1)),
+        endsOn: new Date(Date.UTC(YEAR, 11, 31)),
+        hourlyRateHT: 30,
+        vatRate: 20,
+        status: "ACTIVE",
+        billingBasis: "CALENDAR_SHIFTS",
+        // Reference contractuelle volontairement eloignee du planning cree
+        // ci-dessous, pour declencher l'alerte d'ecart.
+        indicativeMonthlyHours: 40,
+      },
+    });
+
+    // Le cas exact remonte par l'audit : fenetre d'acces 08:30-10:00 (90 min),
+    // 90 min vendues, 2 agents requis. Six passages = 18 h de main-d'oeuvre.
+    for (const day of [2, 5, 9, 12, 16, 19]) {
+      await prisma.shift.create({
+        data: {
+          siteId: site.id,
+          contractId: contract.id,
+          date: new Date(Date.UTC(YEAR, MONTH - 1, day)),
+          startAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 8, 30)),
+          endAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 10, 0)),
+          requiredAgents: 2,
+          billableMinutes: 90,
+          status: "PLANNED",
+          generatedFromTemplate: false,
+        },
+      });
+    }
+
+    const adminRow = await prisma.user.create({
+      data: {
+        email: `test-multi-admin-${suffix}@dlproprete.fr`,
+        name: "Admin Multi",
+        firstName: "Admin",
+        lastName: "Multi",
+        role: "ADMIN",
+        emailVerified: true,
+      },
+    });
+
+    clientId = client.id;
+    siteId = site.id;
+    contractId = contract.id;
+    adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
+  });
+
+  afterAll(async () => {
+    const invoiceIds = (
+      await prisma.invoice.findMany({ where: { clientId }, select: { id: true } })
+    ).map((invoice) => invoice.id);
+    // L'audit n'est pas nettoye par cascade : sans ca les fixtures laissent
+    // des lignes orphelines dans le journal (constate en dev le 31/08/2026,
+    // elles s'affichaient comme des paiements reels signes "Système").
+    await prisma.auditLog.deleteMany({ where: { entityId: { in: invoiceIds } } });
+    await prisma.auditLog.deleteMany({ where: { actorUserId: adminUser.id } });
+    await prisma.payment.deleteMany({ where: { invoice: { clientId } } });
+    await prisma.invoiceLine.deleteMany({ where: { invoice: { clientId } } });
+    await prisma.invoice.deleteMany({ where: { clientId } });
+    await prisma.shift.deleteMany({ where: { siteId } });
+    await prisma.contract.deleteMany({ where: { siteId } });
+    await prisma.site.delete({ where: { id: siteId } });
+    await prisma.client.delete({ where: { id: clientId } });
+    await prisma.user.delete({ where: { id: adminUser.id } });
+  });
+
+  it("facture les heures d'agent, pas les créneaux", async () => {
+    await generateMonthlyInvoices(adminUser, YEAR, MONTH);
+    const invoice = await prisma.invoice.findFirstOrThrow({
+      where: { contractId },
+      include: { lines: true },
+    });
+    // 6 passages x 90 min x 2 agents = 18 h. Avant correction : 9 h, soit la
+    // moitie du montant du.
+    expect(Number(invoice.lines[0].quantity)).toBe(18);
+    expect(Number(invoice.amountHT)).toBe(540);
+  });
+
+  it("signale un mois partiellement planifié et un écart au volume contractuel", async () => {
+    const result = await generateMonthlyInvoices(adminUser, YEAR, MONTH);
+    const entry = result.warnings.find((warning) => warning.contractId === contractId);
+    expect(entry).toBeDefined();
+    const kinds = entry!.warnings.map((warning) => warning.kind);
+    // Derniere vacation le 19, mois de 31 jours.
+    expect(kinds).toContain("PARTIAL_MONTH");
+    // 18 h calculees contre 40 h de reference contractuelle.
+    expect(kinds).toContain("FAR_FROM_INDICATIVE");
   });
 });

@@ -90,6 +90,9 @@ export async function generateShifts(user: SessionUser) {
           startAt,
           endAt,
           requiredAgents: template.requiredAgents,
+          // Duree vendue figee ici : une modification ulterieure du contrat ne
+          // doit pas changer retroactivement une periode deja facturee.
+          billableMinutes: template.durationMinutes,
           status: "UNSTAFFED",
           generatedFromTemplate: true,
         });

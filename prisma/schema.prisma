@@ -256,7 +256,7 @@ model Contract {
   startsOn               DateTime       @db.Date
   endsOn                 DateTime       @db.Date
   billingMode            BillingMode    @default(TIME_AND_MATERIALS_PLANNED)
-  billingBasis           BillingBasis   @default(CALENDAR_SHIFTS)
+  billingBasis           BillingBasis   @default(FLAT_INDICATIVE_HOURS)
   hourlyRateHT           Decimal        @db.Decimal(8, 2)
   indicativeMonthlyHours Decimal?       @db.Decimal(7, 2)
   vatRate                Decimal        @default(20) @db.Decimal(4, 2)
@@ -307,6 +307,11 @@ model Shift {
   startAt               DateTime
   endAt                 DateTime
   requiredAgents        Int
+  // Durée vendue de la vacation, en minutes, recopiee du ServiceTemplate au
+  // moment de la generation. Figee volontairement : modifier le contrat plus
+  // tard ne doit jamais changer retroactivement une periode deja facturee.
+  // Distincte de endAt - startAt, qui est la fenetre d'acces au site.
+  billableMinutes       Int
   status                ShiftStatus @default(UNSTAFFED)
   generatedFromTemplate Boolean     @default(true)
   createdAt             DateTime    @default(now())
