@@ -43,8 +43,11 @@ export default async function BackOfficeLayout({
   children: React.ReactNode;
 }) {
   const user = await requireSession().catch(() => null);
-  if (!user || (user.role !== "ADMIN" && user.role !== "PLANNER")) {
+  if (!user) {
     redirect("/login");
+  }
+  if (user.role !== "ADMIN" && user.role !== "PLANNER") {
+    redirect("/unauthorized");
   }
 
   const groups: NavGroup[] = NAV_GROUPS.map((group) => ({
