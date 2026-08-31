@@ -55,43 +55,43 @@ export default async function ContractDetailPage({
       <div>
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">{contract.reference}</h1>
-          <span className={contract.status === "ACTIVE" ? "text-green-700" : "text-zinc-400"}>
+          <span className={contract.status === "ACTIVE" ? "text-green-700" : "text-zinc-500"}>
             {STATUS_LABELS[contract.status] ?? contract.status}
           </span>
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <dt className="text-zinc-500">Client</dt>
+          <dt className="text-zinc-600">Client</dt>
           <dd>
             <Link href={`/clients/${contract.client.id}`} className="underline">
               {contract.client.legalName}
             </Link>
           </dd>
-          <dt className="text-zinc-500">Site</dt>
+          <dt className="text-zinc-600">Site</dt>
           <dd>
             <Link href={`/sites/${contract.site.id}`} className="underline">
               {contract.site.name}
             </Link>
           </dd>
-          <dt className="text-zinc-500">Période</dt>
+          <dt className="text-zinc-600">Période</dt>
           <dd>
             {formatDate(contract.startsOn)} – {formatDate(contract.endsOn)}
           </dd>
-          <dt className="text-zinc-500">Facturation</dt>
+          <dt className="text-zinc-600">Facturation</dt>
           <dd>{BILLING_BASIS_LABELS[contract.billingBasis] ?? contract.billingBasis}</dd>
-          <dt className="text-zinc-500">Tarif horaire HT</dt>
+          <dt className="text-zinc-600">Tarif horaire HT</dt>
           <dd>{contract.hourlyRateHT.toString()} €/h</dd>
-          <dt className="text-zinc-500">Taux de TVA</dt>
+          <dt className="text-zinc-600">Taux de TVA</dt>
           <dd>{contract.vatRate.toString()} %</dd>
-          <dt className="text-zinc-500">Jour de facturation</dt>
+          <dt className="text-zinc-600">Jour de facturation</dt>
           <dd>{contract.billingDayOfMonth}</dd>
-          <dt className="text-zinc-500">Préavis de reconduction</dt>
+          <dt className="text-zinc-600">Préavis de reconduction</dt>
           <dd>{contract.renewalNoticeDays} jours</dd>
-          <dt className="text-zinc-500">Volume mensuel indicatif</dt>
+          <dt className="text-zinc-600">Volume mensuel indicatif</dt>
           <dd>{contract.indicativeMonthlyHours ? `${contract.indicativeMonthlyHours.toString()} h` : "—"}</dd>
-          <dt className="text-zinc-500">Notes</dt>
+          <dt className="text-zinc-600">Notes</dt>
           <dd>{contract.notes ?? "—"}</dd>
         </dl>
-        <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-900">
+        <div className="mt-4 rounded-lg border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-900">
           Ce contrat représente environ{" "}
           <span className="font-semibold">{projection.monthlyHours.toFixed(1)} h/mois</span> ≈{" "}
           <span className="font-semibold">{projection.monthlyAmountHT.toFixed(0)} € HT/mois</span>
@@ -111,12 +111,12 @@ export default async function ContractDetailPage({
             return (
               <li key={template.id} className="flex items-center justify-between py-2">
                 <div>
-                  <p className={template.isActive ? "" : "text-zinc-400"}>
+                  <p className={template.isActive ? "" : "text-zinc-500"}>
                     <span className="font-medium">{template.name}</span> —{" "}
                     {template.daysOfWeek.map((day) => DAY_LABELS[day]).join(", ")}{" "}
                     {formatTime(template.startTime)}–{formatTime(template.endTime)}
                   </p>
-                  <p className={template.isActive ? "text-sm text-zinc-500" : "text-sm text-zinc-400"}>
+                  <p className={template.isActive ? "text-sm text-zinc-600" : "text-sm text-zinc-500"}>
                     {template.durationMinutes} min facturées × {template.requiredAgents} agent
                     {template.requiredAgents > 1 ? "s" : ""} ={" "}
                     {((template.durationMinutes * template.requiredAgents) / 60)
@@ -125,10 +125,10 @@ export default async function ContractDetailPage({
                     h par passage
                   </p>
                   {template.instructions && (
-                    <p className="text-zinc-500">{template.instructions}</p>
+                    <p className="text-zinc-600">{template.instructions}</p>
                   )}
                   {template.serviceExceptions.length > 0 && (
-                    <ul className="mt-1 text-xs text-zinc-500">
+                    <ul className="mt-1 text-xs text-zinc-600">
                       {template.serviceExceptions.map((exception) => (
                         <li key={exception.id}>
                           {formatDate(exception.date)} —{" "}
@@ -145,26 +145,26 @@ export default async function ContractDetailPage({
                       type="date"
                       name="date"
                       required
-                      className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                      className="field field-sm text-xs"
                     />
                     <select
                       name="type"
                       defaultValue="SKIP"
-                      className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                      className="field field-sm text-xs"
                     >
                       <option value="SKIP">Annuler ce jour</option>
                       <option value="EXTRA">Ajouter ce jour</option>
                     </select>
                     <button
                       type="submit"
-                      className="rounded border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50"
+                      className="btn btn-secondary btn-xs"
                     >
                       Exception
                     </button>
                   </form>
                 </div>
                 <form action={toggleActive}>
-                  <button type="submit" className="text-xs text-zinc-500 underline">
+                  <button type="submit" className="text-xs text-zinc-600 underline">
                     {template.isActive ? "Désactiver" : "Réactiver"}
                   </button>
                 </form>
@@ -172,7 +172,7 @@ export default async function ContractDetailPage({
             );
           })}
           {contract.serviceTemplates.length === 0 && (
-            <li className="py-2 text-zinc-400">Aucune vacation pour l&apos;instant.</li>
+            <li className="py-2 text-zinc-500">Aucune vacation pour l&apos;instant.</li>
           )}
         </ul>
       </div>
@@ -180,7 +180,7 @@ export default async function ContractDetailPage({
       <div>
         <h2 className="text-sm font-medium text-zinc-700">Ajouter une vacation</h2>
         {error && (
-          <p className="mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="mt-2 alert alert-danger">
             {error}
           </p>
         )}

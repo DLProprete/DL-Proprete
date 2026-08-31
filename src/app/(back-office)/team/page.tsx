@@ -17,14 +17,14 @@ export default async function TeamPage() {
         <h1 className="text-xl font-semibold">Équipe</h1>
         <Link
           href="/team/new"
-          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
+          className="btn btn-primary"
         >
           Nouveau membre
         </Link>
       </div>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-zinc-500">
+          <tr className="border-b border-zinc-200 text-zinc-600">
             <th className="py-2 font-medium">Nom</th>
             <th className="font-medium">Rôle</th>
             <th className="font-medium">Téléphone</th>
@@ -50,7 +50,7 @@ export default async function TeamPage() {
           ))}
           {agents.length === 0 && (
             <tr>
-              <td colSpan={5} className="py-4 text-zinc-400">
+              <td colSpan={5} className="py-4 text-zinc-500">
                 Aucun membre pour l&apos;instant.
               </td>
             </tr>

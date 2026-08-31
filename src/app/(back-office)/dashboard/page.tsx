@@ -59,7 +59,7 @@ export default async function DashboardPage() {
             type="number"
             name="year"
             defaultValue={today.getFullYear()}
-            className="w-24 rounded border border-zinc-300 px-2 py-1 text-sm"
+            className="w-24 field field-sm"
           />
           <input
             type="number"
@@ -67,11 +67,11 @@ export default async function DashboardPage() {
             min={1}
             max={12}
             defaultValue={today.getMonth() + 1}
-            className="w-16 rounded border border-zinc-300 px-2 py-1 text-sm"
+            className="w-16 field field-sm"
           />
           <button
             type="submit"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            className="btn btn-secondary"
           >
             Export CSV pointages (comptable)
           </button>
@@ -83,10 +83,10 @@ export default async function DashboardPage() {
           <Link
             key={tile.href}
             href={tile.href}
-            className="rounded border border-zinc-200 bg-white p-4 transition hover:border-teal-700 hover:shadow-sm"
+            className="card transition hover:border-brand-700 hover:shadow-sm"
           >
             <p className="text-2xl font-semibold text-zinc-900">{tile.value}</p>
-            <p className="text-sm text-zinc-500">{tile.label}</p>
+            <p className="text-sm text-zinc-600">{tile.label}</p>
           </Link>
         ))}
       </div>
@@ -107,7 +107,7 @@ export default async function DashboardPage() {
                   label={SHIFT_STATUS_LABELS[shift.status] ?? shift.status}
                 />
                 {suggestions && (
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-zinc-600">
                     {suggestions.length > 0
                       ? `Suggestions : ${suggestions
                           .map((agent) => `${agent.firstName} ${agent.lastName}`)
@@ -119,7 +119,7 @@ export default async function DashboardPage() {
             );
           })}
           {unstaffedShifts.length === 0 && (
-            <li className="py-2 text-zinc-400">Rien à signaler.</li>
+            <li className="py-2 text-zinc-500">Rien à signaler.</li>
           )}
         </ul>
       </section>
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
             </li>
           ))}
           {longOpenEntries.length === 0 && (
-            <li className="py-2 text-zinc-400">Rien à signaler.</li>
+            <li className="py-2 text-zinc-500">Rien à signaler.</li>
           )}
         </ul>
       </section>
@@ -150,14 +150,14 @@ export default async function DashboardPage() {
                   {invoice.number}
                 </Link>{" "}
                 · {invoice.client.legalName} · {Number(invoice.amountTTC).toFixed(2)} € ·{" "}
-                <span className={overdue ? "text-red-600" : "text-zinc-500"}>
+                <span className={overdue ? "text-red-600" : "text-zinc-600"}>
                   échéance {invoice.dueOn ? formatDate(invoice.dueOn) : "—"}
                 </span>
               </li>
             );
           })}
           {unpaidInvoices.length === 0 && (
-            <li className="py-2 text-zinc-400">Rien à signaler.</li>
+            <li className="py-2 text-zinc-500">Rien à signaler.</li>
           )}
         </ul>
       </section>
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
             </li>
           ))}
           {endingContracts.length === 0 && (
-            <li className="py-2 text-zinc-400">Rien à signaler.</li>
+            <li className="py-2 text-zinc-500">Rien à signaler.</li>
           )}
         </ul>
       </section>

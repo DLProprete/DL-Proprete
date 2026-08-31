@@ -12,7 +12,7 @@ export default async function NewAgentPage({
     <div className="max-w-lg space-y-4">
       <h1 className="text-xl font-semibold">Nouveau membre de l&apos;équipe</h1>
       {error && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           {error}
         </p>
       )}
@@ -26,7 +26,7 @@ export default async function NewAgentPage({
             name="email"
             type="email"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -39,7 +39,7 @@ export default async function NewAgentPage({
             type="password"
             required
             minLength={8}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <AgentProfileFields roleSelectable />

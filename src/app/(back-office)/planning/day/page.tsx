@@ -54,7 +54,7 @@ export default async function PlanningDayPage({
       </div>
 
       {error === "conflict" && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           Affectation refusée : conflit d&apos;horaire avec une autre vacation, ou agent invalide.
         </p>
       )}
@@ -108,7 +108,7 @@ export default async function PlanningDayPage({
                         name="agentUserId"
                         required
                         defaultValue=""
-                        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+                        className="field field-sm"
                       >
                         <option value="" disabled>
                           Affecter…
@@ -121,7 +121,7 @@ export default async function PlanningDayPage({
                       </select>
                       <button
                         type="submit"
-                        className="rounded border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50"
+                        className="btn btn-secondary btn-xs"
                       >
                         OK
                       </button>
@@ -133,7 +133,7 @@ export default async function PlanningDayPage({
           </div>
         ))}
         {shiftsBySite.size === 0 && (
-          <p className="text-sm text-zinc-400">Aucune vacation ce jour-là.</p>
+          <p className="text-sm text-zinc-500">Aucune vacation ce jour-là.</p>
         )}
       </div>
     </div>

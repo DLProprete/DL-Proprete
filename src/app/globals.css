@@ -1,19 +1,187 @@
 @import "tailwindcss";
 
+/*
+ * Fondations visuelles — DL Propreté
+ * =================================
+ *
+ * Un seul système pour deux contextes d'usage opposés : le back-office, sur un
+ * écran d'ordinateur, où la densité est une qualité ; et l'écran agent, dehors,
+ * à 6 h du matin, à une main. Mêmes couleurs et même typographie, échelles de
+ * taille et de cible tactile différentes.
+ *
+ * Règle de couleur : la couleur est une donnée, pas une décoration. L'accent
+ * (teal) signale l'action principale ; ambre, rouge et vert ne servent qu'à
+ * dire un état. Tout le reste est neutre — sinon l'alerte ne se voit plus.
+ */
+
+@theme {
+  /* Accent unique. Reprend le teal déjà en place (themeColor du manifeste). */
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
+
+  /* Pile système : SF Pro sur le Mac de la direction, Roboto sur les
+     téléphones Android des agents. Aucun téléchargement, aucun décalage de
+     mise en page au chargement — ce qui compte quand le réseau est mauvais. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius-app: 0.5rem;
+}
+
 :root {
   --background: #fafafa;
   --foreground: #18181b;
+
+  /* Cible tactile minimale. 44 px est le plancher WCAG ; l'écran agent monte
+     plus haut, voir --tap-field. */
+  --tap-min: 2.75rem;
+  --tap-field: 3.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+
+  /*
+   * Anneau de focus visible partout. Cassandre saisit vite et navigue au
+   * clavier entre les champs ; sans cet anneau, on ne sait plus où on est.
+   * `:focus-visible` n'apparaît pas au clic à la souris.
+   */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-brand-700);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /*
+   * Chiffres à chasse fixe dans tous les tableaux : les heures, les durées et
+   * les euros s'alignent en colonne. C'est le détail typographique qui sépare
+   * un outil de gestion d'une page web.
+   */
+  :where(table) :where(td, th) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--color-brand-100);
+    color: var(--color-brand-900);
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* ---- Boutons ------------------------------------------------------- */
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-2
+      text-sm font-medium transition-colors duration-150
+      disabled:cursor-not-allowed disabled:opacity-50;
+    min-height: var(--tap-min);
+  }
+
+  .btn-primary {
+    @apply bg-brand-700 text-white hover:bg-brand-800;
+  }
+
+  .btn-secondary {
+    @apply border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50;
+  }
+
+  .btn-dark {
+    @apply bg-zinc-900 px-4 text-white hover:bg-zinc-800;
+  }
+
+  .btn-danger {
+    @apply border border-red-300 bg-white text-red-700 hover:bg-red-50;
+  }
+
+  /* Variantes compactes : uniquement dans les tableaux du back-office, jamais
+     sur l'écran agent. */
+  .btn-sm {
+    @apply px-2 py-1 text-sm;
+    min-height: 2rem;
+  }
+
+  .btn-xs {
+    @apply px-2 py-1 text-xs;
+    min-height: 1.75rem;
+  }
+
+  /* Action principale de l'écran agent : atteignable au pouce, gantée, dans
+     le froid. Pleine largeur, 56 px de haut, texte large. */
+  .btn-field {
+    @apply w-full rounded-lg px-4 text-lg font-semibold;
+    min-height: var(--tap-field);
+  }
+
+  /* Fin de vacation. Volontairement d'une autre couleur que le démarrage :
+     à 6 h, on ne lit pas le libellé, on reconnaît la couleur. amber-600 ne
+     ferait que ~3,2:1 sur blanc, insuffisant en texte normal ; amber-700
+     passe à ~5:1. */
+  .btn-stop {
+    @apply bg-amber-700 text-white hover:bg-amber-800 active:bg-amber-900;
+  }
+
+  /* ---- Champs de formulaire ------------------------------------------ */
+
+  .field {
+    @apply block rounded-md border border-zinc-400 bg-white px-3 py-2 text-sm
+      text-zinc-900 placeholder:text-zinc-500;
+    min-height: var(--tap-min);
+  }
+
+  .field-sm {
+    @apply px-2 py-1;
+    min-height: 2rem;
+  }
+
+  /* Puce à cocher (sélecteur de jours de la semaine, jours non travaillés).
+     Cible tactile complète, état coché lisible sans dépendre de la couleur
+     seule — le contraste porte l'information. */
+  .chip {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5
+      rounded-md border border-zinc-400 bg-white px-3 py-1.5 text-sm
+      select-none transition-colors
+      has-[:checked]:border-zinc-900 has-[:checked]:bg-zinc-900
+      has-[:checked]:text-white;
+    min-height: var(--tap-min);
+  }
+
+  /* ---- Surfaces ------------------------------------------------------- */
+
+  .card {
+    @apply rounded-lg border border-zinc-200 bg-white p-4;
+  }
+
+  /* ---- Messages ------------------------------------------------------- */
+
+  .alert {
+    @apply rounded-md border px-3 py-2 text-sm;
+  }
+
+  .alert-danger {
+    @apply border-red-200 bg-red-50 text-red-800;
+  }
+
+  .alert-warning {
+    @apply border-amber-300 bg-amber-50 text-amber-900;
+  }
+
+  .alert-info {
+    @apply border-zinc-200 bg-zinc-50 text-zinc-700;
+  }
+
+  /* ---- Divers --------------------------------------------------------- */
+
+  /* Chiffres alignés hors tableau (compteurs, totaux). */
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
 }

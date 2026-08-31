@@ -65,7 +65,7 @@ export function AgentProfileFields({
             name="role"
             value={role}
             onChange={(event) => setRole(event.target.value as Role)}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           >
             <option value="AGENT">Agent (terrain)</option>
             <option value="PLANNER">Planificateur (bureau)</option>
@@ -82,7 +82,7 @@ export function AgentProfileFields({
             name="firstName"
             required
             defaultValue={v.firstName ?? ""}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -94,7 +94,7 @@ export function AgentProfileFields({
             name="lastName"
             required
             defaultValue={v.lastName ?? ""}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
       </div>
@@ -107,7 +107,7 @@ export function AgentProfileFields({
             id="phone"
             name="phone"
             defaultValue={v.phone ?? ""}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -121,9 +121,9 @@ export function AgentProfileFields({
             step="0.01"
             min="0"
             defaultValue={v.weeklyContractHours != null ? Number(v.weeklyContractHours) : ""}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
-          <p className="mt-1 text-xs text-zinc-400">Nécessaire pour l&apos;alerte dépassement 35 h.</p>
+          <p className="mt-1 text-xs text-zinc-500">Nécessaire pour l&apos;alerte dépassement 35 h.</p>
         </div>
       </div>
       <div>
@@ -137,9 +137,9 @@ export function AgentProfileFields({
           step="0.5"
           min="0"
           defaultValue={v.paidLeaveBalance != null ? Number(v.paidLeaveBalance) : ""}
-          className="mt-1 w-40 rounded border border-zinc-300 px-3 py-2"
+          className="mt-1 w-40 field"
         />
-        <p className="mt-1 text-xs text-zinc-400">
+        <p className="mt-1 text-xs text-zinc-500">
           Saisi à la main (ex. depuis le logiciel de paie) — non calculé ici.
         </p>
       </div>
@@ -153,7 +153,7 @@ export function AgentProfileFields({
               id="homeAddress"
               name="homeAddress"
               defaultValue={v.homeAddress ?? ""}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full field"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -165,7 +165,7 @@ export function AgentProfileFields({
                 id="homeCity"
                 name="homeCity"
                 defaultValue={v.homeCity ?? ""}
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+                className="mt-1 w-full field"
               />
             </div>
             <div>
@@ -176,7 +176,7 @@ export function AgentProfileFields({
                 id="homePostalCode"
                 name="homePostalCode"
                 defaultValue={v.homePostalCode ?? ""}
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+                className="mt-1 w-full field"
               />
             </div>
           </div>
@@ -191,7 +191,7 @@ export function AgentProfileFields({
                 type="number"
                 step="any"
                 defaultValue={v.homeLat ?? ""}
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+                className="mt-1 w-full field"
               />
             </div>
             <div>
@@ -204,11 +204,11 @@ export function AgentProfileFields({
                 type="number"
                 step="any"
                 defaultValue={v.homeLng ?? ""}
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+                className="mt-1 w-full field"
               />
             </div>
           </div>
-          <p className="-mt-3 text-xs text-zinc-400">
+          <p className="-mt-3 text-xs text-zinc-500">
             Facultatif — collecté pour de futures suggestions d&apos;affectation par proximité
             du domicile, pas encore exploité.
           </p>
@@ -226,7 +226,7 @@ export function AgentProfileFields({
                 name="minStartTime"
                 type="time"
                 defaultValue={v.minStartTime ? formatTime(v.minStartTime) : ""}
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+                className="mt-1 w-full field"
               />
             </div>
             <div>
@@ -238,7 +238,7 @@ export function AgentProfileFields({
                 name="maxEndTime"
                 type="time"
                 defaultValue={v.maxEndTime ? formatTime(v.maxEndTime) : ""}
-                className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+                className="mt-1 w-full field"
               />
             </div>
           </div>
@@ -248,7 +248,7 @@ export function AgentProfileFields({
               {DAYS.map((day) => (
                 <label
                   key={day.value}
-                  className="flex cursor-pointer items-center gap-1.5 rounded border border-zinc-300 px-3 py-1.5 text-sm select-none has-[:checked]:border-zinc-900 has-[:checked]:bg-zinc-900 has-[:checked]:text-white"
+                  className="chip"
                 >
                   <input
                     type="checkbox"
@@ -273,9 +273,9 @@ export function AgentProfileFields({
           name="notes"
           rows={3}
           defaultValue={v.notes ?? ""}
-          className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          className="mt-1 w-full field"
         />
-        <p className="mt-1 text-xs text-zinc-400">
+        <p className="mt-1 text-xs text-zinc-500">
           Organisation uniquement — jamais de diagnostic ni d&apos;information de santé.
         </p>
       </div>

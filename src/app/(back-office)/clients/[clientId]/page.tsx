@@ -26,7 +26,7 @@ export default async function ClientDetailPage({
         <form action={toggleActive}>
           <button
             type="submit"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            className="btn btn-secondary"
           >
             {client.isActive ? "Désactiver" : "Réactiver"}
           </button>
@@ -34,21 +34,21 @@ export default async function ClientDetailPage({
       </div>
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-        <dt className="text-zinc-500">Statut</dt>
+        <dt className="text-zinc-600">Statut</dt>
         <dd>{client.isActive ? "Actif" : "Désactivé"}</dd>
-        <dt className="text-zinc-500">Nom commercial</dt>
+        <dt className="text-zinc-600">Nom commercial</dt>
         <dd>{client.tradeName ?? "—"}</dd>
-        <dt className="text-zinc-500">Adresse de facturation</dt>
+        <dt className="text-zinc-600">Adresse de facturation</dt>
         <dd>{client.billingAddress}</dd>
-        <dt className="text-zinc-500">SIRET</dt>
+        <dt className="text-zinc-600">SIRET</dt>
         <dd>{client.siret ?? "—"}</dd>
-        <dt className="text-zinc-500">N° TVA</dt>
+        <dt className="text-zinc-600">N° TVA</dt>
         <dd>{client.vatNumber ?? "—"}</dd>
-        <dt className="text-zinc-500">E-mail</dt>
+        <dt className="text-zinc-600">E-mail</dt>
         <dd>{client.email ?? "—"}</dd>
-        <dt className="text-zinc-500">Téléphone</dt>
+        <dt className="text-zinc-600">Téléphone</dt>
         <dd>{client.phone ?? "—"}</dd>
-        <dt className="text-zinc-500">Délai de paiement</dt>
+        <dt className="text-zinc-600">Délai de paiement</dt>
         <dd>{client.paymentTermDays} jours</dd>
       </dl>
 
@@ -65,11 +65,11 @@ export default async function ClientDetailPage({
               <Link href={`/sites/${site.id}`} className="text-zinc-900 underline">
                 {site.name}
               </Link>
-              <span className="ml-2 text-zinc-400">{site.city}</span>
+              <span className="ml-2 text-zinc-500">{site.city}</span>
             </li>
           ))}
           {client.sites.length === 0 && (
-            <li className="py-2 text-zinc-400">Aucun site pour l&apos;instant.</li>
+            <li className="py-2 text-zinc-500">Aucun site pour l&apos;instant.</li>
           )}
         </ul>
       </div>

@@ -13,14 +13,14 @@ export default async function SitesPage() {
         <h1 className="text-xl font-semibold">Sites</h1>
         <Link
           href="/sites/new"
-          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
+          className="btn btn-primary"
         >
           Nouveau site
         </Link>
       </div>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-zinc-500">
+          <tr className="border-b border-zinc-200 text-zinc-600">
             <th className="py-2 font-medium">Nom</th>
             <th className="font-medium">Client</th>
             <th className="font-medium">Ville</th>
@@ -44,7 +44,7 @@ export default async function SitesPage() {
           ))}
           {sites.length === 0 && (
             <tr>
-              <td colSpan={4} className="py-4 text-zinc-400">
+              <td colSpan={4} className="py-4 text-zinc-500">
                 Aucun site pour l&apos;instant.
               </td>
             </tr>

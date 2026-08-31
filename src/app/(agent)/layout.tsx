@@ -17,7 +17,7 @@ export default async function AgentLayout({ children }: { children: React.ReactN
       <main className="flex-1 px-6 py-6 pb-24">
         {children}
         <form action={logoutAction} className="mx-auto mt-8 w-full max-w-md text-center">
-          <button type="submit" className="text-sm text-zinc-400 underline">
+          <button type="submit" className="text-sm text-zinc-500 underline">
             Déconnexion
           </button>
         </form>

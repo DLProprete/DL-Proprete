@@ -81,7 +81,7 @@ export default async function PlanningWeekPage({
           <form action={generateShiftsAction.bind(null, returnTo)}>
             <button
               type="submit"
-              className="rounded bg-teal-700 px-3 py-2 text-white hover:bg-teal-800"
+              className="btn btn-primary"
             >
               Générer le planning (8 semaines)
             </button>
@@ -90,12 +90,12 @@ export default async function PlanningWeekPage({
       </div>
 
       {error === "conflict" && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           Affectation refusée : conflit d&apos;horaire avec une autre vacation, ou agent invalide.
         </p>
       )}
       {error && error !== "conflict" && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           Affectation refusée — {error}
         </p>
       )}
@@ -105,7 +105,7 @@ export default async function PlanningWeekPage({
           <h2 className="font-medium text-zinc-700">Jours fériés</h2>
           <form action={importHolidaysAction.bind(null, returnTo)} className="mt-2 flex items-end gap-2">
             <div>
-              <label htmlFor="year" className="block text-xs text-zinc-500">
+              <label htmlFor="year" className="block text-xs text-zinc-600">
                 Année
               </label>
               <input
@@ -113,17 +113,17 @@ export default async function PlanningWeekPage({
                 name="year"
                 type="number"
                 defaultValue={today.year}
-                className="mt-1 w-24 rounded border border-zinc-300 px-2 py-1"
+                className="mt-1 w-24 field field-sm"
               />
             </div>
             <button
               type="submit"
-              className="rounded border border-zinc-300 px-3 py-2 text-xs hover:bg-zinc-50"
+              className="field text-xs hover:bg-zinc-50"
             >
               Importer jours fériés année
             </button>
           </form>
-          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-600">
             {holidays.map((holiday) => (
               <li key={holiday.id}>
                 {formatDay(holiday.date)} — {holiday.name}
@@ -149,7 +149,7 @@ export default async function PlanningWeekPage({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-zinc-200 text-zinc-500">
+            <tr className="border-b border-zinc-200 text-zinc-600">
               <th className="w-40 py-2 pr-2 font-medium">Agent</th>
               {weekDays.map((day) => (
                 <th key={formatDateOnly(day)} className="py-2 pr-2 font-medium capitalize">
@@ -184,7 +184,7 @@ export default async function PlanningWeekPage({
                     return (
                       <td key={dayKey} className="py-2 pr-2 align-top">
                         {dayShifts.length === 0 ? (
-                          <div className="flex h-10 items-center justify-center rounded bg-zinc-100 text-zinc-400">
+                          <div className="flex h-10 items-center justify-center rounded bg-zinc-100 text-zinc-500">
                             —
                           </div>
                         ) : (
@@ -192,7 +192,7 @@ export default async function PlanningWeekPage({
                           {dayShifts.map((shift) => (
                             <div key={shift.id} className="rounded border border-zinc-200 p-1.5">
                               <p className="text-xs font-medium text-zinc-700">{shift.site.name}</p>
-                              <p className="text-xs text-zinc-500">
+                              <p className="text-xs text-zinc-600">
                                 {formatTimeInParis(shift.startAt)}–{formatTimeInParis(shift.endAt)}
                               </p>
                               <Badge
@@ -211,7 +211,7 @@ export default async function PlanningWeekPage({
             })}
             {agents.length === 0 && (
               <tr>
-                <td colSpan={8} className="py-4 text-zinc-400">
+                <td colSpan={8} className="py-4 text-zinc-500">
                   Aucun agent actif.
                 </td>
               </tr>
@@ -230,7 +230,7 @@ export default async function PlanningWeekPage({
                   {formatDay(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
                   {formatTimeInParis(shift.endAt)}
                 </p>
-                <p className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                <p className="mt-1 flex items-center gap-2 text-xs text-zinc-600">
                   <Badge
                     tone={SHIFT_STATUS_TONE[shift.status] ?? "neutral"}
                     label={`${SHIFT_STATUS_LABELS[shift.status]} — ${shift.assignments.length}/${shift.requiredAgents} agent(s)`}
@@ -259,7 +259,7 @@ export default async function PlanningWeekPage({
                   name="agentUserId"
                   required
                   defaultValue=""
-                  className="min-h-10 rounded border border-zinc-300 px-2 text-sm"
+                  className="field field-sm min-h-10"
                 >
                   <option value="" disabled>
                     Affecter…
@@ -272,7 +272,7 @@ export default async function PlanningWeekPage({
                 </select>
                 <button
                   type="submit"
-                  className="min-h-10 rounded bg-teal-700 px-3 text-sm text-white hover:bg-teal-800"
+                  className="btn btn-primary btn-sm min-h-10"
                 >
                   Affecter
                 </button>
@@ -280,7 +280,7 @@ export default async function PlanningWeekPage({
             </li>
           ))}
           {unstaffed.length === 0 && (
-            <li className="py-2 text-zinc-400">Toutes les vacations de la semaine sont pourvues.</li>
+            <li className="py-2 text-zinc-500">Toutes les vacations de la semaine sont pourvues.</li>
           )}
         </ul>
       </div>

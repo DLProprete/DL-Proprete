@@ -18,7 +18,7 @@ export function AbsenceForm() {
           name="type"
           value={type}
           onChange={(event) => setType(event.target.value)}
-          className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          className="mt-1 w-full field"
         >
           <option value="PAID_LEAVE">Congé payé</option>
           <option value="RTT">RTT</option>
@@ -36,7 +36,7 @@ export function AbsenceForm() {
             name="startsOn"
             type="date"
             required
-            className="mt-1 min-h-11 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 min-h-11 w-full field"
           />
         </div>
         <div>
@@ -48,7 +48,7 @@ export function AbsenceForm() {
             name="endsOn"
             type="date"
             required
-            className="mt-1 min-h-11 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 min-h-11 w-full field"
           />
         </div>
       </div>
@@ -63,7 +63,7 @@ export function AbsenceForm() {
             type="file"
             accept="application/pdf,image/jpeg"
             required={isSick}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
       )}
@@ -75,12 +75,12 @@ export function AbsenceForm() {
           id="comment"
           name="comment"
           rows={3}
-          className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          className="mt-1 w-full field"
         />
       </div>
       <button
         type="submit"
-        className="flex min-h-14 w-full items-center justify-center rounded-xl bg-teal-700 text-base font-semibold text-white hover:bg-teal-800"
+        className="btn btn-primary btn-field"
       >
         Déclarer
       </button>

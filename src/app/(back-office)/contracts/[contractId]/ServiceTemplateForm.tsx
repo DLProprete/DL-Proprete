@@ -46,7 +46,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
           name="name"
           required
           placeholder="Entretien quotidien bureaux"
-          className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          className="mt-1 w-full field"
         />
       </div>
       <fieldset>
@@ -55,7 +55,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
           {DAYS.map((day) => (
             <label
               key={day.value}
-              className="flex cursor-pointer items-center gap-1.5 rounded border border-zinc-300 px-3 py-1.5 text-sm select-none has-[:checked]:border-zinc-900 has-[:checked]:bg-zinc-900 has-[:checked]:text-white"
+              className="chip"
             >
               <input type="checkbox" name="daysOfWeek" value={day.value} className="sr-only" />
               {day.label}
@@ -78,7 +78,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
               setStartTime(event.target.value);
               recomputeDuration(event.target.value, endTime);
             }}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -95,7 +95,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
               setEndTime(event.target.value);
               recomputeDuration(startTime, event.target.value);
             }}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
       </div>
@@ -124,9 +124,9 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
               setDuration(event.target.value);
               setDurationEditedByUser(event.target.value !== "");
             }}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-zinc-600">
             C&apos;est cette durée qui part en facture, multipliée par le nombre
             d&apos;agents requis. Préremplie sur la fenêtre d&apos;accès ; à réduire si la
             prestation vendue est plus courte que l&apos;amplitude de passage.
@@ -142,7 +142,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
             type="number"
             min={1}
             defaultValue={1}
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
       </div>
@@ -154,12 +154,12 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
           id="instructions"
           name="instructions"
           rows={3}
-          className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+          className="mt-1 w-full field"
         />
       </div>
       <button
         type="submit"
-        className="rounded bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+        className="btn btn-dark"
       >
         Ajouter la vacation
       </button>

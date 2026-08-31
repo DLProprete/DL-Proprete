@@ -30,7 +30,7 @@ export default async function LoginPage({
             type="email"
             required
             autoComplete="email"
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <div>
@@ -43,12 +43,12 @@ export default async function LoginPage({
             type="password"
             required
             autoComplete="current-password"
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 w-full field"
           />
         </div>
         <button
           type="submit"
-          className="w-full rounded bg-teal-700 px-3 py-2 text-white hover:bg-teal-800"
+          className="btn btn-primary w-full"
         >
           Se connecter
         </button>

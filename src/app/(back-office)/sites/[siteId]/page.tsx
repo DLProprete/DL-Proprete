@@ -26,7 +26,7 @@ export default async function SiteDetailPage({
         <form action={toggleActive}>
           <button
             type="submit"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            className="btn btn-secondary"
           >
             {site.isActive ? "Désactiver" : "Réactiver"}
           </button>
@@ -34,23 +34,23 @@ export default async function SiteDetailPage({
       </div>
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-        <dt className="text-zinc-500">Statut</dt>
+        <dt className="text-zinc-600">Statut</dt>
         <dd>{site.isActive ? "Actif" : "Désactivé"}</dd>
-        <dt className="text-zinc-500">Client</dt>
+        <dt className="text-zinc-600">Client</dt>
         <dd>
           <Link href={`/clients/${site.client.id}`} className="underline">
             {site.client.legalName}
           </Link>
         </dd>
-        <dt className="text-zinc-500">Adresse</dt>
+        <dt className="text-zinc-600">Adresse</dt>
         <dd>
           {site.address}, {site.postalCode} {site.city}
         </dd>
-        <dt className="text-zinc-500">Contact sur site</dt>
+        <dt className="text-zinc-600">Contact sur site</dt>
         <dd>{site.onSiteContactName ?? "—"}</dd>
-        <dt className="text-zinc-500">Téléphone du contact</dt>
+        <dt className="text-zinc-600">Téléphone du contact</dt>
         <dd>{site.onSiteContactPhone ?? "—"}</dd>
-        <dt className="text-zinc-500">Consignes d&apos;accès</dt>
+        <dt className="text-zinc-600">Consignes d&apos;accès</dt>
         <dd>{site.accessNotes ?? "—"}</dd>
       </dl>
 
@@ -67,11 +67,11 @@ export default async function SiteDetailPage({
               <Link href={`/contracts/${contract.id}`} className="text-zinc-900 underline">
                 {contract.reference}
               </Link>
-              <span className="ml-2 text-zinc-400">{contract.status}</span>
+              <span className="ml-2 text-zinc-500">{contract.status}</span>
             </li>
           ))}
           {site.contracts.length === 0 && (
-            <li className="py-2 text-zinc-400">Aucun contrat pour l&apos;instant.</li>
+            <li className="py-2 text-zinc-500">Aucun contrat pour l&apos;instant.</li>
           )}
         </ul>
       </div>

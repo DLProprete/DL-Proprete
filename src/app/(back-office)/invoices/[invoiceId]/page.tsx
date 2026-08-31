@@ -82,7 +82,7 @@ export default async function InvoiceDetailPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{invoice.number ?? "Brouillon"}</h1>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-600">
             {invoice.client.legalName}
             {invoice.contract ? ` — ${invoice.contract.reference}` : ""}
           </p>
@@ -93,7 +93,7 @@ export default async function InvoiceDetailPage({
             href={`/api/invoices/${invoice.id}/pdf`}
             target="_blank"
             rel="noreferrer"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            className="btn btn-secondary"
           >
             PDF
           </a>
@@ -101,7 +101,7 @@ export default async function InvoiceDetailPage({
             <form action={issueInvoiceAction.bind(null, invoice.id)}>
               <button
                 type="submit"
-                className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
+                className="btn btn-primary"
               >
                 Émettre
               </button>
@@ -111,7 +111,7 @@ export default async function InvoiceDetailPage({
       </div>
 
       {invoice.status === "DRAFT" && missingMentions.length > 0 && (
-        <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div className="alert alert-warning">
           <span className="font-medium">Mentions légales incomplètes</span> —{" "}
           {describeMissingMentions(missingMentions)}.{" "}
           <Link href="/settings" className="underline">
@@ -122,7 +122,7 @@ export default async function InvoiceDetailPage({
       )}
 
       {invoice.status === "DRAFT" && coverageWarningsList.length > 0 && (
-        <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div className="alert alert-warning">
           <span className="font-medium">À vérifier avant d&apos;émettre</span>
           <ul className="mt-1 list-disc space-y-1 pl-5">
             {coverageWarningsList.map((warning) => (
@@ -133,17 +133,17 @@ export default async function InvoiceDetailPage({
       )}
 
       {error && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="alert alert-danger">
           {error}
         </p>
       )}
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-        <dt className="text-zinc-500">Émise le</dt>
+        <dt className="text-zinc-600">Émise le</dt>
         <dd>{formatDate(invoice.issuedOn)}</dd>
-        <dt className="text-zinc-500">Échéance</dt>
+        <dt className="text-zinc-600">Échéance</dt>
         <dd>{formatDate(invoice.dueOn)}</dd>
-        <dt className="text-zinc-500">Période facturée</dt>
+        <dt className="text-zinc-600">Période facturée</dt>
         <dd>
           {invoice.periodMonth && invoice.periodYear
             ? `${String(invoice.periodMonth).padStart(2, "0")}/${invoice.periodYear}`
@@ -155,7 +155,7 @@ export default async function InvoiceDetailPage({
         <h2 className="text-sm font-medium text-zinc-700">Lignes</h2>
         <table className="mt-2 w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-zinc-200 text-zinc-500">
+            <tr className="border-b border-zinc-200 text-zinc-600">
               <th className="py-2 font-medium">Désignation</th>
               <th className="font-medium">Type</th>
               <th className="font-medium">Qté</th>
@@ -180,11 +180,11 @@ export default async function InvoiceDetailPage({
           </tbody>
         </table>
         <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-          <dt className="text-zinc-500">Total HT</dt>
+          <dt className="text-zinc-600">Total HT</dt>
           <dd>{amount(invoice.amountHT)}</dd>
-          <dt className="text-zinc-500">TVA</dt>
+          <dt className="text-zinc-600">TVA</dt>
           <dd>{amount(invoice.vatAmount)}</dd>
-          <dt className="text-zinc-500 font-medium">Total TTC</dt>
+          <dt className="text-zinc-600 font-medium">Total TTC</dt>
           <dd className="font-medium">{amount(invoice.amountTTC)}</dd>
         </dl>
       </div>
@@ -197,18 +197,18 @@ export default async function InvoiceDetailPage({
             className="mt-2 flex flex-wrap items-end gap-3"
           >
             <div>
-              <label htmlFor="label" className="block text-xs text-zinc-500">
+              <label htmlFor="label" className="block text-xs text-zinc-600">
                 Libellé
               </label>
               <input
                 id="label"
                 name="label"
                 required
-                className="rounded border border-zinc-300 px-2 py-1 text-sm"
+                className="field field-sm"
               />
             </div>
             <div>
-              <label htmlFor="quantity" className="block text-xs text-zinc-500">
+              <label htmlFor="quantity" className="block text-xs text-zinc-600">
                 Quantité
               </label>
               <input
@@ -218,11 +218,11 @@ export default async function InvoiceDetailPage({
                 step="0.01"
                 min="0"
                 required
-                className="w-24 rounded border border-zinc-300 px-2 py-1 text-sm"
+                className="w-24 field field-sm"
               />
             </div>
             <div>
-              <label htmlFor="unitPriceHT" className="block text-xs text-zinc-500">
+              <label htmlFor="unitPriceHT" className="block text-xs text-zinc-600">
                 PU HT (€)
               </label>
               <input
@@ -232,11 +232,11 @@ export default async function InvoiceDetailPage({
                 step="0.01"
                 min="0"
                 required
-                className="w-28 rounded border border-zinc-300 px-2 py-1 text-sm"
+                className="w-28 field field-sm"
               />
             </div>
             <div>
-              <label htmlFor="vatRate" className="block text-xs text-zinc-500">
+              <label htmlFor="vatRate" className="block text-xs text-zinc-600">
                 TVA (%)
               </label>
               <input
@@ -245,12 +245,12 @@ export default async function InvoiceDetailPage({
                 type="number"
                 step="0.01"
                 defaultValue={20}
-                className="w-20 rounded border border-zinc-300 px-2 py-1 text-sm"
+                className="w-20 field field-sm"
               />
             </div>
             <button
               type="submit"
-              className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-50"
+              className="btn btn-secondary btn-sm"
             >
               Ajouter
             </button>
@@ -282,10 +282,10 @@ export default async function InvoiceDetailPage({
               </li>
             ))}
             {invoice.payments.length === 0 && (
-              <li className="py-2 text-zinc-400">Aucun paiement pour l&apos;instant.</li>
+              <li className="py-2 text-zinc-500">Aucun paiement pour l&apos;instant.</li>
             )}
           </ul>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-600">
             Reste dû : {amount(Math.max(balanceDue, 0))}
           </p>
 
@@ -295,7 +295,7 @@ export default async function InvoiceDetailPage({
               className="mt-3 flex flex-wrap items-end gap-3"
             >
               <div>
-                <label htmlFor="paidOn" className="block text-xs text-zinc-500">
+                <label htmlFor="paidOn" className="block text-xs text-zinc-600">
                   Date
                 </label>
                 <input
@@ -303,11 +303,11 @@ export default async function InvoiceDetailPage({
                   name="paidOn"
                   type="date"
                   required
-                  className="rounded border border-zinc-300 px-2 py-1 text-sm"
+                  className="field field-sm"
                 />
               </div>
               <div>
-                <label htmlFor="amount" className="block text-xs text-zinc-500">
+                <label htmlFor="amount" className="block text-xs text-zinc-600">
                   Montant (€)
                 </label>
                 <input
@@ -318,17 +318,17 @@ export default async function InvoiceDetailPage({
                   min="0"
                   required
                   defaultValue={balanceDue.toFixed(2)}
-                  className="w-28 rounded border border-zinc-300 px-2 py-1 text-sm"
+                  className="w-28 field field-sm"
                 />
               </div>
               <div>
-                <label htmlFor="method" className="block text-xs text-zinc-500">
+                <label htmlFor="method" className="block text-xs text-zinc-600">
                   Moyen
                 </label>
                 <select
                   id="method"
                   name="method"
-                  className="rounded border border-zinc-300 px-2 py-1 text-sm"
+                  className="field field-sm"
                 >
                   <option value="TRANSFER">Virement</option>
                   <option value="CHEQUE">Chèque</option>
@@ -337,18 +337,18 @@ export default async function InvoiceDetailPage({
                 </select>
               </div>
               <div>
-                <label htmlFor="reference" className="block text-xs text-zinc-500">
+                <label htmlFor="reference" className="block text-xs text-zinc-600">
                   Référence
                 </label>
                 <input
                   id="reference"
                   name="reference"
-                  className="rounded border border-zinc-300 px-2 py-1 text-sm"
+                  className="field field-sm"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-50"
+                className="btn btn-secondary btn-sm"
               >
                 Enregistrer le paiement
               </button>

@@ -25,7 +25,7 @@ export function AgentBottomNav() {
             key={item.href}
             href={item.href}
             className={`flex min-h-14 flex-1 items-center justify-center px-2 py-3 text-center ${
-              active ? "text-teal-700" : "text-zinc-600"
+              active ? "text-brand-700" : "text-zinc-600"
             }`}
           >
             {item.label}
