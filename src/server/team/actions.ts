@@ -22,7 +22,10 @@ function toProfileData(data: AgentProfileInput) {
     lastName: data.lastName,
     name: `${data.firstName} ${data.lastName}`,
     phone: data.phone || null,
-    birthDate: data.birthDate || null,
+    weeklyContractHours:
+      data.weeklyContractHours === "" || data.weeklyContractHours === undefined
+        ? null
+        : data.weeklyContractHours,
     homeAddress: data.homeAddress || null,
     homeCity: data.homeCity || null,
     homePostalCode: data.homePostalCode || null,

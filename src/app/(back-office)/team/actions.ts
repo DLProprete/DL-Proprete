@@ -11,7 +11,7 @@ function profileFields(formData: FormData) {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     phone: formData.get("phone"),
-    birthDate: formData.get("birthDate"),
+    weeklyContractHours: formData.get("weeklyContractHours"),
     homeAddress: formData.get("homeAddress"),
     homeCity: formData.get("homeCity"),
     homePostalCode: formData.get("homePostalCode"),
