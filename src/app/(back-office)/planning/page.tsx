@@ -11,13 +11,14 @@ import {
   startOfWeekMonday,
 } from "@/lib/dates";
 import { listHolidays } from "@/server/holidays/queries";
-import { SHIFT_STATUS_LABELS } from "./shift-labels";
+import { SHIFT_STATUS_LABELS, SHIFT_STATUS_TONE } from "./shift-labels";
 import {
   assignAgentAction,
   cancelAssignmentAction,
   generateShiftsAction,
   importHolidaysAction,
 } from "./actions";
+import { Badge } from "@/components/badge";
 
 type Shift = Awaited<ReturnType<typeof listShiftsForWeek>>[number];
 
@@ -48,18 +49,23 @@ export default async function PlanningWeekPage({
     user.role === "ADMIN" ? listHolidays(user, today.year) : Promise.resolve([]),
   ]);
 
-  const shiftsByAgent = new Map<string, Shift[]>();
-  for (const agent of agents) shiftsByAgent.set(agent.id, []);
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  const shiftsByAgentAndDay = new Map<string, Map<string, Shift[]>>();
+  for (const agent of agents) shiftsByAgentAndDay.set(agent.id, new Map());
   const unstaffed: Shift[] = [];
 
   for (const shift of shifts) {
     if (shift.assignments.length < shift.requiredAgents) {
       unstaffed.push(shift);
     }
+    const dayKey = formatDateOnly(shift.date);
     for (const assignment of shift.assignments) {
-      const list = shiftsByAgent.get(assignment.user.id) ?? [];
-      list.push(shift);
-      shiftsByAgent.set(assignment.user.id, list);
+      const byDay = shiftsByAgentAndDay.get(assignment.user.id) ?? new Map<string, Shift[]>();
+      const dayShifts = byDay.get(dayKey) ?? [];
+      dayShifts.push(shift);
+      byDay.set(dayKey, dayShifts);
+      shiftsByAgentAndDay.set(assignment.user.id, byDay);
     }
   }
 
@@ -74,7 +80,7 @@ export default async function PlanningWeekPage({
           <form action={generateShiftsAction.bind(null, returnTo)}>
             <button
               type="submit"
-              className="rounded bg-zinc-900 px-3 py-2 text-white hover:bg-zinc-800"
+              className="rounded bg-teal-700 px-3 py-2 text-white hover:bg-teal-800"
             >
               Générer le planning (8 semaines)
             </button>
@@ -139,29 +145,60 @@ export default async function PlanningWeekPage({
         </Link>
       </div>
 
-      <div className="space-y-6">
-        {agents.map((agent) => {
-          const agentShifts = shiftsByAgent.get(agent.id) ?? [];
-          return (
-            <div key={agent.id}>
-              <h2 className="text-sm font-medium text-zinc-700">
-                {agent.firstName} {agent.lastName}
-              </h2>
-              <ul className="mt-1 divide-y divide-zinc-100 text-sm">
-                {agentShifts.map((shift) => (
-                  <li key={shift.id} className="py-1 text-zinc-600">
-                    {formatDay(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
-                    {formatTimeInParis(shift.endAt)}
-                  </li>
-                ))}
-                {agentShifts.length === 0 && (
-                  <li className="py-1 text-zinc-400">Aucune vacation cette semaine.</li>
-                )}
-              </ul>
-            </div>
-          );
-        })}
-        {agents.length === 0 && <p className="text-sm text-zinc-400">Aucun agent actif.</p>}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-zinc-200 text-zinc-500">
+              <th className="w-40 py-2 pr-2 font-medium">Agent</th>
+              {weekDays.map((day) => (
+                <th key={formatDateOnly(day)} className="py-2 pr-2 font-medium capitalize">
+                  {formatDay(day)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {agents.map((agent) => {
+              const byDay = shiftsByAgentAndDay.get(agent.id) ?? new Map<string, Shift[]>();
+              return (
+                <tr key={agent.id} className="border-b border-zinc-100 align-top">
+                  <td className="py-2 pr-2 font-medium text-zinc-700">
+                    {agent.firstName} {agent.lastName}
+                  </td>
+                  {weekDays.map((day) => {
+                    const dayKey = formatDateOnly(day);
+                    const dayShifts = byDay.get(dayKey) ?? [];
+                    return (
+                      <td key={dayKey} className="py-2 pr-2 align-top">
+                        <div className="space-y-1.5">
+                          {dayShifts.map((shift) => (
+                            <div key={shift.id} className="rounded border border-zinc-200 p-1.5">
+                              <p className="text-xs font-medium text-zinc-700">{shift.site.name}</p>
+                              <p className="text-xs text-zinc-500">
+                                {formatTimeInParis(shift.startAt)}–{formatTimeInParis(shift.endAt)}
+                              </p>
+                              <Badge
+                                tone={SHIFT_STATUS_TONE[shift.status] ?? "neutral"}
+                                label={SHIFT_STATUS_LABELS[shift.status]}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+            {agents.length === 0 && (
+              <tr>
+                <td colSpan={8} className="py-4 text-zinc-400">
+                  Aucun agent actif.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       <div>
@@ -174,9 +211,11 @@ export default async function PlanningWeekPage({
                   {formatDay(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
                   {formatTimeInParis(shift.endAt)}
                 </p>
-                <p className="text-xs text-zinc-500">
-                  {SHIFT_STATUS_LABELS[shift.status]} — {shift.assignments.length}/{shift.requiredAgents}{" "}
-                  agent(s)
+                <p className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                  <Badge
+                    tone={SHIFT_STATUS_TONE[shift.status] ?? "neutral"}
+                    label={`${SHIFT_STATUS_LABELS[shift.status]} — ${shift.assignments.length}/${shift.requiredAgents} agent(s)`}
+                  />
                 </p>
                 {shift.assignments.map((assignment) => (
                   <form
@@ -201,7 +240,7 @@ export default async function PlanningWeekPage({
                   name="agentUserId"
                   required
                   defaultValue=""
-                  className="rounded border border-zinc-300 px-2 py-1 text-sm"
+                  className="min-h-10 rounded border border-zinc-300 px-2 text-sm"
                 >
                   <option value="" disabled>
                     Affecter…
@@ -214,9 +253,9 @@ export default async function PlanningWeekPage({
                 </select>
                 <button
                   type="submit"
-                  className="rounded border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50"
+                  className="min-h-10 rounded bg-teal-700 px-3 text-sm text-white hover:bg-teal-800"
                 >
-                  OK
+                  Affecter
                 </button>
               </form>
             </li>

@@ -10,6 +10,7 @@ export async function listInvoices(user: SessionUser) {
     include: {
       client: { select: { legalName: true } },
       contract: { select: { reference: true } },
+      payments: true,
     },
     orderBy: [{ periodYear: "desc" }, { periodMonth: "desc" }, { createdAt: "desc" }],
   });

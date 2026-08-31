@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listClients } from "@/server/clients/queries";
+import { Badge } from "@/components/badge";
 
 export default async function ClientsPage() {
   const user = await requireSession();
@@ -12,7 +13,7 @@ export default async function ClientsPage() {
         <h1 className="text-xl font-semibold">Clients</h1>
         <Link
           href="/clients/new"
-          className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
         >
           Nouveau client
         </Link>
@@ -35,9 +36,7 @@ export default async function ClientsPage() {
               </td>
               <td className="text-zinc-600">{client.billingAddress}</td>
               <td>
-                <span className={client.isActive ? "text-green-700" : "text-zinc-400"}>
-                  {client.isActive ? "Actif" : "Désactivé"}
-                </span>
+                <Badge tone={client.isActive ? "success" : "muted"} label={client.isActive ? "Actif" : "Désactivé"} />
               </td>
             </tr>
           ))}

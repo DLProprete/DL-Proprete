@@ -9,6 +9,8 @@ import {
   suggestAgentsForShift,
 } from "@/server/dashboard/queries";
 import { formatTimeInParis } from "@/lib/dates";
+import { SHIFT_STATUS_LABELS, SHIFT_STATUS_TONE } from "../planning/shift-labels";
+import { Badge } from "@/components/badge";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("fr-FR").format(date);
@@ -75,10 +77,11 @@ export default async function DashboardPage() {
             return (
               <li key={shift.id} className="py-2">
                 {formatDate(shift.date)} · {shift.site.name} · {formatTimeInParis(shift.startAt)}–
-                {formatTimeInParis(shift.endAt)}
-                <span className="ml-2 text-zinc-400">
-                  {shift.status === "UNSTAFFED" ? "non pourvu" : "partiellement pourvu"}
-                </span>
+                {formatTimeInParis(shift.endAt)}{" "}
+                <Badge
+                  tone={SHIFT_STATUS_TONE[shift.status] ?? "neutral"}
+                  label={SHIFT_STATUS_LABELS[shift.status] ?? shift.status}
+                />
                 {suggestions && (
                   <p className="text-xs text-zinc-500">
                     {suggestions.length > 0

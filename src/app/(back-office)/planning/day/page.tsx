@@ -9,8 +9,9 @@ import {
   parisToday,
   parseDateOnly,
 } from "@/lib/dates";
-import { SHIFT_STATUS_LABELS } from "../shift-labels";
+import { SHIFT_STATUS_LABELS, SHIFT_STATUS_TONE } from "../shift-labels";
 import { assignAgentAction, cancelAssignmentAction } from "../actions";
+import { Badge } from "@/components/badge";
 
 type Shift = Awaited<ReturnType<typeof listShiftsForDay>>[number];
 
@@ -76,10 +77,12 @@ export default async function PlanningDayPage({
               {site.shifts.map((shift) => (
                 <li key={shift.id} className="flex items-center justify-between gap-4 py-2">
                   <div>
-                    <p>
-                      {formatTimeInParis(shift.startAt)}–{formatTimeInParis(shift.endAt)} —{" "}
-                      {SHIFT_STATUS_LABELS[shift.status]} ({shift.assignments.length}/
-                      {shift.requiredAgents} agent(s))
+                    <p className="flex items-center gap-2">
+                      {formatTimeInParis(shift.startAt)}–{formatTimeInParis(shift.endAt)}
+                      <Badge
+                        tone={SHIFT_STATUS_TONE[shift.status] ?? "neutral"}
+                        label={`${SHIFT_STATUS_LABELS[shift.status]} (${shift.assignments.length}/${shift.requiredAgents})`}
+                      />
                     </p>
                     {shift.assignments.map((assignment) => (
                       <form
