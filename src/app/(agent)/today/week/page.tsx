@@ -3,6 +3,7 @@ import { requireSession } from "@/server/auth/session";
 import { listWeekShiftsForAgent } from "@/server/time/queries";
 import { shiftState } from "@/server/time/agent-schedule";
 import { addDays, formatTimeInParis } from "@/lib/dates";
+import { Badge, type BadgeTone } from "@/components/badge";
 
 const DAY_LABEL = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", timeZone: "UTC" });
 
@@ -10,6 +11,12 @@ const STATE_LABEL: Record<ReturnType<typeof shiftState>, string> = {
   open: "En cours",
   done: "Terminé",
   upcoming: "À venir",
+};
+
+const STATE_TONE: Record<ReturnType<typeof shiftState>, BadgeTone> = {
+  open: "warning",
+  done: "success",
+  upcoming: "neutral",
 };
 
 export default async function WeekPage({
@@ -52,7 +59,7 @@ export default async function WeekPage({
 
       <div className="space-y-3">
         {days.map(({ date, shifts: dayShifts }) => (
-          <div key={date.toISOString()} className="rounded-xl border border-zinc-200 bg-white p-4">
+          <div key={date.toISOString()} className="card">
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
               {DAY_LABEL.format(date)}
             </p>
@@ -66,7 +73,7 @@ export default async function WeekPage({
                       {formatTimeInParis(shift.startAt)}–{formatTimeInParis(shift.endAt)} ·{" "}
                       {shift.site.name}
                     </span>
-                    <span className="text-xs text-zinc-600">{STATE_LABEL[shiftState(shift)]}</span>
+                    <Badge tone={STATE_TONE[shiftState(shift)]} label={STATE_LABEL[shiftState(shift)]} />
                   </li>
                 ))}
               </ul>

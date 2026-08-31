@@ -21,7 +21,7 @@ export default async function MyAbsencesPage() {
     <div className="max-w-lg space-y-4">
       <h1 className="text-xl font-semibold">Mes absences</h1>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm">
+      <div className="card text-sm">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
           Congés payés {currentYear}
         </p>
