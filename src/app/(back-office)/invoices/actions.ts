@@ -6,7 +6,15 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { generateMonthlyInvoices } from "@/server/billing/generate-invoices";
 import { describeCoverageWarning } from "@/server/billing/planned-hours";
-import { addAdhocLine, issueInvoice, markInvoiceReminded, recordPayment } from "@/server/billing/actions";
+import {
+  addAdhocLine,
+  EmptyInvoiceError,
+  InvoiceLegalMentionsIncompleteError,
+  InvoiceNotDraftError,
+  issueInvoice,
+  markInvoiceReminded,
+  recordPayment,
+} from "@/server/billing/actions";
 
 export async function generateInvoicesAction(formData: FormData) {
   const user = await requireSession();
@@ -35,7 +43,18 @@ export async function generateInvoicesAction(formData: FormData) {
 
 export async function issueInvoiceAction(invoiceId: string) {
   const user = await requireSession();
-  await issueInvoice(user, invoiceId);
+  try {
+    await issueInvoice(user, invoiceId);
+  } catch (error) {
+    if (
+      error instanceof InvoiceNotDraftError ||
+      error instanceof EmptyInvoiceError ||
+      error instanceof InvoiceLegalMentionsIncompleteError
+    ) {
+      redirect(`/invoices/${invoiceId}?error=${encodeURIComponent(error.message)}`);
+    }
+    throw error;
+  }
   revalidatePath("/invoices");
   revalidatePath(`/invoices/${invoiceId}`);
 }

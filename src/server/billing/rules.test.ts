@@ -1,17 +1,32 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { CompanyProfile } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/server/auth/session";
-import { generateMonthlyInvoices } from "./generate-invoices";
+import { coverageWarningsForContract, generateMonthlyInvoices } from "./generate-invoices";
 import {
   addAdhocLine,
   issueInvoice,
   markInvoiceReminded,
   recordPayment,
+  InvoiceLegalMentionsIncompleteError,
   InvoiceNotDraftError,
   InvoiceNotIssuedError,
 } from "./actions";
 import { listInvoicesForReminders } from "./reminders";
 import { getValidatedHoursForContractMonth } from "./queries";
+
+// Mentions legales de test, completes : issueInvoice() bloque desormais si
+// la fiche entreprise est incomplete (voir le test dedie plus bas), donc
+// toute la suite a besoin d'un profil complet pour ses autres tests
+// d'emission. Valeurs fictives, sans rapport avec la vraie fiche DL Propreté.
+const TEST_LEGAL_MENTIONS = {
+  legalForm: "SAS",
+  shareCapital: 1000,
+  rcsCity: "Caen",
+  siret: "111 222 333 00099",
+  vatNumber: "FR00 111222333",
+  iban: "FR7630006000011234567890189",
+};
 
 // Test d'intégration : la facturation est une chaîne d'états multi-table
 // (Shift -> Invoice/InvoiceLine -> Payment), pas des prédicats purs.
@@ -26,8 +41,25 @@ describe("règles Facturation (intégration DB)", () => {
   let calendarContractId: string;
   let flatContractId: string;
   let adminUser: SessionUser;
+  let originalCompanyProfile: CompanyProfile | null;
 
   beforeAll(async () => {
+    // issueInvoice() exige une fiche entreprise complete : on sauvegarde
+    // l'existant (potentiellement incomplet en dev, cf. audit du 31/08) pour
+    // le restaurer en afterAll plutot que de laisser trainer des valeurs de
+    // test sur la ligne partagee "default".
+    originalCompanyProfile = await prisma.companyProfile.findUnique({ where: { id: "default" } });
+    await prisma.companyProfile.upsert({
+      where: { id: "default" },
+      update: TEST_LEGAL_MENTIONS,
+      create: {
+        id: "default",
+        legalName: "DL PROPRETE",
+        address: "3 rue de Verdun, 14460 Colombelles",
+        ...TEST_LEGAL_MENTIONS,
+      },
+    });
+
     const client = await prisma.client.create({
       data: {
         legalName: "Client Test Facturation",
@@ -143,6 +175,25 @@ describe("règles Facturation (intégration DB)", () => {
   });
 
   afterAll(async () => {
+    if (originalCompanyProfile) {
+      await prisma.companyProfile.update({
+        where: { id: "default" },
+        data: {
+          legalName: originalCompanyProfile.legalName,
+          address: originalCompanyProfile.address,
+          legalForm: originalCompanyProfile.legalForm,
+          shareCapital: originalCompanyProfile.shareCapital,
+          rcsCity: originalCompanyProfile.rcsCity,
+          siret: originalCompanyProfile.siret,
+          vatNumber: originalCompanyProfile.vatNumber,
+          iban: originalCompanyProfile.iban,
+          latePenaltyRate: originalCompanyProfile.latePenaltyRate,
+        },
+      });
+    } else {
+      await prisma.companyProfile.delete({ where: { id: "default" } });
+    }
+
     // Le journal d'audit n'est pas nettoye par cascade. Sans ces deux lignes,
     // chaque execution de la suite laissait en base des paiements de test
     // orphelins (leur acteur supprime, ils s'affichaient "Système") qui
@@ -208,6 +259,23 @@ describe("règles Facturation (intégration DB)", () => {
     });
     const updated = await prisma.invoice.findUniqueOrThrow({ where: { id: invoice.id } });
     expect(Number(updated.amountHT)).toBe(170); // 120 + 50
+  });
+
+  it("émission refusée si la fiche entreprise est incomplète (capital social, IBAN manquants)", async () => {
+    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractId: calendarContractId } });
+    await prisma.companyProfile.update({
+      where: { id: "default" },
+      data: { shareCapital: null, iban: null },
+    });
+    try {
+      await expect(issueInvoice(adminUser, invoice.id)).rejects.toBeInstanceOf(
+        InvoiceLegalMentionsIncompleteError,
+      );
+      const stillDraft = await prisma.invoice.findUniqueOrThrow({ where: { id: invoice.id } });
+      expect(stillDraft.status).toBe("DRAFT");
+    } finally {
+      await prisma.companyProfile.update({ where: { id: "default" }, data: TEST_LEGAL_MENTIONS });
+    }
   });
 
   it("émission : verrouille le numéro F-YYYY-NNNN et calcule l'échéance", async () => {
@@ -541,6 +609,17 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
     // Derniere vacation le 19, mois de 31 jours.
     expect(kinds).toContain("PARTIAL_MONTH");
     // 18 h calculees contre 40 h de reference contractuelle.
+    expect(kinds).toContain("FAR_FROM_INDICATIVE");
+  });
+
+  it("coverageWarningsForContract est utilisable seule, hors génération groupée (fiche facture)", async () => {
+    // C'est cette fonction que la fiche facture appelle pour reafficher
+    // l'alerte si l'ADMIN emet le brouillon longtemps apres sa generation :
+    // elle doit donner le meme resultat que le calcul interne a la
+    // generation groupee, sans dependre d'un GenerateInvoicesResult.
+    const warnings = await coverageWarningsForContract({ id: contractId, indicativeMonthlyHours: 40 }, YEAR, MONTH);
+    const kinds = warnings.map((warning) => warning.kind);
+    expect(kinds).toContain("PARTIAL_MONTH");
     expect(kinds).toContain("FAR_FROM_INDICATIVE");
   });
 });

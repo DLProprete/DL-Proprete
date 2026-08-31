@@ -5,6 +5,8 @@
 //
 // Reference : https://entreprendre.service-public.gouv.fr/vosdroits/F31808
 
+import type { CompanyProfile } from "@prisma/client";
+
 export type CompanyLegalIdentity = {
   legalName: string;
   address: string;
@@ -141,6 +143,22 @@ export function missingLegalMentions(company: CompanyLegalIdentity): MissingMent
 
 export function describeMissingMentions(missing: MissingMention[]): string {
   return missing.map((key) => MISSING_LABELS[key]).join(", ");
+}
+
+// Les Decimal Prisma ne sont pas des nombres JavaScript : conversion explicite
+// a la frontiere, pour que les regles de mentions legales restent pures.
+export function companyProfileToLegalIdentity(company: CompanyProfile): CompanyLegalIdentity {
+  return {
+    legalName: company.legalName,
+    address: company.address,
+    legalForm: company.legalForm,
+    shareCapital: company.shareCapital === null ? null : Number(company.shareCapital),
+    rcsCity: company.rcsCity,
+    siret: company.siret,
+    vatNumber: company.vatNumber,
+    iban: company.iban,
+    latePenaltyRate: company.latePenaltyRate === null ? null : Number(company.latePenaltyRate),
+  };
 }
 
 function formatEuros(amount: number): string {

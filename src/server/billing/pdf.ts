@@ -2,10 +2,10 @@ import PDFDocument from "pdfkit";
 import type { CompanyProfile, Prisma } from "@prisma/client";
 import {
   clientIdentityLines,
+  companyProfileToLegalIdentity,
   paymentTermsLines,
   sellerIdentityLines,
   serviceDescriptionLine,
-  type CompanyLegalIdentity,
 } from "./legal-mentions";
 
 type InvoiceForPdf = Prisma.InvoiceGetPayload<{
@@ -23,7 +23,7 @@ export async function generateInvoicePdf(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
   });
 
-  const identity = toLegalIdentity(company);
+  const identity = companyProfileToLegalIdentity(company);
 
   doc.fontSize(16).text(company.legalName, { continued: false });
   doc.fontSize(9);
@@ -111,22 +111,6 @@ export async function generateInvoicePdf(
 
   doc.end();
   return done;
-}
-
-// Les Decimal Prisma ne sont pas des nombres JavaScript : conversion explicite
-// a la frontiere, pour que les regles de mentions legales restent pures.
-function toLegalIdentity(company: CompanyProfile): CompanyLegalIdentity {
-  return {
-    legalName: company.legalName,
-    address: company.address,
-    legalForm: company.legalForm,
-    shareCapital: company.shareCapital === null ? null : Number(company.shareCapital),
-    rcsCity: company.rcsCity,
-    siret: company.siret,
-    vatNumber: company.vatNumber,
-    iban: company.iban,
-    latePenaltyRate: company.latePenaltyRate === null ? null : Number(company.latePenaltyRate),
-  };
 }
 
 function formatDate(date: Date): string {
