@@ -24,9 +24,10 @@ export async function getUnstaffedShiftsTodayTomorrow(user: SessionUser) {
   });
 }
 
-// Jusqu'à 3 agents actifs compatibles (contraintes + pas de chevauchement)
-// pour une vacation non pourvue — pas de notion de proximité géographique
-// (pas d'appel Google Maps, pas d'itinéraire inventé).
+// Jusqu'à 3 agents actifs compatibles (contraintes + pas de chevauchement +
+// pas d'absence approuvée ce jour-là) pour une vacation non pourvue — pas
+// de notion de proximité géographique (pas d'appel Google Maps, pas
+// d'itinéraire inventé).
 export async function suggestAgentsForShift(user: SessionUser, shiftId: string) {
   requireRole(user, [...MANAGE_ROLES]);
   const shift = await prisma.shift.findUniqueOrThrow({ where: { id: shiftId } });
@@ -35,9 +36,27 @@ export async function suggestAgentsForShift(user: SessionUser, shiftId: string) 
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
   });
 
+  // Une seule requête pour tous les candidats plutôt qu'une par agent dans
+  // la boucle : les absences ne dépendent que du jour de la vacation, pas
+  // de l'agent testé.
+  const absentAgentIds = new Set(
+    (
+      await prisma.absence.findMany({
+        where: {
+          userId: { in: agents.map((agent) => agent.id) },
+          status: "APPROVED",
+          startsOn: { lte: shift.date },
+          endsOn: { gte: shift.date },
+        },
+        select: { userId: true },
+      })
+    ).map((absence) => absence.userId),
+  );
+
   const suggestions: { id: string; firstName: string; lastName: string }[] = [];
   for (const agent of agents) {
     if (suggestions.length >= MAX_SUGGESTIONS) break;
+    if (absentAgentIds.has(agent.id)) continue;
     if (agentConstraintViolation(agent, shift)) continue;
     if (await hasSchedulingConflict(agent.id, shift.startAt, shift.endAt)) continue;
     suggestions.push({ id: agent.id, firstName: agent.firstName, lastName: agent.lastName });
