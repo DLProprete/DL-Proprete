@@ -13,7 +13,17 @@ export async function listTodayShiftsForAgent(user: SessionUser) {
       assignments: { some: { userId: user.id, status: "ASSIGNED" } },
     },
     include: {
-      site: { select: { id: true, name: true, address: true, city: true, accessNotes: true } },
+      site: {
+        select: {
+          id: true,
+          name: true,
+          address: true,
+          city: true,
+          accessNotes: true,
+          onSiteContactName: true,
+          onSiteContactPhone: true,
+        },
+      },
       serviceTemplate: { select: { instructions: true } },
       timeEntries: {
         where: { userId: user.id },
