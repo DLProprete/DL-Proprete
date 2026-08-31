@@ -3,6 +3,13 @@ import { assertOwnData, requireRole, type SessionUser } from "@/server/auth/sess
 
 export class TimeEntryAlreadyOpenError extends Error {}
 export class TimeEntryNotModifiableError extends Error {}
+export class TimeEntryTooShortError extends Error {}
+
+// Sous ce seuil, il s'agit d'un double-tap Démarrer/Terminer, pas d'un
+// vrai pointage (ex. 15:53–15:53) — cf. docs/DATA-MODEL.md, clockOutAt >
+// clockInAt exigé. Même style de constante que SCHEDULE_TOLERANCE_MINUTES
+// dans agent-schedule.ts.
+const MIN_DURATION_MINUTES = 5;
 
 // Pointage "hors planning" (sans shiftId, avec choix manuel du site) n'est
 // pas construit cette session — hors périmètre demandé ("planning du jour,
@@ -42,8 +49,16 @@ export async function endTimeEntry(user: SessionUser, timeEntryId: string) {
     throw new TimeEntryNotModifiableError("Ce pointage n'est plus modifiable.");
   }
 
+  const clockOutAt = new Date();
+  const durationMinutes = (clockOutAt.getTime() - entry.clockInAt.getTime()) / 60_000;
+  if (durationMinutes < MIN_DURATION_MINUTES) {
+    throw new TimeEntryTooShortError(
+      `Pointage trop court (moins de ${MIN_DURATION_MINUTES} min) : vérifiez l'heure de début.`,
+    );
+  }
+
   return prisma.timeEntry.update({
     where: { id: timeEntryId },
-    data: { clockOutAt: new Date(), status: "SUBMITTED" },
+    data: { clockOutAt, status: "SUBMITTED" },
   });
 }

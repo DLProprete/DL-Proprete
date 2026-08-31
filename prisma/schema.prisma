@@ -369,6 +369,14 @@ model TimeEntry {
   @@index([userId, clockInAt])
 }
 
+// Deux garde-fous poses en base par migration brute (pas exprimables dans
+// le DSL Prisma, donc invisibles ci-dessus) :
+// - index unique partiel `uniq_open_time_entry` sur (userId) WHERE
+//   status = 'OPEN' : un seul pointage ouvert a la fois par agent.
+// - contrainte CHECK `TimeEntry_min_duration` : clockOutAt IS NULL OR
+//   clockOutAt >= clockInAt + 5 minutes (voir migration
+//   20260831173748_time_entry_min_duration).
+
 model Absence {
   id           String        @id @default(cuid())
   userId       String

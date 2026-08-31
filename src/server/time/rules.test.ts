@@ -1,7 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/server/auth/session";
-import { startTimeEntry, endTimeEntry, TimeEntryAlreadyOpenError, TimeEntryNotModifiableError } from "./actions";
+import {
+  startTimeEntry,
+  endTimeEntry,
+  TimeEntryAlreadyOpenError,
+  TimeEntryNotModifiableError,
+  TimeEntryTooShortError,
+} from "./actions";
 import { validateTimeEntry, rejectTimeEntry } from "./review";
 
 // Test d'intégration : les règles OPEN/VALIDATED sont des transitions
@@ -107,6 +113,12 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
     const open = await prisma.timeEntry.findFirstOrThrow({
       where: { userId: agentUser.id, status: "OPEN" },
     });
+    // Durée minimale de 5 min exigée par endTimeEntry — cf. tests dédiés
+    // plus bas ; ici on veut juste vérifier la transition OPEN -> SUBMITTED.
+    await prisma.timeEntry.update({
+      where: { id: open.id },
+      data: { clockInAt: new Date(Date.now() - 6 * 60_000) },
+    });
     const ended = await endTimeEntry(agentUser, open.id);
     expect(ended.status).toBe("SUBMITTED");
     expect(ended.clockOutAt).not.toBeNull();
@@ -145,5 +157,30 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
   it("une fois l'entrée validée, l'agent peut redémarrer un nouveau pointage OPEN", async () => {
     const entry = await startTimeEntry(agentUser, shiftId);
     expect(entry.status).toBe("OPEN");
+  });
+
+  it("refuse de terminer un pointage à moins de 5 min du début (double-tap)", async () => {
+    // Reprend l'OPEN laissé par le test précédent : un seul OPEN à la fois
+    // par agent est contraint en base (index unique partiel), donc on ne
+    // peut pas en créer un second directement pour ce test.
+    const open = await prisma.timeEntry.findFirstOrThrow({
+      where: { userId: agentUser.id, status: "OPEN" },
+    });
+    await expect(endTimeEntry(agentUser, open.id)).rejects.toBeInstanceOf(TimeEntryTooShortError);
+    const stillOpen = await prisma.timeEntry.findUniqueOrThrow({ where: { id: open.id } });
+    expect(stillOpen.status).toBe("OPEN");
+    expect(stillOpen.clockOutAt).toBeNull();
+  });
+
+  it("accepte une fin à 5 min ou plus du début", async () => {
+    const open = await prisma.timeEntry.findFirstOrThrow({
+      where: { userId: agentUser.id, status: "OPEN" },
+    });
+    await prisma.timeEntry.update({
+      where: { id: open.id },
+      data: { clockInAt: new Date(Date.now() - 6 * 60_000) },
+    });
+    const ended = await endTimeEntry(agentUser, open.id);
+    expect(ended.status).toBe("SUBMITTED");
   });
 });
