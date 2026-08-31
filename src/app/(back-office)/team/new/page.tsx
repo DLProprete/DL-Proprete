@@ -16,7 +16,7 @@ export default async function NewAgentPage({
           {error}
         </p>
       )}
-      <form action={createAgentAction} className="space-y-4">
+      <form action={createAgentAction} className="card space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm text-zinc-700">
             E-mail
@@ -45,7 +45,7 @@ export default async function NewAgentPage({
         <AgentProfileFields roleSelectable />
         <button
           type="submit"
-          className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+          className="btn btn-dark"
         >
           Créer
         </button>

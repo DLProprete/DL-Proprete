@@ -69,7 +69,7 @@ export default async function AgentDetailPage({
         )}
         <button
           type="submit"
-          className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
+          className="btn btn-dark"
         >
           Enregistrer
         </button>

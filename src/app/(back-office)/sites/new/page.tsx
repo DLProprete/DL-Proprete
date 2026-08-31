@@ -14,7 +14,7 @@ export default async function NewSitePage({
   return (
     <div className="max-w-lg space-y-4">
       <h1 className="text-xl font-semibold">Nouveau site</h1>
-      <form action={createSiteAction} className="space-y-4">
+      <form action={createSiteAction} className="card space-y-4">
         <div>
           <label htmlFor="clientId" className="block text-sm text-zinc-700">
             Client
