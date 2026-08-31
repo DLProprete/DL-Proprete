@@ -14,15 +14,7 @@ export default async function MyAbsencesPage() {
 
   return (
     <div className="max-w-lg space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Mes absences</h1>
-        <Link
-          href="/absences/new"
-          className="rounded bg-teal-700 px-3 py-2 text-sm text-white hover:bg-teal-800"
-        >
-          Déclarer
-        </Link>
-      </div>
+      <h1 className="text-xl font-semibold">Mes absences</h1>
       <ul className="divide-y divide-zinc-100 text-sm">
         {absences.map((absence) => (
           <li key={absence.id} className="flex items-center justify-between gap-4 py-3">
@@ -42,6 +34,12 @@ export default async function MyAbsencesPage() {
           <li className="py-3 text-zinc-400">Aucune absence déclarée.</li>
         )}
       </ul>
+      <Link
+        href="/absences/new"
+        className="flex min-h-14 w-full items-center justify-center rounded-xl bg-teal-700 text-base font-semibold text-white hover:bg-teal-800"
+      >
+        Déclarer
+      </Link>
     </div>
   );
 }

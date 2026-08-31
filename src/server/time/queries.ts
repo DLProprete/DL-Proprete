@@ -12,15 +12,27 @@ export async function listTodayShiftsForAgent(user: SessionUser) {
       date: { gte: day, lt: dayEnd },
       assignments: { some: { userId: user.id, status: "ASSIGNED" } },
     },
-    include: { site: { select: { id: true, name: true } } },
+    include: {
+      site: { select: { id: true, name: true, address: true, city: true, accessNotes: true } },
+      serviceTemplate: { select: { instructions: true } },
+      timeEntries: {
+        where: { userId: user.id },
+        select: { id: true, status: true, clockInAt: true, clockOutAt: true },
+      },
+    },
     orderBy: { startAt: "asc" },
   });
 }
 
-export async function getOpenTimeEntry(user: SessionUser) {
+// Pour la salutation "Bonjour, X" : le jeu de démo nomme les agents
+// "Agent Un"/"Agent Deux" (firstName générique + lastName distinctif), donc
+// lastName est la partie qui identifie réellement la personne ici. À
+// revoir si de vrais comptes (prénom/nom classiques) remplacent la démo.
+export async function getAgentGreetingName(user: SessionUser) {
   requireRole(user, ["AGENT"]);
-  return prisma.timeEntry.findFirst({
-    where: { userId: user.id, status: "OPEN" },
-    include: { site: { select: { name: true } }, shift: { select: { id: true } } },
+  const row = await prisma.user.findUniqueOrThrow({
+    where: { id: user.id },
+    select: { lastName: true },
   });
+  return row.lastName;
 }

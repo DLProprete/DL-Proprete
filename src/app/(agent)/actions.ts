@@ -21,7 +21,7 @@ export async function startTimeEntryAction(shiftId: string) {
 
 export async function endTimeEntryAction(timeEntryId: string) {
   const user = await requireSession();
-  await endTimeEntry(user, timeEntryId);
+  const entry = await endTimeEntry(user, timeEntryId);
   revalidatePath("/today");
-  redirect("/today");
+  redirect(entry.shiftId ? `/today?justEnded=${entry.shiftId}` : "/today");
 }

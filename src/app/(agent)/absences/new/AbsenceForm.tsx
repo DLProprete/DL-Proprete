@@ -36,7 +36,7 @@ export function AbsenceForm() {
             name="startsOn"
             type="date"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 min-h-11 w-full rounded border border-zinc-300 px-3 py-2"
           />
         </div>
         <div>
@@ -48,7 +48,7 @@ export function AbsenceForm() {
             name="endsOn"
             type="date"
             required
-            className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
+            className="mt-1 min-h-11 w-full rounded border border-zinc-300 px-3 py-2"
           />
         </div>
       </div>
@@ -80,7 +80,7 @@ export function AbsenceForm() {
       </div>
       <button
         type="submit"
-        className="rounded bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+        className="flex min-h-14 w-full items-center justify-center rounded-xl bg-teal-700 text-base font-semibold text-white hover:bg-teal-800"
       >
         Déclarer
       </button>
