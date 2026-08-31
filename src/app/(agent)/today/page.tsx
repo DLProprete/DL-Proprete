@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listTodayShiftsForAgent, getAgentGreetingName } from "@/server/time/queries";
 import { shiftState, scheduleWarning } from "@/server/time/agent-schedule";
@@ -67,11 +68,16 @@ export default async function TodayPage({
 
   return (
     <div className="mx-auto w-full max-w-md space-y-4">
-      <div>
-        <h1 className="text-lg font-semibold text-zinc-900">Bonjour, {greetingName}</h1>
-        <p className="text-sm text-zinc-500">
-          {shifts.length} vacation{shifts.length > 1 ? "s" : ""} aujourd&apos;hui
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-semibold text-zinc-900">Bonjour, {greetingName}</h1>
+          <p className="text-sm text-zinc-500">
+            {shifts.length} vacation{shifts.length > 1 ? "s" : ""} aujourd&apos;hui
+          </p>
+        </div>
+        <Link href="/today/week" className="pt-1 text-sm text-teal-700 underline">
+          Voir la semaine →
+        </Link>
       </div>
 
       {error === "already-open" && (
