@@ -473,13 +473,23 @@ model InvoiceSequence {
 
 // Ligne unique (id fixe "default") : coordonnées de l'entreprise pour le
 // pied de page des factures PDF (docs/ARCHITECTURE.md section 4, module 9).
+// Mentions obligatoires des factures entre professionnels (art. L441-9 du code
+// de commerce). Voir server/billing/legal-mentions.ts pour leur mise en forme.
 model CompanyProfile {
   id        String   @id @default("default")
   legalName String
   address   String
+  legalForm String?
+  // Capital social : mention obligatoire pour une societe commerciale.
+  shareCapital Decimal? @db.Decimal(12, 2)
+  // Ville du greffe ; le SIREN est derive des 9 premiers chiffres du SIRET.
+  rcsCity   String?
   siret     String?
   vatNumber String?
   iban      String?
+  // Taux annuel des penalites de retard, en %. Null = repli legal (trois fois
+  // le taux d'interet legal), qui reste une mention valable.
+  latePenaltyRate Decimal? @db.Decimal(5, 2)
   updatedAt DateTime @updatedAt
 }
 

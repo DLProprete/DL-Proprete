@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getInvoice, getValidatedHoursForContractMonth } from "@/server/billing/queries";
+import { getCompanyProfile } from "@/server/settings/queries";
+import { describeMissingMentions, missingLegalMentions } from "@/server/billing/legal-mentions";
 import { computeBalanceDue } from "@/server/billing/balance";
 import { dateOnlyUTC, parisToday } from "@/lib/dates";
 import { invoiceStatusBadge } from "@/lib/invoice-status";
@@ -54,6 +56,21 @@ export default async function InvoiceDetailPage({
   const today = parisToday();
   const todayDate = dateOnlyUTC(today.year, today.month, today.day);
 
+  // Controle avant emission, pas apres : une facture emise est verrouillee et
+  // ne se corrige que par un avoir.
+  const company = await getCompanyProfile();
+  const missingMentions = missingLegalMentions({
+    legalName: company.legalName,
+    address: company.address,
+    legalForm: company.legalForm,
+    shareCapital: company.shareCapital === null ? null : Number(company.shareCapital),
+    rcsCity: company.rcsCity,
+    siret: company.siret,
+    vatNumber: company.vatNumber,
+    iban: company.iban,
+    latePenaltyRate: company.latePenaltyRate === null ? null : Number(company.latePenaltyRate),
+  });
+
   return (
     <div className="max-w-3xl space-y-8">
       <div className="flex items-center justify-between">
@@ -86,6 +103,17 @@ export default async function InvoiceDetailPage({
           )}
         </div>
       </div>
+
+      {invoice.status === "DRAFT" && missingMentions.length > 0 && (
+        <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <span className="font-medium">Mentions légales incomplètes</span> —{" "}
+          {describeMissingMentions(missingMentions)}.{" "}
+          <Link href="/settings" className="underline">
+            Compléter les paramètres
+          </Link>{" "}
+          avant d&apos;émettre : une facture émise ne se corrige que par un avoir.
+        </div>
+      )}
 
       {error && (
         <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

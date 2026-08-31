@@ -10,12 +10,24 @@ const ibanSchema = z
     message: "IBAN invalide",
   });
 
+// Champ numerique facultatif : un input vide arrive en "" dans le FormData,
+// z.coerce.number() le transformerait en 0 — un capital social a 0 € ou un
+// taux de penalites a 0 % seraient tous les deux faux et silencieux.
+const optionalDecimal = z
+  .union([z.literal(""), z.coerce.number().nonnegative()])
+  .optional()
+  .transform((value) => (value === "" || value === undefined ? null : value));
+
 export const companyProfileInputSchema = z.object({
   legalName: z.string().min(1, "Raison sociale requise"),
   address: z.string().min(1, "Adresse requise"),
+  legalForm: z.string().optional(),
+  shareCapital: optionalDecimal,
+  rcsCity: z.string().optional(),
   siret: z.string().optional(),
   vatNumber: z.string().optional(),
   iban: z.union([ibanSchema, z.literal("")]).optional(),
+  latePenaltyRate: optionalDecimal,
 });
 
 export type CompanyProfileInput = z.infer<typeof companyProfileInputSchema>;
