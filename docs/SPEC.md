@@ -111,16 +111,33 @@ et au contrôle du chantier.
 Chaque mois, ADMIN lance « générer les factures du mois ». Pour chaque
 contrat actif :
 
-- sommer la durée des Shift du mois liés au contrat, hors statut CANCELLED ;
+- sommer les **heures d'agent** des Shift du mois liés au contrat, hors statut
+  CANCELLED : pour chaque vacation, `billableMinutes × requiredAgents`. On vend
+  des heures de main-d'œuvre, pas des créneaux — une vacation d'1 h 30 à deux
+  agents représente 3 h facturables ;
 - créer une ligne de régie : quantité = heures prévues, PU = tarif horaire HT ;
+- refuser d'émettre en silence une facture manifestement incomplète : si le mois
+  n'est pas planifié jusqu'au bout, ou si le total s'écarte de plus de 10 % de
+  `indicativeMonthlyHours`, le brouillon est créé mais l'écran signale l'anomalie ;
 - afficher en contrôle (non facturé) les heures pointées validées du même mois ;
 - numéro séquentiel, PDF, brouillon puis émise ;
 - saisie manuelle d’un règlement ensuite.
 
-Un mois de février plus court, ou un mois avec cinq lundis, fait varier
-le prévu : c’est voulu. Pour figer un montant identique chaque mois,
-utiliser plutôt `indicativeMonthlyHours` en option de contrat
-(`billingBasis: CALENDAR_SHIFTS` par défaut, ou `FLAT_INDICATIVE_HOURS`).
+**Décision du 31/08/2026** : le défaut est le forfait mensuel lissé
+(`billingBasis: FLAT_INDICATIVE_HOURS`, quantité = `indicativeMonthlyHours`).
+La pratique du secteur est un montant identique chaque mois, 1/12e du volume
+annuel ; un montant qui bouge tous les mois se fait contester tous les mois.
+`CALENDAR_SHIFTS` reste disponible contrat par contrat pour qui veut facturer
+le calendrier réel — un février plus court ou un mois à cinq lundis fait alors
+varier le montant, et c'est assumé.
+
+**Amplitude ≠ durée vendue.** `ServiceTemplate.startTime`/`endTime` décrivent la
+fenêtre pendant laquelle l'agent peut accéder au site ; `durationMinutes` est la
+durée de prestation réellement vendue. « Passage entre 6 h et 8 h, 1 h 30 de
+prestation » est un cas courant. Seule `durationMinutes` part en facture, et
+elle ne peut pas dépasser la fenêtre. Chaque Shift fige cette durée à la
+génération (`Shift.billableMinutes`) : modifier un contrat ne doit jamais
+changer rétroactivement une période déjà facturée.
 
 Les prestations ponctuelles (remise en état, dépannage) sont une ligne
 ADHOC, ajoutable à la facture du mois ou facturée isolément.

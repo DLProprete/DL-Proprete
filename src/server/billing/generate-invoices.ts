@@ -2,6 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { monthRange } from "@/lib/dates";
 import { recomputeInvoiceTotals } from "./actions";
+import {
+  coverageWarnings,
+  plannedHoursFromShifts,
+  type CoverageWarning,
+} from "./planned-hours";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
 
@@ -9,6 +14,17 @@ export type GenerateInvoicesResult = {
   created: string[];
   updated: string[];
   skipped: Array<{ contractId: string; reason: string }>;
+  /**
+   * Factures generees mais suspectes (planning incomplet, ecart important au
+   * volume contractuel). Elles restent en brouillon : c'est a l'ADMIN de
+   * regarder avant d'emettre, pas au generateur de decider a sa place.
+   */
+  warnings: Array<{
+    contractId: string;
+    contractReference: string;
+    invoiceId: string;
+    warnings: CoverageWarning[];
+  }>;
 };
 
 // Un contrat déjà facturé (DRAFT ou ISSUED+) pour ce mois n'est jamais
@@ -32,10 +48,14 @@ export async function generateMonthlyInvoices(
     },
   });
 
-  const result: GenerateInvoicesResult = { created: [], updated: [], skipped: [] };
+  const result: GenerateInvoicesResult = { created: [], updated: [], skipped: [], warnings: [] };
+
+  const daysInMonth = Math.round((end.getTime() - start.getTime()) / 86_400_000);
 
   for (const contract of contracts) {
     let plannedHours: number;
+    let contractWarnings: CoverageWarning[] = [];
+
     if (contract.billingBasis === "FLAT_INDICATIVE_HOURS") {
       if (!contract.indicativeMonthlyHours) {
         result.skipped.push({
@@ -52,13 +72,27 @@ export async function generateMonthlyInvoices(
           date: { gte: start, lt: end },
           status: { not: "CANCELLED" },
         },
-        select: { startAt: true, endAt: true },
+        select: { date: true, billableMinutes: true, requiredAgents: true },
       });
-      const totalMinutes = shifts.reduce(
-        (sum, shift) => sum + (shift.endAt.getTime() - shift.startAt.getTime()) / 60_000,
-        0,
+
+      // Heures d'agent vendues : duree de la vacation x agents requis. Sommer
+      // les seules durees revenait a facturer une vacation a deux agents comme
+      // si un seul s'y rendait.
+      plannedHours = plannedHoursFromShifts(shifts);
+
+      const coveredDayNumbers = new Set(shifts.map((shift) => shift.date.getUTCDate()));
+      const lastCoveredDay = coveredDayNumbers.size === 0 ? 0 : Math.max(...coveredDayNumbers);
+      contractWarnings = coverageWarnings(
+        {
+          coveredDays: coveredDayNumbers.size,
+          daysInMonth,
+          computedHours: plannedHours,
+          indicativeMonthlyHours: contract.indicativeMonthlyHours
+            ? Number(contract.indicativeMonthlyHours)
+            : null,
+        },
+        lastCoveredDay,
       );
-      plannedHours = totalMinutes / 60;
     }
 
     const existing = await prisma.invoice.findFirst({
@@ -105,6 +139,14 @@ export async function generateMonthlyInvoices(
       }
       await recomputeInvoiceTotals(existing.id);
       result.updated.push(existing.id);
+      if (contractWarnings.length > 0) {
+        result.warnings.push({
+          contractId: contract.id,
+          contractReference: contract.reference,
+          invoiceId: existing.id,
+          warnings: contractWarnings,
+        });
+      }
       continue;
     }
 
@@ -129,6 +171,14 @@ export async function generateMonthlyInvoices(
     });
     await recomputeInvoiceTotals(invoice.id);
     result.created.push(invoice.id);
+    if (contractWarnings.length > 0) {
+      result.warnings.push({
+        contractId: contract.id,
+        contractReference: contract.reference,
+        invoiceId: invoice.id,
+        warnings: contractWarnings,
+      });
+    }
   }
 
   return result;

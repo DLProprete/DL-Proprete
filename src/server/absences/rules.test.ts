@@ -54,6 +54,7 @@ describe("règles Absence / remplacement (intégration DB)", () => {
         startAt: new Date("2026-09-15T06:00:00.000Z"),
         endAt: new Date("2026-09-15T08:00:00.000Z"),
         requiredAgents: 1,
+        billableMinutes: 120,
         status: "UNSTAFFED",
         generatedFromTemplate: false,
       },
@@ -66,6 +67,7 @@ describe("règles Absence / remplacement (intégration DB)", () => {
         startAt: new Date("2026-09-15T07:00:00.000Z"), // chevauche shiftA
         endAt: new Date("2026-09-15T09:00:00.000Z"),
         requiredAgents: 1,
+        billableMinutes: 120,
         status: "UNSTAFFED",
         generatedFromTemplate: false,
       },

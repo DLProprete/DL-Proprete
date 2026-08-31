@@ -88,9 +88,15 @@ export default async function ContractDetailPage({
                   <p className={template.isActive ? "" : "text-zinc-400"}>
                     <span className="font-medium">{template.name}</span> —{" "}
                     {template.daysOfWeek.map((day) => DAY_LABELS[day]).join(", ")}{" "}
-                    {formatTime(template.startTime)}–{formatTime(template.endTime)} (
-                    {template.durationMinutes} min, {template.requiredAgents} agent
-                    {template.requiredAgents > 1 ? "s" : ""})
+                    {formatTime(template.startTime)}–{formatTime(template.endTime)}
+                  </p>
+                  <p className={template.isActive ? "text-sm text-zinc-500" : "text-sm text-zinc-400"}>
+                    {template.durationMinutes} min facturées × {template.requiredAgents} agent
+                    {template.requiredAgents > 1 ? "s" : ""} ={" "}
+                    {((template.durationMinutes * template.requiredAgents) / 60)
+                      .toFixed(2)
+                      .replace(".", ",")}{" "}
+                    h par passage
                   </p>
                   {template.instructions && (
                     <p className="text-zinc-500">{template.instructions}</p>

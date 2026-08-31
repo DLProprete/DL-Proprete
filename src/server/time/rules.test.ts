@@ -47,6 +47,7 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
         startAt: new Date(),
         endAt: new Date(Date.now() + 3_600_000),
         requiredAgents: 1,
+        billableMinutes: 120,
         status: "PLANNED",
         generatedFromTemplate: false,
       },

@@ -35,7 +35,9 @@ Cible Prisma / PostgreSQL. Les noms d’entités restent en anglais dans le code
 - startsOn, endsOn
 - billingMode: TIME_AND_MATERIALS_PLANNED (régie au prévu)
 - billingBasis: CALENDAR_SHIFTS | FLAT_INDICATIVE_HOURS
-  (défaut CALENDAR_SHIFTS = somme des vacations du mois hors CANCELLED)
+  (défaut FLAT_INDICATIVE_HOURS depuis le 31/08/2026 = forfait mensuel lissé.
+  CALENDAR_SHIFTS = somme des heures d'agent des vacations du mois hors
+  CANCELLED, soit Σ billableMinutes × requiredAgents)
 - hourlyRateHT (Decimal)
 - indicativeMonthlyHours (Decimal) — si FLAT_INDICATIVE_HOURS ; sinon référentiel d’écart
 - vatRate (Decimal, défaut 20)
@@ -48,14 +50,18 @@ Cible Prisma / PostgreSQL. Les noms d’entités restent en anglais dans le code
 - id, contractId
 - name (ex. "Entretien quotidien bureaux")
 - daysOfWeek: Int[] (1=lundi … 7=dimanche)
-- startTime, endTime (Time)
-- durationMinutes
-- requiredAgents
+- startTime, endTime (Time) — fenêtre d'accès au site, pas la durée vendue
+- durationMinutes — durée de prestation vendue, ≤ (endTime − startTime).
+  C'est elle qui part en facture, jamais la fenêtre.
+- requiredAgents — multiplie la durée vendue dans le calcul de la facture
 - instructions
 - isActive
 
 ### Shift (occurrence planifiée)
 - id, serviceTemplateId, siteId, contractId
+- billableMinutes — durée vendue, recopiée du ServiceTemplate à la génération
+  et figée : une modification ultérieure du contrat ne doit pas changer
+  rétroactivement une période déjà facturée
 - date, startAt, endAt
 - requiredAgents
 - status: PLANNED | PARTIALLY_STAFFED | UNSTAFFED | DONE | CANCELLED

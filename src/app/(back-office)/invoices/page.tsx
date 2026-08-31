@@ -12,7 +12,13 @@ function formatAmount(amount: unknown) {
   return `${Number(amount).toFixed(2)} €`;
 }
 
-export default async function InvoicesPage() {
+export default async function InvoicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ alerte?: string }>;
+}) {
+  const { alerte } = await searchParams;
+  const alerts = alerte ? alerte.split("|").filter(Boolean) : [];
   const user = await requireSession();
   if (user.role !== "ADMIN") {
     redirect("/clients");
@@ -24,6 +30,17 @@ export default async function InvoicesPage() {
 
   return (
     <div className="space-y-6">
+      {alerts.length > 0 && (
+        <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="font-medium">À vérifier avant d&apos;émettre</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5">
+            {alerts.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold">Factures</h1>

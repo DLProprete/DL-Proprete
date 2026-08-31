@@ -66,7 +66,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="startTime" className="block text-sm text-zinc-700">
-            Heure de début
+            Début de la fenêtre d&apos;accès
           </label>
           <input
             id="startTime"
@@ -83,7 +83,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
         </div>
         <div>
           <label htmlFor="endTime" className="block text-sm text-zinc-700">
-            Heure de fin
+            Fin de la fenêtre d&apos;accès
           </label>
           <input
             id="endTime"
@@ -111,7 +111,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="durationMinutes" className="block text-sm text-zinc-700">
-            Durée estimée (min)
+            Durée facturée (min)
           </label>
           <input
             id="durationMinutes"
@@ -126,8 +126,10 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
             }}
             className="mt-1 w-full rounded border border-zinc-300 px-3 py-2"
           />
-          <p className="mt-1 text-xs text-zinc-400">
-            Préremplie automatiquement à partir des heures de début/fin.
+          <p className="mt-1 text-xs text-zinc-500">
+            C&apos;est cette durée qui part en facture, multipliée par le nombre
+            d&apos;agents requis. Préremplie sur la fenêtre d&apos;accès ; à réduire si la
+            prestation vendue est plus courte que l&apos;amplitude de passage.
           </p>
         </div>
         <div>
