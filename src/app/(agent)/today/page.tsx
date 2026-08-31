@@ -2,8 +2,8 @@ import { requireSession } from "@/server/auth/session";
 import { listTodayShiftsForAgent, getAgentGreetingName } from "@/server/time/queries";
 import { shiftState, scheduleWarning } from "@/server/time/agent-schedule";
 import { formatTimeInParis } from "@/lib/dates";
-import { startTimeEntryAction, endTimeEntryAction } from "../actions";
 import { LiveTimer } from "@/components/live-timer";
+import { ClockButton } from "@/components/clock-button";
 
 const START_BUTTON_CLASS =
   "min-h-16 w-full rounded-xl bg-teal-700 text-lg font-semibold text-white hover:bg-teal-800 active:bg-teal-900";
@@ -133,17 +133,14 @@ export default async function TodayPage({
           </div>
 
           {openEntry ? (
-            <form action={endTimeEntryAction.bind(null, openEntry.id)}>
-              <button type="submit" className={END_BUTTON_CLASS}>
-                Terminer
-              </button>
-            </form>
+            <ClockButton mode="end" targetId={openEntry.id} label="Terminer" className={END_BUTTON_CLASS} />
           ) : (
-            <form action={startTimeEntryAction.bind(null, activeShift.id)}>
-              <button type="submit" className={START_BUTTON_CLASS}>
-                Démarrer
-              </button>
-            </form>
+            <ClockButton
+              mode="start"
+              targetId={activeShift.id}
+              label="Démarrer"
+              className={START_BUTTON_CLASS}
+            />
           )}
 
           {upcomingAfterActive.length > 0 && (
