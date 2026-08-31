@@ -138,35 +138,37 @@ export default async function AuditPage({
         </button>
       </form>
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 text-zinc-600">
-            <th className="py-2 font-medium">Date</th>
-            <th className="font-medium">Acteur</th>
-            <th className="font-medium">Type</th>
-            <th className="font-medium">Résumé</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((log) => (
-            <tr key={log.id} className="border-b border-zinc-100">
-              <td className="py-2 whitespace-nowrap text-zinc-600">{dateTimeFormatter.format(log.createdAt)}</td>
-              <td className="whitespace-nowrap">{log.actorLabel ?? "Acteur supprimé"}</td>
-              <td className="whitespace-nowrap text-zinc-600">
-                {AUDIT_ACTION_LABELS[log.action] ?? log.action}
-              </td>
-              <td className="text-zinc-700">{log.summary}</td>
-            </tr>
-          ))}
-          {items.length === 0 && (
+      <div className="card-table">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={4} className="py-4 text-zinc-500">
-                Aucun événement pour ces filtres.
-              </td>
+              <th>Date</th>
+              <th>Acteur</th>
+              <th>Type</th>
+              <th>Résumé</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((log) => (
+              <tr key={log.id}>
+                <td className="whitespace-nowrap text-zinc-600">{dateTimeFormatter.format(log.createdAt)}</td>
+                <td className="whitespace-nowrap">{log.actorLabel ?? "Acteur supprimé"}</td>
+                <td className="whitespace-nowrap text-zinc-600">
+                  {AUDIT_ACTION_LABELS[log.action] ?? log.action}
+                </td>
+                <td className="text-zinc-700">{log.summary}</td>
+              </tr>
+            ))}
+            {items.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-zinc-500">
+                  Aucun événement pour ces filtres.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <div className="flex items-center justify-between text-sm">
         {currentPage > 1 ? (

@@ -88,52 +88,54 @@ export default async function InvoicesPage({
         </button>
       </form>
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 text-zinc-600">
-            <th className="py-2 font-medium">Numéro</th>
-            <th className="font-medium">Client</th>
-            <th className="font-medium">Contrat</th>
-            <th className="font-medium">Période</th>
-            <th className="font-medium">Total TTC</th>
-            <th className="font-medium">Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoices.map((invoice) => (
-            <tr key={invoice.id} className="border-b border-zinc-100">
-              <td className="py-2">
-                <Link href={`/invoices/${invoice.id}`} className="text-zinc-900 underline">
-                  {invoice.number ?? "Brouillon"}
-                </Link>
-              </td>
-              <td className="text-zinc-600">{invoice.client.legalName}</td>
-              <td className="text-zinc-600">{invoice.contract?.reference ?? "—"}</td>
-              <td className="text-zinc-600">
-                {invoice.periodMonth && invoice.periodYear
-                  ? `${String(invoice.periodMonth).padStart(2, "0")}/${invoice.periodYear}`
-                  : "—"}
-              </td>
-              <td className="text-zinc-600">{formatAmount(invoice.amountTTC)}</td>
-              <td>
-                <Badge
-                  {...invoiceStatusBadge(
-                    { status: invoice.status, dueOn: invoice.dueOn, balanceDue: computeBalanceDue(invoice) },
-                    todayDate,
-                  )}
-                />
-              </td>
-            </tr>
-          ))}
-          {invoices.length === 0 && (
+      <div className="card-table">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={6} className="py-4 text-zinc-500">
-                Aucune facture pour l&apos;instant.
-              </td>
+              <th>Numéro</th>
+              <th>Client</th>
+              <th>Contrat</th>
+              <th>Période</th>
+              <th>Total TTC</th>
+              <th>Statut</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {invoices.map((invoice) => (
+              <tr key={invoice.id}>
+                <td>
+                  <Link href={`/invoices/${invoice.id}`} className="text-zinc-900 underline">
+                    {invoice.number ?? "Brouillon"}
+                  </Link>
+                </td>
+                <td className="text-zinc-600">{invoice.client.legalName}</td>
+                <td className="text-zinc-600">{invoice.contract?.reference ?? "—"}</td>
+                <td className="text-zinc-600">
+                  {invoice.periodMonth && invoice.periodYear
+                    ? `${String(invoice.periodMonth).padStart(2, "0")}/${invoice.periodYear}`
+                    : "—"}
+                </td>
+                <td className="text-zinc-600">{formatAmount(invoice.amountTTC)}</td>
+                <td>
+                  <Badge
+                    {...invoiceStatusBadge(
+                      { status: invoice.status, dueOn: invoice.dueOn, balanceDue: computeBalanceDue(invoice) },
+                      todayDate,
+                    )}
+                  />
+                </td>
+              </tr>
+            ))}
+            {invoices.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-zinc-500">
+                  Aucune facture pour l&apos;instant.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

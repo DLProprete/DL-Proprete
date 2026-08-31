@@ -45,69 +45,71 @@ export default async function InvoiceRemindersPage({
         </p>
       )}
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 text-zinc-600">
-            <th className="py-2 font-medium">Numéro</th>
-            <th className="font-medium">Client</th>
-            <th className="font-medium">Échéance</th>
-            <th className="font-medium">Restant dû</th>
-            <th className="font-medium">Dernière relance</th>
-            <th className="font-medium">Marquer relancé</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoices.map((invoice) => (
-            <tr key={invoice.id} className="border-b border-zinc-100 align-top">
-              <td className="py-2">
-                <Link href={`/invoices/${invoice.id}`} className="text-zinc-900 underline">
-                  {invoice.number ?? invoice.id}
-                </Link>
-              </td>
-              <td className="text-zinc-600">{invoice.client.legalName}</td>
-              <td className="text-zinc-600">{formatDate(invoice.dueOn)}</td>
-              <td className="text-zinc-600">{amount(invoice.balanceDue)}</td>
-              <td className="text-zinc-600">
-                {invoice.lastRemindedAt ? formatDate(invoice.lastRemindedAt) : "—"}
-              </td>
-              <td>
-                <form
-                  action={markInvoiceRemindedAction.bind(null, invoice.id)}
-                  className="flex flex-wrap items-end gap-2"
-                >
-                  <input
-                    type="date"
-                    name="remindedOn"
-                    required
-                    defaultValue={todayValue}
-                    className="field field-sm text-xs"
-                  />
-                  <input
-                    type="text"
-                    name="note"
-                    placeholder="Note (facultatif)"
-                    maxLength={200}
-                    className="field field-sm text-xs"
-                  />
-                  <button
-                    type="submit"
-                    className="btn btn-secondary btn-xs"
-                  >
-                    Marquer relancé le
-                  </button>
-                </form>
-              </td>
-            </tr>
-          ))}
-          {invoices.length === 0 && (
+      <div className="card-table">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={6} className="py-4 text-zinc-500">
-                Aucune relance à faire.
-              </td>
+              <th>Numéro</th>
+              <th>Client</th>
+              <th>Échéance</th>
+              <th>Restant dû</th>
+              <th>Dernière relance</th>
+              <th>Marquer relancé</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {invoices.map((invoice) => (
+              <tr key={invoice.id} className="align-top">
+                <td>
+                  <Link href={`/invoices/${invoice.id}`} className="text-zinc-900 underline">
+                    {invoice.number ?? invoice.id}
+                  </Link>
+                </td>
+                <td className="text-zinc-600">{invoice.client.legalName}</td>
+                <td className="text-zinc-600">{formatDate(invoice.dueOn)}</td>
+                <td className="text-zinc-600">{amount(invoice.balanceDue)}</td>
+                <td className="text-zinc-600">
+                  {invoice.lastRemindedAt ? formatDate(invoice.lastRemindedAt) : "—"}
+                </td>
+                <td>
+                  <form
+                    action={markInvoiceRemindedAction.bind(null, invoice.id)}
+                    className="flex flex-wrap items-end gap-2"
+                  >
+                    <input
+                      type="date"
+                      name="remindedOn"
+                      required
+                      defaultValue={todayValue}
+                      className="field field-sm text-xs"
+                    />
+                    <input
+                      type="text"
+                      name="note"
+                      placeholder="Note (facultatif)"
+                      maxLength={200}
+                      className="field field-sm text-xs"
+                    />
+                    <button
+                      type="submit"
+                      className="btn btn-secondary btn-xs"
+                    >
+                      Marquer relancé le
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+            {invoices.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-zinc-500">
+                  Aucune relance à faire.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
