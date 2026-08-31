@@ -16,7 +16,8 @@ export type AuditAction =
   | "AGENT_DEACTIVATED"
   | "PASSWORD_RESET"
   | "ASSIGNMENT_CREATED"
-  | "ASSIGNMENT_REMOVED";
+  | "ASSIGNMENT_REMOVED"
+  | "INVOICE_CREATED";
 
 type AuditEntry = {
   actorUserId: string;
@@ -32,8 +33,18 @@ type AuditEntry = {
 // `client` accepte prisma ou un tx pour loguer dans la même transaction que
 // la mutation qu'il décrit (émission de facture, approbation d'absence).
 export async function logAudit(
-  client: Pick<Prisma.TransactionClient, "auditLog"> | typeof prisma,
+  client: Pick<Prisma.TransactionClient, "auditLog" | "user"> | typeof prisma,
   entry: AuditEntry,
 ): Promise<void> {
-  await client.auditLog.create({ data: entry });
+  // actorLabel fige l'identite de l'acteur au moment de l'ecriture : la FK
+  // actorUserId est en ON DELETE SET NULL, donc supprimer le compte plus
+  // tard (fixture de test jetable, depart d'un salarie) ne doit pas rendre
+  // l'historique deja ecrit anonyme.
+  const actor = await client.user.findUnique({
+    where: { id: entry.actorUserId },
+    select: { firstName: true, lastName: true, email: true },
+  });
+  const actorLabel = actor ? `${actor.firstName} ${actor.lastName} · ${actor.email}` : null;
+
+  await client.auditLog.create({ data: { ...entry, actorLabel } });
 }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { monthRange } from "@/lib/dates";
 import { recomputeInvoiceTotals } from "./actions";
+import { logAudit } from "@/server/audit/log";
 import {
   coverageWarnings,
   plannedHoursFromShifts,
@@ -196,6 +197,13 @@ export async function generateMonthlyInvoices(
     });
     await recomputeInvoiceTotals(invoice.id);
     result.created.push(invoice.id);
+    await logAudit(prisma, {
+      actorUserId: user.id,
+      action: "INVOICE_CREATED",
+      entityType: "Invoice",
+      entityId: invoice.id,
+      summary: `Brouillon créé : ${label} — ${contract.reference}`,
+    });
     if (contractWarnings.length > 0) {
       result.warnings.push({
         contractId: contract.id,

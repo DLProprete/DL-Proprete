@@ -450,6 +450,11 @@ model AuditLog {
   id          String   @id @default(cuid())
   createdAt   DateTime @default(now())
   actorUserId String?
+  // Identite de l'acteur figee au moment de l'ecriture ("Prenom Nom ·
+  // email"). La FK actorUserId est en ON DELETE SET NULL : sans cette
+  // copie, supprimer un compte (fixture de test jetable, depart d'un
+  // salarie) efface retroactivement qui a fait quoi dans tout l'historique.
+  actorLabel  String?
   action      String
   entityType  String
   entityId    String
