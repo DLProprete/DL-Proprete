@@ -238,6 +238,11 @@ describe("règles Facturation (intégration DB)", () => {
     });
     expect(Number(flatInvoice.lines[0].quantity)).toBe(80); // forfait indicatif
     expect(Number(flatInvoice.amountHT)).toBe(1200); // 80h x 15€
+
+    const createdLogs = await prisma.auditLog.count({
+      where: { action: "INVOICE_CREATED", entityId: { in: [calInvoice.id, flatInvoice.id] } },
+    });
+    expect(createdLogs).toBe(2);
   });
 
   it("relancer la génération met à jour les brouillons existants sans les dupliquer", async () => {

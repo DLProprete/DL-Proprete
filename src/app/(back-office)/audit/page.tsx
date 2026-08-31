@@ -151,16 +151,7 @@ export default async function AuditPage({
           {items.map((log) => (
             <tr key={log.id} className="border-b border-zinc-100">
               <td className="py-2 whitespace-nowrap text-zinc-500">{dateTimeFormatter.format(log.createdAt)}</td>
-              <td className="whitespace-nowrap">
-                {log.actor ? (
-                  <>
-                    {log.actor.firstName} {log.actor.lastName}{" "}
-                    <span className="text-zinc-400">· {log.actor.email}</span>
-                  </>
-                ) : (
-                  "Système"
-                )}
-              </td>
+              <td className="whitespace-nowrap">{log.actorLabel ?? "Acteur supprimé"}</td>
               <td className="whitespace-nowrap text-zinc-600">
                 {AUDIT_ACTION_LABELS[log.action] ?? log.action}
               </td>
