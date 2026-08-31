@@ -44,6 +44,8 @@ export async function assignAgentAction(shiftId: string, returnTo: string, formD
 
   revalidatePath("/planning");
   revalidatePath("/planning/day");
+  // Le tableau de bord affecte aussi, directement depuis sa liste du jour.
+  revalidatePath("/dashboard");
   redirect(returnTo);
 }
 
