@@ -59,7 +59,11 @@ export default async function AgentDetailPage({
 
       <form action={updateProfile} className="space-y-4">
         <AgentProfileFields
-          defaultValues={agent}
+          defaultValues={{
+            ...agent,
+            weeklyContractHours: agent.weeklyContractHours != null ? Number(agent.weeklyContractHours) : null,
+            paidLeaveBalance: agent.paidLeaveBalance != null ? Number(agent.paidLeaveBalance) : null,
+          }}
           initialRole={agent.role === "PLANNER" ? "PLANNER" : "AGENT"}
         />
         {leaveBalance && (
