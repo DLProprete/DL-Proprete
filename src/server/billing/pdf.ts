@@ -1,5 +1,12 @@
 import PDFDocument from "pdfkit";
 import type { CompanyProfile, Prisma } from "@prisma/client";
+import {
+  clientIdentityLines,
+  paymentTermsLines,
+  sellerIdentityLines,
+  serviceDescriptionLine,
+  type CompanyLegalIdentity,
+} from "./legal-mentions";
 
 type InvoiceForPdf = Prisma.InvoiceGetPayload<{
   include: { client: true; lines: true };
@@ -16,10 +23,13 @@ export async function generateInvoicePdf(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
   });
 
+  const identity = toLegalIdentity(company);
+
   doc.fontSize(16).text(company.legalName, { continued: false });
-  doc.fontSize(9).text(company.address);
-  if (company.siret) doc.text(`SIRET ${company.siret}`);
-  if (company.vatNumber) doc.text(`TVA intracommunautaire ${company.vatNumber}`);
+  doc.fontSize(9);
+  for (const line of sellerIdentityLines(identity)) {
+    doc.text(line);
+  }
 
   doc.moveDown(2);
   doc
@@ -34,8 +44,16 @@ export async function generateInvoicePdf(
 
   doc.moveDown(1);
   doc.fontSize(11).text(invoice.client.legalName);
-  doc.fontSize(9).text(invoice.client.billingAddress);
-  if (invoice.client.siret) doc.text(`SIRET ${invoice.client.siret}`);
+  doc.fontSize(9);
+  for (const line of clientIdentityLines(invoice.client)) {
+    doc.text(line);
+  }
+
+  const periodLine = serviceDescriptionLine(invoice.periodYear, invoice.periodMonth);
+  if (periodLine) {
+    doc.moveDown(0.8);
+    doc.text(periodLine);
+  }
 
   doc.moveDown(2);
   const tableTop = doc.y;
@@ -75,19 +93,40 @@ export async function generateInvoicePdf(
   doc.text(`Total TTC : ${Number(invoice.amountTTC).toFixed(2)} €`, { align: "right" });
 
   doc.moveDown(2);
-  doc
-    .font("Helvetica")
-    .fontSize(8)
-    .text(
-      "Facturation en régie au prévu (heures planifiées du mois × tarif horaire du contrat). Aucune pénalité de retard sans mention contractuelle contraire.",
-      { align: "left" },
-    );
+  doc.font("Helvetica").fontSize(8);
+  doc.text(
+    "Facturation en régie au prévu : heures d'agent planifiées du mois × tarif horaire du contrat.",
+    50,
+    doc.y,
+    { width: 500, align: "left" },
+  );
+  doc.moveDown(0.5);
+  for (const line of paymentTermsLines(identity, invoice.client.paymentTermDays)) {
+    doc.text(line, 50, doc.y, { width: 500, align: "left" });
+  }
   if (company.iban) {
-    doc.text(`IBAN : ${company.iban}`, { align: "left" });
+    doc.moveDown(0.5);
+    doc.text(`Règlement par virement — IBAN : ${company.iban}`, 50, doc.y, { width: 500 });
   }
 
   doc.end();
   return done;
+}
+
+// Les Decimal Prisma ne sont pas des nombres JavaScript : conversion explicite
+// a la frontiere, pour que les regles de mentions legales restent pures.
+function toLegalIdentity(company: CompanyProfile): CompanyLegalIdentity {
+  return {
+    legalName: company.legalName,
+    address: company.address,
+    legalForm: company.legalForm,
+    shareCapital: company.shareCapital === null ? null : Number(company.shareCapital),
+    rcsCity: company.rcsCity,
+    siret: company.siret,
+    vatNumber: company.vatNumber,
+    iban: company.iban,
+    latePenaltyRate: company.latePenaltyRate === null ? null : Number(company.latePenaltyRate),
+  };
 }
 
 function formatDate(date: Date): string {

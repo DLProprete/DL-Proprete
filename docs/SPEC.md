@@ -175,8 +175,19 @@ Ces alertes sont informatives. Elles n’empêchent pas l’enregistrement.
 
 - RGPD : base légale exécution du contrat de travail et intérêt légitime
   d’organisation. Minimisation. Droit d’accès via ADMIN.
-- Factures : mentions légales (SIREN/SIRET, TVA, adresse, n° facture,
-  date, client, détail HT/TVA/TTC, échéance).
+- Factures : mentions légales obligatoires entre professionnels
+  (https://entreprendre.service-public.gouv.fr/vosdroits/F31808), implémentées
+  dans `server/billing/legal-mentions.ts` et testées :
+  identification du vendeur (raison sociale, forme juridique, capital social,
+  RCS + SIREN, SIRET, TVA intracommunautaire, adresse) ; identification du
+  client, **TVA intracommunautaire du preneur comprise** ; numéro et date de
+  facture ; période d'exécution de la prestation ; détail HT/TVA/TTC ; délai
+  de règlement ; **taux des pénalités de retard** dues de plein droit ;
+  **indemnité forfaitaire de 40 €** pour frais de recouvrement (art. L441-10
+  du code de commerce) ; mention de l'absence d'escompte ; IBAN de règlement.
+  L'écran Paramètres et la facture en brouillon signalent ce qui manque —
+  le contrôle a lieu avant émission, une facture émise ne se corrigeant que
+  par un avoir.
 - Réforme facturation électronique : réception obligatoire depuis le
   1er septembre 2026 via une plateforme agréée ; émission PME au
   1er septembre 2027. Le MVP produit un PDF classique. Prévoir un
