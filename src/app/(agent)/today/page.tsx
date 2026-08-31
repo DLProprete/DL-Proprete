@@ -13,27 +13,47 @@ const START_BUTTON_CLASS =
 const END_BUTTON_CLASS =
   "min-h-16 w-full rounded-xl bg-amber-700 text-lg font-semibold text-white hover:bg-amber-800 active:bg-amber-900";
 
+// Lien plan (pas de lecture seule) : c'est l'info la plus utile à 6h devant
+// une porte fermée, et le champ existait déjà en base sans être exploité.
 function ShortAddress({ address, city }: { address: string; city: string }) {
+  const query = encodeURIComponent(`${address}, ${city}`);
   return (
-    <p className="text-sm text-zinc-500">
+    <a
+      href={`https://www.google.com/maps/search/?api=1&query=${query}`}
+      target="_blank"
+      rel="noreferrer"
+      className="block text-sm text-teal-700 underline"
+    >
       {address}, {city}
-    </p>
+    </a>
   );
 }
 
 function Consignes({
   instructions,
   accessNotes,
+  contactName,
+  contactPhone,
 }: {
   instructions?: string | null;
   accessNotes?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
 }) {
-  if (!instructions && !accessNotes) return null;
+  if (!instructions && !accessNotes && !contactPhone) return null;
   return (
     <div className="mt-4 space-y-1 border-t border-zinc-100 pt-4 text-sm text-zinc-700">
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Consignes</p>
       {instructions && <p>{instructions}</p>}
       {accessNotes && <p>{accessNotes}</p>}
+      {contactPhone && (
+        <p>
+          Contact sur site{contactName ? ` (${contactName})` : ""} :{" "}
+          <a href={`tel:${contactPhone}`} className="text-teal-700 underline">
+            {contactPhone}
+          </a>
+        </p>
+      )}
     </div>
   );
 }
@@ -135,6 +155,8 @@ export default async function TodayPage({
             <Consignes
               instructions={activeShift.serviceTemplate?.instructions}
               accessNotes={activeShift.site.accessNotes}
+              contactName={activeShift.site.onSiteContactName}
+              contactPhone={activeShift.site.onSiteContactPhone}
             />
           </div>
 
