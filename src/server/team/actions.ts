@@ -11,6 +11,9 @@ import { timeStringToDate } from "@/lib/dates";
 import { logAudit } from "@/server/audit/log";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
+// Rôles gérés depuis /team (Mo6) — pas ADMIN, dont la création n'est pas
+// demandée par l'audit et reste hors de ce formulaire.
+const MANAGED_MEMBER_ROLES = ["AGENT", "PLANNER"] as const;
 
 // Même issuer synthétique que prisma/seed.ts — voir sa note pour le détail
 // (Better Auth utilise (issuer, accountId) pour retrouver le compte).
@@ -44,7 +47,7 @@ export async function createAgent(user: SessionUser, input: unknown) {
   const data = createAgentInputSchema.parse(input);
 
   const agent = await prisma.user.create({
-    data: { email: data.email, role: "AGENT", emailVerified: true, ...toProfileData(data) },
+    data: { email: data.email, role: data.role, emailVerified: true, ...toProfileData(data) },
   });
 
   const password = await hashPassword(data.password);
@@ -63,7 +66,7 @@ export async function createAgent(user: SessionUser, input: unknown) {
     action: "AGENT_CREATED",
     entityType: "User",
     entityId: agent.id,
-    summary: `Agent créé : ${agent.firstName} ${agent.lastName} (${agent.email})`,
+    summary: `${agent.role === "PLANNER" ? "Planificateur" : "Agent"} créé : ${agent.firstName} ${agent.lastName} (${agent.email})`,
   });
 
   return agent;
@@ -72,12 +75,18 @@ export async function createAgent(user: SessionUser, input: unknown) {
 export async function updateAgentProfile(user: SessionUser, id: string, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
   const data = agentProfileSchema.parse(input);
-  return prisma.user.update({ where: { id, role: "AGENT" }, data: toProfileData(data) });
+  return prisma.user.update({
+    where: { id, role: { in: [...MANAGED_MEMBER_ROLES] } },
+    data: toProfileData(data),
+  });
 }
 
 export async function setAgentActive(user: SessionUser, id: string, isActive: boolean) {
   requireRole(user, [...MANAGE_ROLES]);
-  const agent = await prisma.user.update({ where: { id, role: "AGENT" }, data: { isActive } });
+  const agent = await prisma.user.update({
+    where: { id, role: { in: [...MANAGED_MEMBER_ROLES] } },
+    data: { isActive },
+  });
   if (!isActive) {
     await logAudit(prisma, {
       actorUserId: user.id,
@@ -94,7 +103,7 @@ export async function resetAgentPassword(user: SessionUser, id: string, input: u
   requireRole(user, [...MANAGE_ROLES]);
   const { password } = resetPasswordSchema.parse(input);
   const agent = await prisma.user.findUniqueOrThrow({
-    where: { id, role: "AGENT" },
+    where: { id, role: { in: [...MANAGED_MEMBER_ROLES] } },
     select: { firstName: true, lastName: true },
   });
   const hashed = await hashPassword(password);

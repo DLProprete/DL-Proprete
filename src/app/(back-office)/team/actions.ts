@@ -6,22 +6,32 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { createAgent, resetAgentPassword, setAgentActive, updateAgentProfile } from "@/server/team/actions";
 
+// AgentProfileFields masque tout le bloc "terrain" (adresse/GPS/permis/
+// horaires/jours non travaillés) pour un PLANNER (Mo6) : ces <input>
+// n'existent alors pas dans le DOM, et FormData.get() renvoie null (pas
+// undefined) pour un champ absent — le schéma zod, lui, attend "" (comme
+// un champ présent mais vide), jamais null. Normalisé ici, au seul endroit
+// où le FormData est lu.
+function field(formData: FormData, name: string): string {
+  return (formData.get(name) as string | null) ?? "";
+}
+
 function profileFields(formData: FormData) {
   return {
-    firstName: formData.get("firstName"),
-    lastName: formData.get("lastName"),
-    phone: formData.get("phone"),
-    weeklyContractHours: formData.get("weeklyContractHours"),
-    homeAddress: formData.get("homeAddress"),
-    homeCity: formData.get("homeCity"),
-    homePostalCode: formData.get("homePostalCode"),
-    homeLat: formData.get("homeLat"),
-    homeLng: formData.get("homeLng"),
-    hasDrivingLicense: formData.get("hasDrivingLicense"),
-    maxEndTime: formData.get("maxEndTime"),
-    minStartTime: formData.get("minStartTime"),
+    firstName: field(formData, "firstName"),
+    lastName: field(formData, "lastName"),
+    phone: field(formData, "phone"),
+    weeklyContractHours: field(formData, "weeklyContractHours"),
+    homeAddress: field(formData, "homeAddress"),
+    homeCity: field(formData, "homeCity"),
+    homePostalCode: field(formData, "homePostalCode"),
+    homeLat: field(formData, "homeLat"),
+    homeLng: field(formData, "homeLng"),
+    hasDrivingLicense: field(formData, "hasDrivingLicense"),
+    maxEndTime: field(formData, "maxEndTime"),
+    minStartTime: field(formData, "minStartTime"),
     noWorkWeekdays: formData.getAll("noWorkWeekdays"),
-    notes: formData.get("notes"),
+    notes: field(formData, "notes"),
   };
 }
 
@@ -32,6 +42,7 @@ export async function createAgentAction(formData: FormData) {
       ...profileFields(formData),
       email: formData.get("email"),
       password: formData.get("password"),
+      role: formData.get("role"),
     });
   } catch (error) {
     if (error instanceof ZodError) {

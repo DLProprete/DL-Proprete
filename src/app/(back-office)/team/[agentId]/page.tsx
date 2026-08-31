@@ -27,9 +27,14 @@ export default async function AgentDetailPage({
   return (
     <div className="max-w-lg space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">
-          {agent.firstName} {agent.lastName}
-        </h1>
+        <div>
+          <h1 className="text-xl font-semibold">
+            {agent.firstName} {agent.lastName}
+          </h1>
+          <p className="text-sm text-zinc-500">
+            {agent.role === "PLANNER" ? "Planificateur" : "Agent"}
+          </p>
+        </div>
         <form action={toggleActive}>
           <button
             type="submit"
@@ -47,7 +52,10 @@ export default async function AgentDetailPage({
       )}
 
       <form action={updateProfile} className="space-y-4">
-        <AgentProfileFields defaultValues={agent} />
+        <AgentProfileFields
+          defaultValues={agent}
+          initialRole={agent.role === "PLANNER" ? "PLANNER" : "AGENT"}
+        />
         <button
           type="submit"
           className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
