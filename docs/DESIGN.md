@@ -8,10 +8,21 @@ de grosses cibles, un contraste élevé. Mêmes couleurs et même typographie ;
 
 ## Règles
 
-**La couleur est une donnée, pas une décoration.** Un seul accent (`brand`,
-teal), et trois couleurs d'état : ambre = à traiter, rouge = erreur ou retard,
-vert = validé. Aucun bouton secondaire coloré — dès qu'on colore ce qui n'est
-pas un état, l'alerte cesse de se voir.
+**La couleur d'état est une donnée, pas une décoration.** Un seul accent
+(`brand`, teal) pour l'action, et trois couleurs d'état : ambre = à traiter,
+rouge = erreur ou retard, vert = validé. Aucun bouton secondaire coloré — dès
+qu'on colore ce qui n'est pas un état, l'alerte cesse de se voir.
+
+**Exception, depuis le 01/09/2026 : les pastilles d'icône des cartes de
+synthèse (stat-cards) peuvent porter une couleur de catégorie** (bleu, aqua,
+magenta, violet — voir `.stat-badge-*`), pour identifier visuellement chaque
+carte au premier coup d'œil, comme sur un tableau de bord. Ces teintes sont
+volontairement distinctes des trois couleurs d'état (ambre/rouge/vert) pour
+qu'aucune confusion ne soit possible avec une alerte. La règle reste : la
+valeur elle-même et son texte restent en encre neutre (zinc), jamais dans la
+couleur de la pastille — l'alerte d'état (ex. ambre quand un compteur > 0)
+continue de porter l'information, la pastille ne fait qu'identifier la
+catégorie.
 
 **Contraste AA partout.** `text-zinc-400` (2,6:1 sur blanc) et `text-zinc-500`
 (4,6:1) ont été remplacés par `text-zinc-500` et `text-zinc-600` sur l'ensemble
@@ -49,6 +60,8 @@ mêmes chaînes d'utilitaires.
 | `.card` | surface |
 | `.alert` + `.alert-danger` / `.alert-warning` / `.alert-info` | messages |
 | `.num` | chiffres alignés hors tableau |
+| `.stat-card` | carte de synthèse (compteur + icône) |
+| `.stat-badge` + `.stat-badge-blue` / `-aqua` / `-magenta` / `-violet` | pastille d'icône de catégorie sur une stat-card |
 
 ## Typographie
 
