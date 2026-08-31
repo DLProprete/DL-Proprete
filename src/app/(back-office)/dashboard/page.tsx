@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UserX, TimerOff, ReceiptEuro, FileClock } from "lucide-react";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import {
@@ -71,31 +72,41 @@ export default async function DashboardPage({
     (invoice) => invoice.dueOn && invoice.dueOn < today,
   ).length;
 
-  // La couleur ne sort que quand il y a quelque chose à faire : un compteur
-  // à zéro reste neutre, sinon l'œil ne repère plus ce qui compte.
+  // La couleur d'état (ambre sur la valeur) ne sort que quand il y a quelque
+  // chose à faire : un compteur à zéro reste en encre neutre. La pastille de
+  // catégorie, elle, est toujours affichée — c'est une identité de carte, pas
+  // une alerte (voir docs/DESIGN.md).
   const counters = [
     {
       href: "/planning",
+      icon: UserX,
+      badge: "stat-badge-blue",
       value: String(unstaffedShifts.length),
-      label: "non pourvues (J / J+1)",
+      label: "Vacations non pourvues (J / J+1)",
       alert: unstaffedShifts.length > 0,
     },
     {
       href: "/time-entries",
+      icon: TimerOff,
+      badge: "stat-badge-violet",
       value: String(longOpenEntries.length),
-      label: "pointages ouverts > 12 h",
+      label: "Pointages ouverts > 12 h",
       alert: longOpenEntries.length > 0,
     },
     {
       href: "/invoices",
+      icon: ReceiptEuro,
+      badge: "stat-badge-aqua",
       value: `${unpaidTotal.toFixed(2)} €`,
-      label: overdueCount > 0 ? `impayées, dont ${overdueCount} en retard` : "impayées",
+      label: overdueCount > 0 ? `Impayées, dont ${overdueCount} en retard` : "Factures impayées",
       alert: overdueCount > 0,
     },
     {
       href: "/contracts",
+      icon: FileClock,
+      badge: "stat-badge-magenta",
       value: String(endingContracts.length),
-      label: "contrats à renouveler",
+      label: "Contrats à renouveler",
       alert: endingContracts.length > 0,
     },
   ];
@@ -148,15 +159,14 @@ export default async function DashboardPage({
         </p>
       )}
 
-      <div className="flex flex-wrap divide-x divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {counters.map((counter) => (
-          <Link
-            key={counter.href}
-            href={counter.href}
-            className="flex min-w-44 flex-1 items-baseline gap-2 px-4 py-3 transition-colors hover:bg-zinc-50"
-          >
+          <Link key={counter.href} href={counter.href} className="stat-card">
+            <span className={`stat-badge ${counter.badge}`}>
+              <counter.icon size={18} strokeWidth={2} aria-hidden />
+            </span>
             <span
-              className={`num text-lg font-semibold ${
+              className={`num text-2xl font-semibold ${
                 counter.alert ? "text-amber-700" : "text-zinc-900"
               }`}
             >
