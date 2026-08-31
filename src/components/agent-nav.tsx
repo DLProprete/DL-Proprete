@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Sun, CalendarOff, Clock } from "lucide-react";
 
 const ITEMS = [
-  { href: "/today", label: "Aujourd'hui" },
-  { href: "/absences", label: "Absences" },
-  { href: "/hours", label: "Mes heures" },
+  { href: "/today", label: "Aujourd'hui", icon: Sun },
+  { href: "/absences", label: "Absences", icon: CalendarOff },
+  { href: "/hours", label: "Mes heures", icon: Clock },
 ];
 
 // Déconnexion volontairement absente de cette barre : un tiers (puis un
@@ -24,10 +25,11 @@ export function AgentBottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex min-h-14 flex-1 items-center justify-center px-2 py-3 text-center ${
+            className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-2 py-2 text-center ${
               active ? "text-brand-700" : "text-zinc-600"
             }`}
           >
+            <item.icon size={20} strokeWidth={2} aria-hidden />
             {item.label}
           </Link>
         );
