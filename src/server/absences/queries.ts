@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { dateOnlyUTC, parisToday } from "@/lib/dates";
+import { paidLeaveDaysTaken } from "./leave-balance";
 
 export async function listMyAbsences(user: SessionUser) {
   requireRole(user, ["AGENT"]);
@@ -8,6 +9,37 @@ export async function listMyAbsences(user: SessionUser) {
     where: { userId: user.id },
     orderBy: { startsOn: "desc" },
   });
+}
+
+// Mo9 : le "pris" se calcule depuis les Absence existantes ; l'"acquis"
+// (paidLeaveBalance) est saisi à la main par un ADMIN sur /team, jamais
+// calculé ici — voir server/absences/leave-balance.ts.
+export async function getMyLeaveBalance(user: SessionUser, year: number) {
+  requireRole(user, ["AGENT"]);
+  const [profile, absences] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { paidLeaveBalance: true } }),
+    prisma.absence.findMany({
+      where: { userId: user.id, type: "PAID_LEAVE", status: "APPROVED" },
+      select: { type: true, status: true, startsOn: true, endsOn: true },
+    }),
+  ]);
+  return {
+    year,
+    acquired: profile.paidLeaveBalance !== null ? Number(profile.paidLeaveBalance) : null,
+    taken: paidLeaveDaysTaken(absences, year),
+  };
+}
+
+// Équivalent ADMIN, pour afficher le "pris" à côté du champ de saisie de
+// l'acquis sur /team/[agentId] — même calcul, scope différent (n'importe
+// quel agent, pas seulement soi-même).
+export async function getAgentLeaveBalance(user: SessionUser, agentId: string, year: number) {
+  requireRole(user, ["ADMIN"]);
+  const absences = await prisma.absence.findMany({
+    where: { userId: agentId, type: "PAID_LEAVE", status: "APPROVED" },
+    select: { type: true, status: true, startsOn: true, endsOn: true },
+  });
+  return { year, taken: paidLeaveDaysTaken(absences, year) };
 }
 
 export async function listPendingAbsences(user: SessionUser) {

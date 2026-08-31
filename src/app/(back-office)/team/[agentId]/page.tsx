@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getAgent } from "@/server/team/queries";
+import { getAgentLeaveBalance } from "@/server/absences/queries";
+import { parisToday } from "@/lib/dates";
 import { AgentProfileFields } from "../AgentProfileFields";
 import { setAgentActiveAction, updateAgentProfileAction, resetAgentPasswordAction } from "../actions";
 
@@ -19,6 +21,10 @@ export default async function AgentDetailPage({
   if (!agent) {
     notFound();
   }
+
+  const currentYear = parisToday().year;
+  const leaveBalance =
+    user.role === "ADMIN" ? await getAgentLeaveBalance(user, agentId, currentYear) : null;
 
   const toggleActive = setAgentActiveAction.bind(null, agent.id, !agent.isActive);
   const updateProfile = updateAgentProfileAction.bind(null, agent.id);
@@ -56,6 +62,11 @@ export default async function AgentDetailPage({
           defaultValues={agent}
           initialRole={agent.role === "PLANNER" ? "PLANNER" : "AGENT"}
         />
+        {leaveBalance && (
+          <p className="-mt-2 text-xs text-zinc-400">
+            Pris en {currentYear} : {leaveBalance.taken} j (calculé depuis les absences approuvées).
+          </p>
+        )}
         <button
           type="submit"
           className="rounded bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
