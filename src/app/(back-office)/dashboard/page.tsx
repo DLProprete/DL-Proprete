@@ -30,6 +30,13 @@ export default async function DashboardPage() {
   ]);
 
   const today = new Date();
+  const unpaidTotal = unpaidInvoices.reduce((sum, invoice) => sum + Number(invoice.amountTTC), 0);
+  const tiles = [
+    { href: "/planning", value: String(unstaffedShifts.length), label: "Non pourvues (J / J+1)" },
+    { href: "/time-entries", value: String(longOpenEntries.length), label: "Pointages ouverts > 12h" },
+    { href: "/invoices", value: `${unpaidTotal.toFixed(2)} €`, label: "Factures impayées" },
+    { href: "/contracts", value: String(endingContracts.length), label: "Contrats à renouveler" },
+  ];
 
   const suggestionsByShiftId = new Map(
     await Promise.all(
@@ -65,6 +72,19 @@ export default async function DashboardPage() {
             Export CSV pointages (comptable)
           </button>
         </form>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {tiles.map((tile) => (
+          <Link
+            key={tile.href}
+            href={tile.href}
+            className="rounded border border-zinc-200 bg-white p-4 transition hover:border-teal-700 hover:shadow-sm"
+          >
+            <p className="text-2xl font-semibold text-zinc-900">{tile.value}</p>
+            <p className="text-sm text-zinc-500">{tile.label}</p>
+          </Link>
+        ))}
       </div>
 
       <section>

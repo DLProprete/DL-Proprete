@@ -21,7 +21,7 @@ export default async function AuditPage({
     actorUserId?: string;
     action?: string;
     page?: string;
-    hideTest?: string;
+    hideTest?: string | string[];
   }>;
 }) {
   const { from, to, actorUserId, action, page, hideTest } = await searchParams;
@@ -30,7 +30,12 @@ export default async function AuditPage({
     redirect("/");
   }
 
-  const hideTestData = hideTest === "1";
+  // Coché par défaut : une case HTML non cochée ne soumet rien, donc on ne
+  // peut pas distinguer "jamais visité" de "décoché" sans un champ hidden
+  // homonyme avant la case (valeur "0"). Résultat : pas de paramètre =
+  // premier chargement = actif ; "0" = explicitement désactivé par la case.
+  const hideTestParam = Array.isArray(hideTest) ? hideTest[hideTest.length - 1] : hideTest;
+  const hideTestData = hideTestParam !== "0";
 
   const [actors, result] = await Promise.all([
     listActors(user),
@@ -53,7 +58,7 @@ export default async function AuditPage({
     if (to) params.set("to", to);
     if (actorUserId) params.set("actorUserId", actorUserId);
     if (action) params.set("action", action);
-    if (hideTestData) params.set("hideTest", "1");
+    params.set("hideTest", hideTestData ? "1" : "0");
     params.set("page", String(targetPage));
     return `/audit?${params.toString()}`;
   }
@@ -124,6 +129,7 @@ export default async function AuditPage({
           </select>
         </div>
         <label className="flex items-center gap-2 pb-2 text-zinc-700">
+          <input type="hidden" name="hideTest" value="0" />
           <input type="checkbox" name="hideTest" value="1" defaultChecked={hideTestData} className="h-4 w-4" />
           Masquer les données de test
         </label>

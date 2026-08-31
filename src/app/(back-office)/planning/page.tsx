@@ -170,6 +170,11 @@ export default async function PlanningWeekPage({
                     const dayShifts = byDay.get(dayKey) ?? [];
                     return (
                       <td key={dayKey} className="py-2 pr-2 align-top">
+                        {dayShifts.length === 0 ? (
+                          <div className="flex h-10 items-center justify-center rounded bg-zinc-100 text-zinc-400">
+                            —
+                          </div>
+                        ) : (
                         <div className="space-y-1.5">
                           {dayShifts.map((shift) => (
                             <div key={shift.id} className="rounded border border-zinc-200 p-1.5">
@@ -184,6 +189,7 @@ export default async function PlanningWeekPage({
                             </div>
                           ))}
                         </div>
+                        )}
                       </td>
                     );
                   })}
