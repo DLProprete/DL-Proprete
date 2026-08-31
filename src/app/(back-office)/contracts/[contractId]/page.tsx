@@ -1,20 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Clock, Euro } from "lucide-react";
 import { requireSession } from "@/server/auth/session";
 import { getContract } from "@/server/contracts/queries";
 import { contractMonthlyProjection } from "@/server/contracts/projection";
 import { formatTime } from "@/lib/dates";
+import { Badge } from "@/components/badge";
+import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_TONE } from "@/lib/contract-status";
 import { setServiceTemplateActiveAction, createServiceExceptionAction } from "../actions";
 import { ServiceTemplateForm } from "./ServiceTemplateForm";
 
 const EXCEPTION_TYPE_LABELS: Record<string, string> = { SKIP: "Annulée", EXTRA: "Ajoutée" };
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Brouillon",
-  ACTIVE: "Actif",
-  SUSPENDED: "Suspendu",
-  ENDED: "Terminé",
-};
 
 const BILLING_BASIS_LABELS: Record<string, string> = {
   CALENDAR_SHIFTS: "Au calendrier (heures planifiées du mois)",
@@ -55,9 +51,10 @@ export default async function ContractDetailPage({
       <div>
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">{contract.reference}</h1>
-          <span className={contract.status === "ACTIVE" ? "text-green-700" : "text-zinc-500"}>
-            {STATUS_LABELS[contract.status] ?? contract.status}
-          </span>
+          <Badge
+            tone={CONTRACT_STATUS_TONE[contract.status] ?? "neutral"}
+            label={CONTRACT_STATUS_LABELS[contract.status] ?? contract.status}
+          />
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <dt className="text-zinc-600">Client</dt>
@@ -91,10 +88,25 @@ export default async function ContractDetailPage({
           <dt className="text-zinc-600">Notes</dt>
           <dd>{contract.notes ?? "—"}</dd>
         </dl>
-        <div className="mt-4 rounded-lg border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-900">
-          Ce contrat représente environ{" "}
-          <span className="font-semibold">{projection.monthlyHours.toFixed(1)} h/mois</span> ≈{" "}
-          <span className="font-semibold">{projection.monthlyAmountHT.toFixed(0)} € HT/mois</span>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="stat-card">
+            <span className="stat-badge stat-badge-blue">
+              <Clock size={18} strokeWidth={2} aria-hidden />
+            </span>
+            <span className="num text-2xl font-semibold text-zinc-900">
+              {projection.monthlyHours.toFixed(1)} h
+            </span>
+            <span className="text-sm text-zinc-600">Volume mensuel</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-badge stat-badge-aqua">
+              <Euro size={18} strokeWidth={2} aria-hidden />
+            </span>
+            <span className="num text-2xl font-semibold text-zinc-900">
+              {projection.monthlyAmountHT.toFixed(0)} €
+            </span>
+            <span className="text-sm text-zinc-600">Montant HT / mois</span>
+          </div>
         </div>
       </div>
 
