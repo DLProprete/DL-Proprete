@@ -62,6 +62,7 @@ mêmes chaînes d'utilitaires.
 | `.num` | chiffres alignés hors tableau |
 | `.stat-card` | carte de synthèse (compteur + icône) |
 | `.stat-badge` + `.stat-badge-blue` / `-aqua` / `-magenta` / `-violet` | pastille d'icône de catégorie sur une stat-card |
+| `.card-table` | tableau de liste encadré (remplace les classes utilitaires répétées par ligne) |
 
 ## Typographie
 

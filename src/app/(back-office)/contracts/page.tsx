@@ -1,21 +1,8 @@
 import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listContracts } from "@/server/contracts/queries";
-import { Badge, type BadgeTone } from "@/components/badge";
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Brouillon",
-  ACTIVE: "Actif",
-  SUSPENDED: "Suspendu",
-  ENDED: "Terminé",
-};
-
-const STATUS_TONE: Record<string, BadgeTone> = {
-  ACTIVE: "success",
-  DRAFT: "neutral",
-  SUSPENDED: "warning",
-  ENDED: "muted",
-};
+import { Badge } from "@/components/badge";
+import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_TONE } from "@/lib/contract-status";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("fr-FR").format(date);
@@ -36,48 +23,50 @@ export default async function ContractsPage() {
           Nouveau contrat
         </Link>
       </div>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 text-zinc-600">
-            <th className="py-2 font-medium">Référence</th>
-            <th className="font-medium">Client</th>
-            <th className="font-medium">Site</th>
-            <th className="font-medium">Période</th>
-            <th className="font-medium">Tarif HT</th>
-            <th className="font-medium">Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {contracts.map((contract) => (
-            <tr key={contract.id} className="border-b border-zinc-100">
-              <td className="py-2">
-                <Link href={`/contracts/${contract.id}`} className="text-zinc-900 underline">
-                  {contract.reference}
-                </Link>
-              </td>
-              <td className="text-zinc-600">{contract.client.legalName}</td>
-              <td className="text-zinc-600">{contract.site.name}</td>
-              <td className="text-zinc-600">
-                {formatDate(contract.startsOn)} – {formatDate(contract.endsOn)}
-              </td>
-              <td className="text-zinc-600">{contract.hourlyRateHT.toString()} €/h</td>
-              <td>
-                <Badge
-                  tone={STATUS_TONE[contract.status] ?? "neutral"}
-                  label={STATUS_LABELS[contract.status] ?? contract.status}
-                />
-              </td>
-            </tr>
-          ))}
-          {contracts.length === 0 && (
+      <div className="card-table">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={6} className="py-4 text-zinc-500">
-                Aucun contrat pour l&apos;instant.
-              </td>
+              <th>Référence</th>
+              <th>Client</th>
+              <th>Site</th>
+              <th>Période</th>
+              <th>Tarif HT</th>
+              <th>Statut</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {contracts.map((contract) => (
+              <tr key={contract.id}>
+                <td>
+                  <Link href={`/contracts/${contract.id}`} className="text-zinc-900 underline">
+                    {contract.reference}
+                  </Link>
+                </td>
+                <td className="text-zinc-600">{contract.client.legalName}</td>
+                <td className="text-zinc-600">{contract.site.name}</td>
+                <td className="text-zinc-600">
+                  {formatDate(contract.startsOn)} – {formatDate(contract.endsOn)}
+                </td>
+                <td className="text-zinc-600">{contract.hourlyRateHT.toString()} €/h</td>
+                <td>
+                  <Badge
+                    tone={CONTRACT_STATUS_TONE[contract.status] ?? "neutral"}
+                    label={CONTRACT_STATUS_LABELS[contract.status] ?? contract.status}
+                  />
+                </td>
+              </tr>
+            ))}
+            {contracts.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-zinc-500">
+                  Aucun contrat pour l&apos;instant.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

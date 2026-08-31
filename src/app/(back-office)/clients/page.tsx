@@ -18,37 +18,39 @@ export default async function ClientsPage() {
           Nouveau client
         </Link>
       </div>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 text-zinc-600">
-            <th className="py-2 font-medium">Raison sociale</th>
-            <th className="font-medium">Adresse de facturation</th>
-            <th className="font-medium">Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {clients.map((client) => (
-            <tr key={client.id} className="border-b border-zinc-100">
-              <td className="py-2">
-                <Link href={`/clients/${client.id}`} className="text-zinc-900 underline">
-                  {client.legalName}
-                </Link>
-              </td>
-              <td className="text-zinc-600">{client.billingAddress}</td>
-              <td>
-                <Badge tone={client.isActive ? "success" : "muted"} label={client.isActive ? "Actif" : "Désactivé"} />
-              </td>
-            </tr>
-          ))}
-          {clients.length === 0 && (
+      <div className="card-table">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={3} className="py-4 text-zinc-500">
-                Aucun client pour l&apos;instant.
-              </td>
+              <th>Raison sociale</th>
+              <th>Adresse de facturation</th>
+              <th>Statut</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {clients.map((client) => (
+              <tr key={client.id}>
+                <td>
+                  <Link href={`/clients/${client.id}`} className="text-zinc-900 underline">
+                    {client.legalName}
+                  </Link>
+                </td>
+                <td className="text-zinc-600">{client.billingAddress}</td>
+                <td>
+                  <Badge tone={client.isActive ? "success" : "muted"} label={client.isActive ? "Actif" : "Désactivé"} />
+                </td>
+              </tr>
+            ))}
+            {clients.length === 0 && (
+              <tr>
+                <td colSpan={3} className="text-zinc-500">
+                  Aucun client pour l&apos;instant.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
