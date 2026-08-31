@@ -30,13 +30,16 @@ export async function listAuditLogs(user: SessionUser, filters: AuditLogFilters 
       : {}),
     ...(filters.actorUserId ? { actorUserId: filters.actorUserId } : {}),
     ...(filters.action ? { action: filters.action } : {}),
+    // Sensible à la casse volontairement : les fixtures/seed de ce dépôt
+    // écrivent toujours "Test" avec un T majuscule ("Client Test
+    // Facturation", "C-TEST-..."), alors qu'un texte libre en français
+    // (ex. une note "Client conteste la facture") contient "test" en
+    // minuscule dans un vrai mot — insensible à la casse masquerait ces
+    // entrées légitimes par défaut.
     ...(filters.hideTestData
       ? {
           NOT: {
-            OR: [
-              { entityType: { contains: "Test", mode: "insensitive" as const } },
-              { summary: { contains: "Test", mode: "insensitive" as const } },
-            ],
+            OR: [{ entityType: { contains: "Test" } }, { summary: { contains: "Test" } }],
           },
         }
       : {}),

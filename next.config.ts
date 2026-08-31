@@ -9,11 +9,13 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  // Le badge Next (dev only) est en bas à gauche par défaut, comme le bouton
-  // Déconnexion de la sidebar : on le déplace pour qu'il ne le recouvre pas.
-  devIndicators: {
-    position: "bottom-right",
-  },
+  // Le badge Next (dev only) recouvre systématiquement quelque chose selon
+  // le coin choisi : bas-gauche = Déconnexion de la sidebar admin,
+  // bas-droite = Déconnexion de la barre basse agent, haut-droite = le
+  // hamburger mobile admin, haut-gauche = le titre "Bonjour, {prénom}"
+  // (vérifié par capture Playwright). Aucun coin n'est libre sur toutes les
+  // pages — désactivé plutôt que de choisir quel élément il recouvrira.
+  devIndicators: false,
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

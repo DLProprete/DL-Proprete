@@ -9,9 +9,15 @@ const REMINDER_WINDOW_DAYS = 7;
 // dueOn est toujours renseigné par issueInvoice (émission + délai client),
 // ce fallback ne couvre qu'une ligne créée hors de ce flux normal — pas de
 // backfill en base, juste pour ne pas l'exclure silencieusement de la liste.
-function effectiveDueOn(invoice: { issuedOn: Date | null; dueOn: Date | null }): Date | null {
+// Reprend le délai réel du client (paymentTermDays), pas une valeur fixe :
+// une échéance à 30j pour un client à 60j serait fausse d'un mois entier.
+function effectiveDueOn(invoice: {
+  issuedOn: Date | null;
+  dueOn: Date | null;
+  client: { paymentTermDays: number };
+}): Date | null {
   if (invoice.dueOn) return invoice.dueOn;
-  if (invoice.issuedOn) return addDays(invoice.issuedOn, 30);
+  if (invoice.issuedOn) return addDays(invoice.issuedOn, invoice.client.paymentTermDays);
   return null;
 }
 
@@ -23,7 +29,7 @@ export async function listInvoicesForReminders(user: SessionUser) {
   const invoices = await prisma.invoice.findMany({
     where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] } },
     include: {
-      client: { select: { legalName: true } },
+      client: { select: { legalName: true, paymentTermDays: true } },
       contract: { include: { site: { select: { name: true } } } },
       payments: true,
     },
