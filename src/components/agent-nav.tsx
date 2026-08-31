@@ -9,7 +9,11 @@ const ITEMS = [
   { href: "/hours", label: "Mes heures" },
 ];
 
-export function AgentBottomNav({ logoutAction }: { logoutAction: () => void | Promise<void> }) {
+// Déconnexion volontairement absente de cette barre : un tiers (puis un
+// quart) de la barre de navigation principale exposait à une déconnexion
+// accidentelle, avec ressaisie d'e-mail/mot de passe dehors. Déplacée en
+// lien discret sous le contenu — voir AgentLayout.
+export function AgentBottomNav() {
   const pathname = usePathname();
 
   return (
@@ -28,14 +32,6 @@ export function AgentBottomNav({ logoutAction }: { logoutAction: () => void | Pr
           </Link>
         );
       })}
-      <form action={logoutAction} className="flex flex-1">
-        <button
-          type="submit"
-          className="min-h-14 flex-1 px-2 py-3 text-center text-zinc-600"
-        >
-          Déconnexion
-        </button>
-      </form>
     </nav>
   );
 }

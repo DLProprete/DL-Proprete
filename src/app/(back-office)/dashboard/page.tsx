@@ -48,9 +48,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-4xl space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold">Tableau de bord</h1>
-        <form action="/api/exports/time-entries" method="get" className="flex items-center gap-2">
+        <form
+          action="/api/exports/time-entries"
+          method="get"
+          className="flex flex-wrap items-center gap-2"
+        >
           <input
             type="number"
             name="year"

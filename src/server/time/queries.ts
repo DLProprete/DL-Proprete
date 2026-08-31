@@ -84,15 +84,14 @@ export async function getAgentMonthlyHours(user: SessionUser, year: number, mont
   return { totalHours: totalMinutes / 60, entries: validatedEntries, pendingCount };
 }
 
-// Pour la salutation "Bonjour, X" : le jeu de démo nomme les agents
-// "Agent Un"/"Agent Deux" (firstName générique + lastName distinctif), donc
-// lastName est la partie qui identifie réellement la personne ici. À
-// revoir si de vrais comptes (prénom/nom classiques) remplacent la démo.
+// Pour la salutation "Bonjour, X" : le prénom est l'usage normal (le jeu
+// de démo "Agent Un"/"Agent Deux" rend ça "Bonjour, Agent" — attendu,
+// c'est un prénom générique de démo, pas un vrai compte).
 export async function getAgentGreetingName(user: SessionUser) {
   requireRole(user, ["AGENT"]);
   const row = await prisma.user.findUniqueOrThrow({
     where: { id: user.id },
-    select: { lastName: true },
+    select: { firstName: true },
   });
-  return row.lastName;
+  return row.firstName;
 }
