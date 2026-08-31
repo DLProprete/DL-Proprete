@@ -211,12 +211,18 @@ export default async function DashboardPage({
                   <option value="" disabled>
                     Affecter…
                   </option>
-                  {agents.map((agent) => (
-                    <option key={agent.id} value={agent.id}>
-                      {agent.firstName} {agent.lastName}
-                      {suggestions.some((s) => s.id === agent.id) ? "" : " (indisponible)"}
-                    </option>
-                  ))}
+                  {agents.map((agent) => {
+                    // Un agent en conflit d'horaire ou en absence approuvée est
+                    // refusé par le serveur : le proposer quand même mènerait à
+                    // un aller-retour et un message d'erreur pour rien.
+                    const available = suggestions.some((s) => s.id === agent.id);
+                    return (
+                      <option key={agent.id} value={agent.id} disabled={!available}>
+                        {agent.firstName} {agent.lastName}
+                        {available ? "" : " — indisponible"}
+                      </option>
+                    );
+                  })}
                 </select>
                 <button type="submit" className="btn btn-primary btn-sm">
                   Affecter
