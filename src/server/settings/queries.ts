@@ -11,6 +11,7 @@ const DEFAULTS = {
   rcsCity: "Caen",
   siret: "531 739 241 00044",
   vatNumber: "FR64 531 739 241",
+  reminderWindowDays: 7,
 };
 
 export async function getCompanyProfile() {

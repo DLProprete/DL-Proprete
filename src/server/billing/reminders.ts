@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { addDays, dateOnlyUTC, parisToday } from "@/lib/dates";
+import { getCompanyProfile } from "@/server/settings/queries";
 import { computeBalanceDue } from "./balance";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
-const REMINDER_WINDOW_DAYS = 7;
 
 // dueOn est toujours renseigné par issueInvoice (émission + délai client),
 // ce fallback ne couvre qu'une ligne créée hors de ce flux normal — pas de
@@ -24,7 +24,8 @@ function effectiveDueOn(invoice: {
 export async function listInvoicesForReminders(user: SessionUser) {
   requireRole(user, [...MANAGE_ROLES]);
   const today = parisToday();
-  const horizon = addDays(dateOnlyUTC(today.year, today.month, today.day), REMINDER_WINDOW_DAYS);
+  const company = await getCompanyProfile();
+  const horizon = addDays(dateOnlyUTC(today.year, today.month, today.day), company.reminderWindowDays);
 
   const invoices = await prisma.invoice.findMany({
     where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] } },

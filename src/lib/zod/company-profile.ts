@@ -28,6 +28,7 @@ export const companyProfileInputSchema = z.object({
   vatNumber: z.string().optional(),
   iban: z.union([ibanSchema, z.literal("")]).optional(),
   latePenaltyRate: optionalDecimal,
+  reminderWindowDays: z.coerce.number().int().positive(),
 });
 
 export type CompanyProfileInput = z.infer<typeof companyProfileInputSchema>;

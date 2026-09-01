@@ -510,6 +510,9 @@ model CompanyProfile {
   // Taux annuel des penalites de retard, en %. Null = repli legal (trois fois
   // le taux d'interet legal), qui reste une mention valable.
   latePenaltyRate Decimal? @db.Decimal(5, 2)
+  // Nombre de jours avant echeance a partir duquel une facture apparait
+  // dans /invoices/reminders. Choix business, pas une regle legale.
+  reminderWindowDays Int @default(7)
   updatedAt DateTime @updatedAt
 }
 
