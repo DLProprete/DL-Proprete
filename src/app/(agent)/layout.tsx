@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { AgentBottomNav } from "@/components/agent-nav";
+import { OfflineBanner } from "@/components/offline-banner";
 import { logoutAction } from "../actions";
 
 export default async function AgentLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,7 @@ export default async function AgentLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
       <main className="flex-1 px-6 py-6 pb-24">
+        <OfflineBanner />
         {children}
         <form action={logoutAction} className="mx-auto mt-8 w-full max-w-md text-center">
           <button type="submit" className="text-sm text-zinc-500 underline">
