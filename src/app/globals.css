@@ -62,6 +62,19 @@
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
+    /* Repli 100vh pour les navigateurs sans support de dvh (très rares en
+       2026). 100dvh corrige le bug Safari iOS où la barre d'outils
+       dynamique décale les éléments en position fixed (nav basse agent,
+       sidebar mobile) — @supports plutôt qu'une redéclaration simple : le
+       build (Lightning CSS) déduplique deux `min-height` dans la même
+       règle et supprime le repli avant qu'il n'atteigne le navigateur. */
+    min-height: 100vh;
+  }
+
+  @supports (min-height: 100dvh) {
+    body {
+      min-height: 100dvh;
+    }
   }
 
   /*
