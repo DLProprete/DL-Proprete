@@ -162,6 +162,24 @@ export default async function SettingsPage() {
             Sans IBAN sur la facture, le client n&apos;a aucun moyen de payer.
           </p>
         </div>
+        <div>
+          <label htmlFor="reminderWindowDays" className="block text-sm text-zinc-700">
+            Fenêtre de relance (jours)
+          </label>
+          <input
+            id="reminderWindowDays"
+            name="reminderWindowDays"
+            type="number"
+            step="1"
+            min="1"
+            required
+            defaultValue={company.reminderWindowDays}
+            className="mt-1 w-full field"
+          />
+          <p className="mt-1 text-xs text-zinc-500">
+            Une facture apparaît dans Relances à partir de ce nombre de jours avant son échéance.
+          </p>
+        </div>
         <button
           type="submit"
           className="btn btn-primary"
