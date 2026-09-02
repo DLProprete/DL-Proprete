@@ -2,14 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getClient } from "@/server/clients/queries";
-import { setClientActiveAction } from "../actions";
+import { setClientActiveAction, sendPortalLinkAction } from "../actions";
+
+const PORTAL_ERROR_MESSAGES: Record<string, string> = {
+  "no-email": "Ce client n'a pas d'adresse e-mail renseignée — à compléter avant d'envoyer un lien.",
+};
 
 export default async function ClientDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ clientId: string }>;
+  searchParams: Promise<{ portalSent?: string; portalError?: string }>;
 }) {
   const { clientId } = await params;
+  const { portalSent, portalError } = await searchParams;
   const user = await requireSession();
   const client = await getClient(user, clientId);
 
@@ -18,6 +25,7 @@ export default async function ClientDetailPage({
   }
 
   const toggleActive = setClientActiveAction.bind(null, client.id, !client.isActive);
+  const sendPortalLink = sendPortalLinkAction.bind(null, client.id);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -33,6 +41,13 @@ export default async function ClientDetailPage({
         </form>
       </div>
 
+      {portalSent && <p className="alert alert-info">Lien d&apos;accès envoyé.</p>}
+      {portalError && (
+        <p className="alert alert-danger">
+          {PORTAL_ERROR_MESSAGES[portalError] ?? portalError}
+        </p>
+      )}
+
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         <dt className="text-zinc-600">Statut</dt>
         <dd>{client.isActive ? "Actif" : "Désactivé"}</dd>
@@ -45,7 +60,16 @@ export default async function ClientDetailPage({
         <dt className="text-zinc-600">N° TVA</dt>
         <dd>{client.vatNumber ?? "—"}</dd>
         <dt className="text-zinc-600">E-mail</dt>
-        <dd>{client.email ?? "—"}</dd>
+        <dd>
+          {client.email ?? "—"}
+          {client.email && (
+            <form action={sendPortalLink} className="mt-1">
+              <button type="submit" className="text-xs text-brand-700 underline">
+                Envoyer un lien d&apos;accès à l&apos;espace client
+              </button>
+            </form>
+          )}
+        </dd>
         <dt className="text-zinc-600">Téléphone</dt>
         <dd>{client.phone ?? "—"}</dd>
         <dt className="text-zinc-600">Délai de paiement</dt>

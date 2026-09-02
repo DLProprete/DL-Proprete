@@ -32,6 +32,18 @@ commercial (voir `docs/SPEC.md`).*
 - notes
 - isActive
 
+### ClientPortalToken / ClientPortalSession
+*Ajouté le 02/09/2026, extension approuvée du périmètre MVP — espace
+client par lien magique (voir `docs/SPEC.md`).* Volontairement
+indépendant du système d'authentification interne (`User`/Better Auth) :
+aucune table ni cookie partagé, séparation garantie par construction.
+- `ClientPortalToken` : clientId (référence libre), tokenHash (jamais le
+  token brut), expiresAt (15 min), usedAt (usage unique)
+- `ClientPortalSession` : clientId (référence libre), expiresAt (30 jours)
+- Déclenché uniquement par un ADMIN/PLANNER depuis la fiche client —
+  aucun formulaire public de connexion, aucun risque d'énumération
+  d'adresses e-mail.
+
 ### Site
 - id, clientId
 - name, address, city, postalCode

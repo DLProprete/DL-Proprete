@@ -30,7 +30,14 @@ Rôles :
 | PLANNER | Manager | Clients, sites, contrats, planning, remplacements, validation des pointages. Pas de paramétrage société ni d’annulation de facture émise. |
 | AGENT | Salarié | Son planning, pointage entrée/sortie, déclaration d’absence, consultation de ses heures du mois. |
 
-Pas d’espace client. La paie reste chez l’expert-comptable : l’application produit uniquement un export.
+**Extension approuvée post-MVP (02/09/2026)** : espace client en lecture
+seule (consultation de ses factures), par lien magique envoyé par un
+ADMIN/PLANNER depuis la fiche client — voir `docs/DATA-MODEL.md`
+§ClientPortalToken. Aucun compte client, aucun mot de passe, aucune
+donnée déplacée hors du système existant ; ne remplace ni ne modifie le
+fonctionnement du back-office.
+
+La paie reste chez l’expert-comptable : l’application produit uniquement un export.
 
 ## 3. Cœur métier (à ne pas se tromper)
 
@@ -70,7 +77,9 @@ Exclus du MVP (phase 2+) :
 
 - Calcul de bulletin de paie, DSN, IJSS, maintien de salaire.
 - Facturation électronique via plateforme agréée (prévoir le modèle, ne pas l’implémenter).
-- Portail client, contrôle qualité terrain, stocks produits, tournées GPS avancées.
+- Portail client (accès en lecture seule aux factures approuvé et livré
+  le 02/09/2026, voir §2), contrôle qualité terrain, stocks produits,
+  tournées GPS avancées.
 - Annexe 7 / reprise de marché (alerte simple d’échéance suffit au MVP).
 
 **Extension approuvée post-MVP (02/09/2026)** : pipeline commercial
