@@ -9,7 +9,7 @@ export async function listInvoices(user: SessionUser) {
   return prisma.invoice.findMany({
     include: {
       client: { select: { legalName: true } },
-      contract: { select: { reference: true } },
+      contractSite: { include: { contract: { select: { reference: true } }, site: { select: { name: true } } } },
       payments: true,
     },
     orderBy: [{ periodYear: "desc" }, { periodMonth: "desc" }, { createdAt: "desc" }],
@@ -22,7 +22,7 @@ export async function getInvoice(user: SessionUser, id: string) {
     where: { id },
     include: {
       client: true,
-      contract: { include: { site: true } },
+      contractSite: { include: { contract: true, site: true } },
       lines: { orderBy: { createdAt: "asc" } },
       payments: { orderBy: { paidOn: "asc" } },
     },

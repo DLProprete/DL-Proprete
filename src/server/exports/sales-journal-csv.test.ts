@@ -22,6 +22,7 @@ describe("export CSV du journal des ventes (intégration DB)", () => {
   const MONTH = 6;
   let clientId: string;
   let siteId: string;
+  let contractId: string;
   let invoiceId: string;
   let adminUser: SessionUser;
 
@@ -41,13 +42,18 @@ describe("export CSV du journal des ventes (intégration DB)", () => {
     const contract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-JOURNAL-${suffix}`,
         startsOn: new Date(Date.UTC(YEAR, 0, 1)),
         endsOn: new Date(Date.UTC(YEAR, 11, 31)),
+        status: "ACTIVE",
+      },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: {
+        contractId: contract.id,
+        siteId: site.id,
         hourlyRateHT: 20,
         vatRate: 20,
-        status: "ACTIVE",
         billingBasis: "FLAT_INDICATIVE_HOURS",
         indicativeMonthlyHours: 10,
       },
@@ -66,7 +72,7 @@ describe("export CSV du journal des ventes (intégration DB)", () => {
     const invoice = await prisma.invoice.create({
       data: {
         clientId: client.id,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         periodYear: YEAR,
         periodMonth: MONTH,
         number: `F-TEST-JOURNAL-${suffix}`,
@@ -89,11 +95,19 @@ describe("export CSV du journal des ventes (intégration DB)", () => {
     // Brouillon du même mois : issuedOn = null, doit être exclu (le filtre
     // de date sur issuedOn l'écarte naturellement).
     await prisma.invoice.create({
-      data: { clientId: client.id, contractId: contract.id, status: "DRAFT", amountHT: 0, vatAmount: 0, amountTTC: 0 },
+      data: {
+        clientId: client.id,
+        contractSiteId: contractSite.id,
+        status: "DRAFT",
+        amountHT: 0,
+        vatAmount: 0,
+        amountTTC: 0,
+      },
     });
 
     clientId = client.id;
     siteId = site.id;
+    contractId = contract.id;
     invoiceId = invoice.id;
     adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
   });
@@ -101,7 +115,8 @@ describe("export CSV du journal des ventes (intégration DB)", () => {
   afterAll(async () => {
     await prisma.payment.deleteMany({ where: { invoiceId } });
     await prisma.invoice.deleteMany({ where: { clientId } });
-    await prisma.contract.deleteMany({ where: { siteId } });
+    await prisma.contractSite.deleteMany({ where: { siteId } });
+    await prisma.contract.delete({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });
     await prisma.user.delete({ where: { id: adminUser.id } });

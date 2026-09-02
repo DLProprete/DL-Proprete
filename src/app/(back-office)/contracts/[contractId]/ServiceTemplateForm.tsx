@@ -19,7 +19,13 @@ function timeToMinutes(hhmm: string): number | null {
   return hours * 60 + minutes;
 }
 
-export function ServiceTemplateForm({ contractId }: { contractId: string }) {
+export function ServiceTemplateForm({
+  contractId,
+  contractSiteId,
+}: {
+  contractId: string;
+  contractSiteId: string;
+}) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState("");
@@ -37,6 +43,7 @@ export function ServiceTemplateForm({ contractId }: { contractId: string }) {
   return (
     <form action={createServiceTemplateAction} className="mt-2 space-y-4">
       <input type="hidden" name="contractId" value={contractId} />
+      <input type="hidden" name="contractSiteId" value={contractSiteId} />
       <div>
         <label htmlFor="name" className="block text-sm text-zinc-700">
           Nom

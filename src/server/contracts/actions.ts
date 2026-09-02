@@ -1,41 +1,26 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { contractInputSchema } from "@/lib/zod/contract";
-import { hasOverlappingActiveContract } from "./overlap";
 import { logAudit } from "@/server/audit/log";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
-export class ContractOverlapError extends Error {}
-
-// billingMode reste TIME_AND_MATERIALS_PLANNED (valeur par défaut du schéma,
-// seule option existante au MVP) : pas de champ dans le formulaire.
+// Cadre legal pur : plus de site/tarif ici (voir src/server/contract-sites
+// pour l'ajout de sites sous ce contrat, une fois créé). Pas de check de
+// chevauchement à la création : un cadre sans site ne couvre encore rien.
 export async function createContract(user: SessionUser, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
   const data = contractInputSchema.parse(input);
 
-  const site = await prisma.site.findUniqueOrThrow({ where: { id: data.siteId } });
-
-  if (data.status === "ACTIVE") {
-    const overlap = await hasOverlappingActiveContract(data.siteId, data.startsOn, data.endsOn);
-    if (overlap) {
-      throw new ContractOverlapError(
-        "Un contrat ACTIVE existe déjà sur ce site pour une période qui chevauche.",
-      );
-    }
-  }
+  const client = await prisma.client.findUniqueOrThrow({ where: { id: data.clientId } });
 
   const contract = await prisma.contract.create({
     data: {
-      clientId: site.clientId,
-      siteId: data.siteId,
+      clientId: data.clientId,
       reference: data.reference,
       startsOn: data.startsOn,
       endsOn: data.endsOn,
-      hourlyRateHT: data.hourlyRateHT,
       status: data.status,
-      billingBasis: data.billingBasis,
-      indicativeMonthlyHours: data.indicativeMonthlyHours,
       notes: data.notes,
     },
   });
@@ -44,7 +29,7 @@ export async function createContract(user: SessionUser, input: unknown) {
     action: "CONTRACT_CREATED",
     entityType: "Contract",
     entityId: contract.id,
-    summary: `Contrat créé : ${contract.reference} — ${site.name}`,
+    summary: `Contrat créé : ${contract.reference} — ${client.legalName}`,
   });
   return contract;
 }

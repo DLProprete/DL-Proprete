@@ -4,7 +4,9 @@ import { ZodError } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { createContract, ContractOverlapError } from "@/server/contracts/actions";
+import { createContract } from "@/server/contracts/actions";
+import { ContractOverlapError } from "@/server/contracts/overlap";
+import { createContractSite } from "@/server/contract-sites/actions";
 import { createServiceTemplate, setServiceTemplateActive } from "@/server/service-templates/actions";
 import { createServiceException } from "@/server/service-templates/exceptions";
 
@@ -15,9 +17,9 @@ export async function createContractAction(formData: FormData) {
     const contract = await createContract(user, Object.fromEntries(formData));
     contractId = contract.id;
   } catch (error) {
-    if (error instanceof ContractOverlapError) {
-      const params = new URLSearchParams({ error: "overlap" });
-      redirect(`/contracts/new?${params.toString()}`);
+    if (error instanceof ZodError) {
+      const message = error.issues[0]?.message ?? "Données invalides.";
+      redirect(`/contracts/new?error=${encodeURIComponent(message)}`);
     }
     throw error;
   }
@@ -25,13 +27,42 @@ export async function createContractAction(formData: FormData) {
   redirect(`/contracts/${contractId}`);
 }
 
-export async function createServiceTemplateAction(formData: FormData) {
+export async function createContractSiteAction(formData: FormData) {
   const user = await requireSession();
   const contractId = String(formData.get("contractId") ?? "");
 
   try {
-    await createServiceTemplate(user, {
+    await createContractSite(user, {
       contractId,
+      siteId: formData.get("siteId"),
+      hourlyRateHT: formData.get("hourlyRateHT"),
+      billingBasis: formData.get("billingBasis"),
+      indicativeMonthlyHours: formData.get("indicativeMonthlyHours") || undefined,
+    });
+  } catch (error) {
+    if (error instanceof ContractOverlapError) {
+      const params = new URLSearchParams({ error: "overlap" });
+      redirect(`/contracts/${contractId}?${params.toString()}`);
+    }
+    if (error instanceof ZodError) {
+      const message = error.issues[0]?.message ?? "Données invalides.";
+      redirect(`/contracts/${contractId}?error=${encodeURIComponent(message)}`);
+    }
+    throw error;
+  }
+
+  revalidatePath(`/contracts/${contractId}`);
+  redirect(`/contracts/${contractId}`);
+}
+
+export async function createServiceTemplateAction(formData: FormData) {
+  const user = await requireSession();
+  const contractId = String(formData.get("contractId") ?? "");
+  const contractSiteId = String(formData.get("contractSiteId") ?? "");
+
+  try {
+    await createServiceTemplate(user, {
+      contractSiteId,
       name: formData.get("name"),
       daysOfWeek: formData.getAll("daysOfWeek"),
       startTime: formData.get("startTime"),

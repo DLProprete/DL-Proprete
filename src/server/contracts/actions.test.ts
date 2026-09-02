@@ -6,11 +6,10 @@ import { listContracts, getContract } from "./queries";
 const agent: SessionUser = { id: "u-agent", email: "agent@dlproprete.fr", role: "AGENT", isActive: true };
 
 const validInput = {
-  siteId: "any-site-id",
+  clientId: "any-client-id",
   reference: "C-TEST-001",
   startsOn: "2026-01-01",
   endsOn: "2026-12-31",
-  hourlyRateHT: 25,
   status: "DRAFT",
 } as const;
 

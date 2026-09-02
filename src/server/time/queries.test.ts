@@ -28,13 +28,14 @@ describe("planning de la semaine et heures du mois (intégration DB)", () => {
     const contract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-SEMAINE-${suffix}`,
         startsOn: new Date("2020-01-01"),
         endsOn: new Date("2030-12-31"),
-        hourlyRateHT: 20,
         status: "ACTIVE",
       },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: { contractId: contract.id, siteId: site.id, hourlyRateHT: 20 },
     });
     const agentARow = await prisma.user.create({
       data: {
@@ -62,7 +63,7 @@ describe("planning de la semaine et heures du mois (intégration DB)", () => {
     const shift = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         date: monday,
         startAt: new Date(monday.getTime() + 6 * 3_600_000),
         endAt: new Date(monday.getTime() + 8 * 3_600_000),
@@ -128,6 +129,7 @@ describe("planning de la semaine et heures du mois (intégration DB)", () => {
     await prisma.timeEntry.deleteMany({ where: { id: { in: entryIds } } });
     await prisma.assignment.deleteMany({ where: { shiftId } });
     await prisma.shift.delete({ where: { id: shiftId } });
+    await prisma.contractSite.deleteMany({ where: { contractId } });
     await prisma.contract.delete({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });

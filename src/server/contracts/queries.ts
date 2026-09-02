@@ -9,7 +9,7 @@ export async function listContracts(user: SessionUser) {
     orderBy: { startsOn: "desc" },
     include: {
       client: { select: { legalName: true } },
-      site: { select: { name: true } },
+      contractSites: { include: { site: { select: { name: true } } } },
     },
   });
 }
@@ -20,10 +20,15 @@ export async function getContract(user: SessionUser, id: string) {
     where: { id },
     include: {
       client: true,
-      site: true,
-      serviceTemplates: {
-        orderBy: { name: "asc" },
-        include: { serviceExceptions: { orderBy: { date: "asc" } } },
+      contractSites: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          site: true,
+          serviceTemplates: {
+            orderBy: { name: "asc" },
+            include: { serviceExceptions: { orderBy: { date: "asc" } } },
+          },
+        },
       },
     },
   });

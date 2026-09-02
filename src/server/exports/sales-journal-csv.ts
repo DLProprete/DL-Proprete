@@ -27,7 +27,7 @@ export async function exportSalesJournalCsv(
     where: { issuedOn: { gte: start, lt: end } },
     include: {
       client: { select: { legalName: true } },
-      contract: { include: { site: { select: { name: true } } } },
+      contractSite: { include: { site: { select: { name: true } } } },
       payments: true,
     },
     orderBy: [{ issuedOn: "asc" }, { number: "asc" }],
@@ -62,7 +62,7 @@ export async function exportSalesJournalCsv(
       csvField(invoice.issuedOn ? dateFormatter.format(invoice.issuedOn) : ""),
       csvField(invoice.number ?? ""),
       csvField(invoice.client.legalName),
-      csvField(invoice.contract?.site.name ?? ""),
+      csvField(invoice.contractSite?.site.name ?? ""),
       csvField(period),
       decimal(Number(invoice.amountHT)),
       decimal(Number(invoice.vatAmount)),

@@ -1,42 +1,46 @@
 import { requireSession } from "@/server/auth/session";
-import { listSites } from "@/server/sites/queries";
+import { listClients } from "@/server/clients/queries";
 import { createContractAction } from "../actions";
 
 export default async function NewContractPage({
   searchParams,
 }: {
-  searchParams: Promise<{ siteId?: string; error?: string }>;
+  searchParams: Promise<{ clientId?: string; error?: string }>;
 }) {
-  const { siteId, error } = await searchParams;
+  const { clientId, error } = await searchParams;
   const user = await requireSession();
-  const sites = await listSites(user);
+  const clients = await listClients(user);
 
   return (
     <div className="max-w-lg space-y-4">
-      <h1 className="text-xl font-semibold">Nouveau contrat</h1>
-      {error === "overlap" && (
+      <h1 className="text-xl font-semibold">Nouveau contrat-cadre</h1>
+      <p className="text-sm text-zinc-600">
+        Le contrat-cadre couvre un client ; les sites (et leur tarif propre) s&apos;ajoutent
+        ensuite depuis la fiche du contrat.
+      </p>
+      {error && (
         <p className="alert alert-danger">
-          Un contrat actif existe déjà sur ce site pour une période qui chevauche.
+          {error}
         </p>
       )}
       <form action={createContractAction} className="card space-y-4">
         <div>
-          <label htmlFor="siteId" className="block text-sm text-zinc-700">
-            Site
+          <label htmlFor="clientId" className="block text-sm text-zinc-700">
+            Client
           </label>
           <select
-            id="siteId"
-            name="siteId"
+            id="clientId"
+            name="clientId"
             required
-            defaultValue={siteId ?? ""}
+            defaultValue={clientId ?? ""}
             className="mt-1 w-full field"
           >
             <option value="" disabled>
-              Sélectionner un site
+              Sélectionner un client
             </option>
-            {sites.map((site) => (
-              <option key={site.id} value={site.id}>
-                {site.client.legalName} — {site.name}
+            {clients.map((client) => (
+              <option key={client.id} value={client.id}>
+                {client.legalName}
               </option>
             ))}
           </select>
@@ -80,20 +84,6 @@ export default async function NewContractPage({
           </div>
         </div>
         <div>
-          <label htmlFor="hourlyRateHT" className="block text-sm text-zinc-700">
-            Tarif horaire HT (€)
-          </label>
-          <input
-            id="hourlyRateHT"
-            name="hourlyRateHT"
-            type="number"
-            step="0.01"
-            min="0"
-            required
-            className="mt-1 w-full field"
-          />
-        </div>
-        <div>
           <label htmlFor="status" className="block text-sm text-zinc-700">
             Statut initial
           </label>
@@ -106,35 +96,6 @@ export default async function NewContractPage({
             <option value="DRAFT">Brouillon</option>
             <option value="ACTIVE">Actif</option>
           </select>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="billingBasis" className="block text-sm text-zinc-700">
-              Base de facturation
-            </label>
-            <select
-              id="billingBasis"
-              name="billingBasis"
-              defaultValue="CALENDAR_SHIFTS"
-              className="mt-1 w-full field"
-            >
-              <option value="CALENDAR_SHIFTS">Vacations du mois (régie au prévu)</option>
-              <option value="FLAT_INDICATIVE_HOURS">Forfait mensuel fixe</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="indicativeMonthlyHours" className="block text-sm text-zinc-700">
-              Heures mensuelles (si forfait)
-            </label>
-            <input
-              id="indicativeMonthlyHours"
-              name="indicativeMonthlyHours"
-              type="number"
-              step="0.01"
-              min="0"
-              className="mt-1 w-full field"
-            />
-          </div>
         </div>
         <div>
           <label htmlFor="notes" className="block text-sm text-zinc-700">
@@ -151,7 +112,7 @@ export default async function NewContractPage({
           type="submit"
           className="btn btn-dark"
         >
-          Créer le contrat
+          Créer le contrat-cadre
         </button>
       </form>
     </div>

@@ -11,6 +11,7 @@ describe("generateShifts — jours fériés et exceptions (intégration DB)", ()
   let clientId: string;
   let siteId: string;
   let contractId: string;
+  let contractSiteId: string;
   let templateId: string;
   let adminUser: SessionUser;
 
@@ -48,17 +49,22 @@ describe("generateShifts — jours fériés et exceptions (intégration DB)", ()
     const contract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-FERIES-${suffix}`,
         startsOn: new Date("2020-01-01"),
         endsOn: new Date("2030-12-31"),
-        hourlyRateHT: 20,
         status: "ACTIVE",
+      },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: {
+        contractId: contract.id,
+        siteId: site.id,
+        hourlyRateHT: 20,
       },
     });
     const template = await prisma.serviceTemplate.create({
       data: {
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         name: "Entretien test fériés",
         daysOfWeek: [templateDayOfWeek],
         startTime: timeStringToDate("08:00"),
@@ -95,15 +101,17 @@ describe("generateShifts — jours fériés et exceptions (intégration DB)", ()
     clientId = client.id;
     siteId = site.id;
     contractId = contract.id;
+    contractSiteId = contractSite.id;
     templateId = template.id;
     adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
   });
 
   afterAll(async () => {
-    await prisma.shift.deleteMany({ where: { contractId } });
+    await prisma.shift.deleteMany({ where: { contractSiteId } });
     await prisma.serviceException.deleteMany({ where: { serviceTemplateId: templateId } });
     await prisma.holiday.deleteMany({ where: { date: { in: [w2, w3] } } });
     await prisma.serviceTemplate.delete({ where: { id: templateId } });
+    await prisma.contractSite.delete({ where: { id: contractSiteId } });
     await prisma.contract.delete({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });
@@ -113,7 +121,7 @@ describe("generateShifts — jours fériés et exceptions (intégration DB)", ()
   it("applique la priorité générateur : férié, SKIP, EXTRA", async () => {
     await generateShifts(adminUser);
 
-    const shifts = await prisma.shift.findMany({ where: { contractId } });
+    const shifts = await prisma.shift.findMany({ where: { contractSiteId } });
     const datesGenerated = new Set(shifts.map((s) => s.date.toISOString()));
 
     expect(datesGenerated.has(w1.toISOString())).toBe(true); // jour normal

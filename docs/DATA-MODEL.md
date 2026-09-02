@@ -52,26 +52,43 @@ aucune table ni cookie partagé, séparation garantie par construction.
 - surfaceM2 (optionnel)
 - isActive
 
-### Contract
-- id, clientId, siteId (un contrat = un site au MVP ; un client multi-sites
-  a plusieurs contrats)
+### Contract (contrat-cadre)
+*Restructuré le 02/09/2026, extension approuvée — chaque client a plusieurs
+sites, donc un contrat couvre désormais un ou plusieurs sites du même
+client (voir `ContractSite` ci-dessous), avec un tarif qui peut varier par
+site. La facturation reste aussi granulaire qu'avant : une facture par
+site et par mois.*
+- id, clientId — le cadre légal pur, rien qui varie par site
 - reference
-- startsOn, endsOn
-- billingMode: TIME_AND_MATERIALS_PLANNED (régie au prévu)
-- billingBasis: CALENDAR_SHIFTS | FLAT_INDICATIVE_HOURS
-  (défaut FLAT_INDICATIVE_HOURS depuis le 31/08/2026 = forfait mensuel lissé.
-  CALENDAR_SHIFTS = somme des heures d'agent des vacations du mois hors
-  CANCELLED, soit Σ billableMinutes × requiredAgents)
-- hourlyRateHT (Decimal)
-- indicativeMonthlyHours (Decimal) — si FLAT_INDICATIVE_HOURS ; sinon référentiel d’écart
-- vatRate (Decimal, défaut 20)
+- startsOn, endsOn — communes à tous les sites du contrat ; un site ne peut
+  pas rejoindre/quitter le cadre à une date différente des autres
+  (simplification volontaire)
 - billingDayOfMonth (1–28)
 - status: DRAFT | ACTIVE | SUSPENDED | ENDED
 - renewalNoticeDays (défaut 60)
 - notes
 
-### ServiceTemplate (vacation type du contrat)
-- id, contractId
+### ContractSite (un site sous un contrat-cadre)
+*Nouveau le 02/09/2026.* Porte tout ce qui varie par site sous un même
+cadre : tarif, base de facturation, volume indicatif. Un `Contract` migré
+depuis l'ancien modèle (un contrat = un site) donne un `ContractSite`
+unique dont l'id est repris de l'ancien `Contract.id`.
+- id, contractId, siteId (unique ensemble : un site n'apparaît qu'une fois
+  par contrat)
+- billingMode: TIME_AND_MATERIALS_PLANNED (régie au prévu)
+- billingBasis: CALENDAR_SHIFTS | FLAT_INDICATIVE_HOURS
+  (défaut FLAT_INDICATIVE_HOURS = forfait mensuel lissé. CALENDAR_SHIFTS =
+  somme des heures d'agent des vacations du mois hors CANCELLED, soit
+  Σ billableMinutes × requiredAgents)
+- hourlyRateHT (Decimal)
+- indicativeMonthlyHours (Decimal) — si FLAT_INDICATIVE_HOURS ; sinon référentiel d’écart
+- vatRate (Decimal, défaut 20)
+- Le chevauchement (deux `ContractSite` ACTIVE sur le même site pour des
+  périodes qui se recouvrent) est vérifié à l'ajout d'un site, pas à la
+  création du contrat-cadre — un cadre sans site ne couvre encore rien.
+
+### ServiceTemplate (vacation type d'un site sous contrat)
+- id, contractSiteId
 - name (ex. "Entretien quotidien bureaux")
 - daysOfWeek: Int[] (1=lundi … 7=dimanche)
 - startTime, endTime (Time) — fenêtre d'accès au site, pas la durée vendue
@@ -82,7 +99,7 @@ aucune table ni cookie partagé, séparation garantie par construction.
 - isActive
 
 ### Shift (occurrence planifiée)
-- id, serviceTemplateId, siteId, contractId
+- id, serviceTemplateId, siteId, contractSiteId
 - billableMinutes — durée vendue, recopiée du ServiceTemplate à la génération
   et figée : une modification ultérieure du contrat ne doit pas changer
   rétroactivement une période déjà facturée
@@ -115,7 +132,7 @@ aucune table ni cookie partagé, séparation garantie par construction.
 - comment (organisation uniquement ; interdit d’y saisir un diagnostic)
 
 ### Invoice
-- id, clientId, contractId (nullable si facture ponctuelle hors contrat)
+- id, clientId, contractSiteId (nullable si facture ponctuelle hors contrat)
 - number (unique)
 - issuedOn, dueOn
 - status: DRAFT | ISSUED | PARTIALLY_PAID | PAID | CANCELLED
