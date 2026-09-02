@@ -231,6 +231,25 @@ model Client {
   invoices  Invoice[]
 }
 
+// Portail client par lien magique — volontairement independant de
+// src/lib/auth.ts (aucune table, aucun cookie partages avec le staff).
+// clientId en reference libre, meme convention que Prospect.convertedClientId.
+model ClientPortalToken {
+  id        String    @id @default(cuid())
+  clientId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model ClientPortalSession {
+  id        String   @id @default(cuid())
+  clientId  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 enum ProspectStatus {
   NEW
   CONTACTED

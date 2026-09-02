@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { createClient, setClientActive } from "@/server/clients/actions";
+import { sendPortalLink, ClientEmailMissingError } from "@/server/client-portal/actions";
 
 export async function createClientAction(formData: FormData) {
   const user = await requireSession();
@@ -17,4 +18,17 @@ export async function setClientActiveAction(id: string, isActive: boolean) {
   await setClientActive(user, id, isActive);
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
+}
+
+export async function sendPortalLinkAction(clientId: string) {
+  const user = await requireSession();
+  try {
+    await sendPortalLink(user, clientId);
+  } catch (error) {
+    if (error instanceof ClientEmailMissingError) {
+      redirect(`/clients/${clientId}?portalError=no-email`);
+    }
+    throw error;
+  }
+  redirect(`/clients/${clientId}?portalSent=1`);
 }
