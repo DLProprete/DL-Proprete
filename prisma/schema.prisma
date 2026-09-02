@@ -231,6 +231,36 @@ model Client {
   invoices  Invoice[]
 }
 
+enum ProspectStatus {
+  NEW
+  CONTACTED
+  QUOTE_SENT
+  WON
+  LOST
+}
+
+// Pipeline commercial (prospects pas encore signés). convertedClientId est
+// une reference libre (pas de @relation), meme convention qu'AuditLog.entityId
+// - la conversion cree un Client independant, ce modele ne touche jamais
+// au modele Client.
+model Prospect {
+  id                String         @id @default(cuid())
+  legalName         String
+  contactName       String?
+  phone             String?
+  email             String?
+  address           String?
+  source            String?
+  notes             String?
+  status            ProspectStatus @default(NEW)
+  nextFollowUpAt    DateTime?
+  convertedClientId String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([status])
+}
+
 model Site {
   id                 String   @id @default(cuid())
   clientId           String

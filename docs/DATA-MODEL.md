@@ -13,6 +13,18 @@ Cible Prisma / PostgreSQL. Les noms d’entités restent en anglais dans le code
 - isActive
 - hiredAt, endedAt
 
+### Prospect
+*Ajouté le 02/09/2026, extension approuvée du périmètre MVP — pipeline
+commercial (voir `docs/SPEC.md`).*
+- id, legalName, contactName, phone, email, address, source, notes
+- status: NEW | CONTACTED | QUOTE_SENT | WON | LOST (défaut NEW)
+- nextFollowUpAt (date de relance, optionnel)
+- convertedClientId — référence libre vers `Client` (pas de `@relation`,
+  même convention qu'`AuditLog.entityId`), renseigné uniquement par la
+  conversion (voir ci-dessous)
+- Statut WON jamais choisi à la main : uniquement via la conversion en
+  client, qui crée un `Client` indépendant et fixe `convertedClientId`.
+
 ### Client
 - id, legalName, tradeName, siret, vatNumber
 - billingAddress, email, phone
