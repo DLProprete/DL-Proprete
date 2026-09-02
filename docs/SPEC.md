@@ -73,6 +73,12 @@ Exclus du MVP (phase 2+) :
 - Portail client, contrôle qualité terrain, stocks produits, tournées GPS avancées.
 - Annexe 7 / reprise de marché (alerte simple d’échéance suffit au MVP).
 
+**Extension approuvée post-MVP (02/09/2026)** : pipeline commercial
+(prospects, avant signature) — `docs/DATA-MODEL.md` §Prospect. Décidé en
+dehors du périmètre initial pour construire en interne plutôt que payer un
+CRM externe ; ne remplace ni ne modifie le fonctionnement des `Client`
+déjà signés.
+
 ## 5. Parcours cibles
 
 ### 5.1 Créer un contrat

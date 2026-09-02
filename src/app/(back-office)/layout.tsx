@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Timer,
   CalendarOff,
+  Handshake,
   Building2,
   MapPin,
   FileSignature,
@@ -35,6 +36,7 @@ const NAV_GROUPS: {
   {
     label: "Commercial",
     items: [
+      { href: "/prospects", label: "Prospects", icon: Handshake },
       { href: "/clients", label: "Clients", icon: Building2 },
       { href: "/sites", label: "Sites", icon: MapPin },
       { href: "/contracts", label: "Contrats", icon: FileSignature },
