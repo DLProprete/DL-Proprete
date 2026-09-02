@@ -29,9 +29,8 @@ export default async function ContractsPage() {
             <tr>
               <th>Référence</th>
               <th>Client</th>
-              <th>Site</th>
+              <th>Sites</th>
               <th>Période</th>
-              <th>Tarif HT</th>
               <th>Statut</th>
             </tr>
           </thead>
@@ -44,11 +43,14 @@ export default async function ContractsPage() {
                   </Link>
                 </td>
                 <td className="text-zinc-600">{contract.client.legalName}</td>
-                <td className="text-zinc-600">{contract.site.name}</td>
+                <td className="text-zinc-600">
+                  {contract.contractSites.length > 0
+                    ? contract.contractSites.map((cs) => cs.site.name).join(", ")
+                    : "—"}
+                </td>
                 <td className="text-zinc-600">
                   {formatDate(contract.startsOn)} – {formatDate(contract.endsOn)}
                 </td>
-                <td className="text-zinc-600">{contract.hourlyRateHT.toString()} €/h</td>
                 <td>
                   <Badge
                     tone={CONTRACT_STATUS_TONE[contract.status] ?? "neutral"}
@@ -59,7 +61,7 @@ export default async function ContractsPage() {
             ))}
             {contracts.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-zinc-500">
+                <td colSpan={5} className="text-zinc-500">
                   Aucun contrat pour l&apos;instant.
                 </td>
               </tr>

@@ -15,26 +15,27 @@ const MANAGE_ROLES = ["ADMIN"] as const;
 export type GenerateInvoicesResult = {
   created: string[];
   updated: string[];
-  skipped: Array<{ contractId: string; reason: string }>;
+  skipped: Array<{ contractSiteId: string; reason: string }>;
   /**
    * Factures generees mais suspectes (planning incomplet, ecart important au
    * volume contractuel). Elles restent en brouillon : c'est a l'ADMIN de
    * regarder avant d'emettre, pas au generateur de decider a sa place.
    */
   warnings: Array<{
-    contractId: string;
+    contractSiteId: string;
     contractReference: string;
+    siteName: string;
     invoiceId: string;
     warnings: CoverageWarning[];
   }>;
 };
 
-// Alertes de couverture pour un contrat facture au calendrier (CALENDAR_SHIFTS)
+// Alertes de couverture pour un site facture au calendrier (CALENDAR_SHIFTS)
 // sur un mois donne. Extrait de la boucle de generation pour etre reutilise a
 // l'affichage de la fiche facture (le brouillon peut etre emis longtemps
 // apres sa generation, l'alerte doit rester visible a ce moment-la aussi).
-export async function coverageWarningsForContract(
-  contract: { id: string; indicativeMonthlyHours: Prisma.Decimal | number | null },
+export async function coverageWarningsForContractSite(
+  contractSite: { id: string; indicativeMonthlyHours: Prisma.Decimal | number | null },
   year: number,
   month: number,
 ): Promise<CoverageWarning[]> {
@@ -43,7 +44,7 @@ export async function coverageWarningsForContract(
 
   const shifts = await prisma.shift.findMany({
     where: {
-      contractId: contract.id,
+      contractSiteId: contractSite.id,
       date: { gte: start, lt: end },
       status: { not: "CANCELLED" },
     },
@@ -59,8 +60,8 @@ export async function coverageWarningsForContract(
       coveredDays: coveredDayNumbers.size,
       daysInMonth,
       computedHours: plannedHours,
-      indicativeMonthlyHours: contract.indicativeMonthlyHours
-        ? Number(contract.indicativeMonthlyHours)
+      indicativeMonthlyHours: contractSite.indicativeMonthlyHours
+        ? Number(contractSite.indicativeMonthlyHours)
         : null,
     },
     lastCoveredDay,
@@ -80,33 +81,37 @@ export async function generateMonthlyInvoices(
   requireRole(user, [...MANAGE_ROLES]);
   const { start, end } = monthRange(year, month);
 
-  const contracts = await prisma.contract.findMany({
+  const contractSites = await prisma.contractSite.findMany({
     where: {
-      status: "ACTIVE",
-      startsOn: { lt: end },
-      endsOn: { gte: start },
+      contract: {
+        status: "ACTIVE",
+        startsOn: { lt: end },
+        endsOn: { gte: start },
+      },
     },
+    include: { contract: true, site: { select: { name: true } } },
   });
 
   const result: GenerateInvoicesResult = { created: [], updated: [], skipped: [], warnings: [] };
 
-  for (const contract of contracts) {
+  for (const contractSite of contractSites) {
+    const { contract } = contractSite;
     let plannedHours: number;
-    let contractWarnings: CoverageWarning[] = [];
+    let siteWarnings: CoverageWarning[] = [];
 
-    if (contract.billingBasis === "FLAT_INDICATIVE_HOURS") {
-      if (!contract.indicativeMonthlyHours) {
+    if (contractSite.billingBasis === "FLAT_INDICATIVE_HOURS") {
+      if (!contractSite.indicativeMonthlyHours) {
         result.skipped.push({
-          contractId: contract.id,
+          contractSiteId: contractSite.id,
           reason: "Forfait mensuel sans indicativeMonthlyHours renseigné",
         });
         continue;
       }
-      plannedHours = Number(contract.indicativeMonthlyHours);
+      plannedHours = Number(contractSite.indicativeMonthlyHours);
     } else {
       const shifts = await prisma.shift.findMany({
         where: {
-          contractId: contract.id,
+          contractSiteId: contractSite.id,
           date: { gte: start, lt: end },
           status: { not: "CANCELLED" },
         },
@@ -118,12 +123,12 @@ export async function generateMonthlyInvoices(
       // si un seul s'y rendait.
       plannedHours = plannedHoursFromShifts(shifts);
 
-      contractWarnings = await coverageWarningsForContract(contract, year, month);
+      siteWarnings = await coverageWarningsForContractSite(contractSite, year, month);
     }
 
     const existing = await prisma.invoice.findFirst({
       where: {
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         periodYear: year,
         periodMonth: month,
         status: { not: "CANCELLED" },
@@ -134,12 +139,12 @@ export async function generateMonthlyInvoices(
     const monthLabel = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(
       start,
     );
-    const label = `Prestations régie — ${monthLabel}`;
+    const label = `Prestations régie — ${contractSite.site.name} — ${monthLabel}`;
 
     if (existing) {
       if (existing.status !== "DRAFT") {
         result.skipped.push({
-          contractId: contract.id,
+          contractSiteId: contractSite.id,
           reason: `Déjà facturé pour cette période (${existing.number ?? existing.status})`,
         });
         continue;
@@ -148,7 +153,12 @@ export async function generateMonthlyInvoices(
       if (plannedLine) {
         await prisma.invoiceLine.update({
           where: { id: plannedLine.id },
-          data: { label, quantity: plannedHours, unitPriceHT: contract.hourlyRateHT, hours: plannedHours },
+          data: {
+            label,
+            quantity: plannedHours,
+            unitPriceHT: contractSite.hourlyRateHT,
+            hours: plannedHours,
+          },
         });
       } else {
         await prisma.invoiceLine.create({
@@ -156,8 +166,8 @@ export async function generateMonthlyInvoices(
             invoiceId: existing.id,
             label,
             quantity: plannedHours,
-            unitPriceHT: contract.hourlyRateHT,
-            vatRate: contract.vatRate,
+            unitPriceHT: contractSite.hourlyRateHT,
+            vatRate: contractSite.vatRate,
             source: "PLANNED_HOURS",
             hours: plannedHours,
           },
@@ -165,12 +175,13 @@ export async function generateMonthlyInvoices(
       }
       await recomputeInvoiceTotals(existing.id);
       result.updated.push(existing.id);
-      if (contractWarnings.length > 0) {
+      if (siteWarnings.length > 0) {
         result.warnings.push({
-          contractId: contract.id,
+          contractSiteId: contractSite.id,
           contractReference: contract.reference,
+          siteName: contractSite.site.name,
           invoiceId: existing.id,
-          warnings: contractWarnings,
+          warnings: siteWarnings,
         });
       }
       continue;
@@ -179,7 +190,7 @@ export async function generateMonthlyInvoices(
     const invoice = await prisma.invoice.create({
       data: {
         clientId: contract.clientId,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         periodYear: year,
         periodMonth: month,
         status: "DRAFT",
@@ -187,8 +198,8 @@ export async function generateMonthlyInvoices(
           create: {
             label,
             quantity: plannedHours,
-            unitPriceHT: contract.hourlyRateHT,
-            vatRate: contract.vatRate,
+            unitPriceHT: contractSite.hourlyRateHT,
+            vatRate: contractSite.vatRate,
             source: "PLANNED_HOURS",
             hours: plannedHours,
           },
@@ -204,12 +215,13 @@ export async function generateMonthlyInvoices(
       entityId: invoice.id,
       summary: `Brouillon créé : ${label} — ${contract.reference}`,
     });
-    if (contractWarnings.length > 0) {
+    if (siteWarnings.length > 0) {
       result.warnings.push({
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         contractReference: contract.reference,
+        siteName: contractSite.site.name,
         invoiceId: invoice.id,
-        warnings: contractWarnings,
+        warnings: siteWarnings,
       });
     }
   }

@@ -99,7 +99,10 @@ export async function getContractsEndingSoon(user: SessionUser) {
 
   const contracts = await prisma.contract.findMany({
     where: { status: "ACTIVE", endsOn: { gte: todayDate } },
-    include: { client: { select: { legalName: true } }, site: { select: { name: true } } },
+    include: {
+      client: { select: { legalName: true } },
+      contractSites: { include: { site: { select: { name: true } } } },
+    },
     orderBy: { endsOn: "asc" },
   });
 

@@ -105,12 +105,21 @@ async function main() {
     create: {
       id: "seed-contract-demo",
       clientId: client.id,
-      siteId: site.id,
       reference: "C-DEMO-001",
       startsOn: new Date("2026-01-01"),
       endsOn: new Date("2026-12-31"),
-      hourlyRateHT: 25,
       status: "ACTIVE",
+    },
+  });
+
+  const contractSite = await prisma.contractSite.upsert({
+    where: { id: "seed-contract-site-demo" },
+    update: {},
+    create: {
+      id: "seed-contract-site-demo",
+      contractId: contract.id,
+      siteId: site.id,
+      hourlyRateHT: 25,
     },
   });
 
@@ -121,7 +130,7 @@ async function main() {
 
   let template = await prisma.serviceTemplate.findFirst({
     where: {
-      contractId: contract.id,
+      contractSiteId: contractSite.id,
       daysOfWeek: { equals: [1, 2, 3, 4, 5] },
       durationMinutes: 120,
       requiredAgents: 1,
@@ -129,7 +138,7 @@ async function main() {
   });
   if (!template) {
     template = await createServiceTemplate(adminSession, {
-      contractId: contract.id,
+      contractSiteId: contractSite.id,
       name: "Entretien quotidien bureaux",
       daysOfWeek: [1, 2, 3, 4, 5],
       startTime: "06:00",
@@ -144,7 +153,7 @@ async function main() {
   const today = parisToday();
   const todayDate = dateOnlyUTC(today.year, today.month, today.day);
   const todayShift = await prisma.shift.findFirst({
-    where: { contractId: contract.id, serviceTemplateId: template.id, date: todayDate },
+    where: { contractSiteId: contractSite.id, serviceTemplateId: template.id, date: todayDate },
   });
 
   if (todayShift) {

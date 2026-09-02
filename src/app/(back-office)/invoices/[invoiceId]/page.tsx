@@ -8,7 +8,7 @@ import {
   describeMissingMentions,
   missingLegalMentions,
 } from "@/server/billing/legal-mentions";
-import { coverageWarningsForContract } from "@/server/billing/generate-invoices";
+import { coverageWarningsForContractSite } from "@/server/billing/generate-invoices";
 import { describeCoverageWarning } from "@/server/billing/planned-hours";
 import { computeBalanceDue } from "@/server/billing/balance";
 import { dateOnlyUTC, parisToday } from "@/lib/dates";
@@ -49,10 +49,10 @@ export default async function InvoiceDetailPage({
   }
 
   const control =
-    invoice.contract && invoice.periodYear && invoice.periodMonth
+    invoice.contractSite && invoice.periodYear && invoice.periodMonth
       ? await getValidatedHoursForContractMonth(
           user,
-          invoice.contract.siteId,
+          invoice.contractSite.siteId,
           invoice.periodYear,
           invoice.periodMonth,
         )
@@ -73,8 +73,14 @@ export default async function InvoiceDetailPage({
   // le brouillon plus tard. N'a de sens que pour les contrats factures au
   // calendrier (le forfait lisse ne depend pas des Shift generes).
   const coverageWarningsList =
-    invoice.contract?.billingBasis === "CALENDAR_SHIFTS" && invoice.periodYear && invoice.periodMonth
-      ? await coverageWarningsForContract(invoice.contract, invoice.periodYear, invoice.periodMonth)
+    invoice.contractSite?.billingBasis === "CALENDAR_SHIFTS" &&
+    invoice.periodYear &&
+    invoice.periodMonth
+      ? await coverageWarningsForContractSite(
+          invoice.contractSite,
+          invoice.periodYear,
+          invoice.periodMonth,
+        )
       : [];
 
   return (
@@ -84,7 +90,9 @@ export default async function InvoiceDetailPage({
           <h1 className="text-xl font-semibold">{invoice.number ?? "Brouillon"}</h1>
           <p className="text-sm text-zinc-600">
             {invoice.client.legalName}
-            {invoice.contract ? ` — ${invoice.contract.reference}` : ""}
+            {invoice.contractSite
+              ? ` — ${invoice.contractSite.contract.reference} — ${invoice.contractSite.site.name}`
+              : ""}
           </p>
         </div>
         <div className="flex items-center gap-3">

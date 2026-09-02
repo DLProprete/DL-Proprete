@@ -31,7 +31,7 @@ export async function listInvoicesForReminders(user: SessionUser) {
     where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] } },
     include: {
       client: { select: { legalName: true, paymentTermDays: true } },
-      contract: { include: { site: { select: { name: true } } } },
+      contractSite: { include: { site: { select: { name: true } } } },
       payments: true,
     },
   });

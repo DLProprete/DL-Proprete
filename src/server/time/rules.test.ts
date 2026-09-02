@@ -16,6 +16,7 @@ import { validateTimeEntry, rejectTimeEntry } from "./review";
 describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
   let clientId: string;
   let siteId: string;
+  let contractId: string;
   let shiftId: string;
   let agentUser: SessionUser;
   let adminUser: SessionUser;
@@ -37,18 +38,19 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
     const contract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-POINTAGE-${suffix}`,
         startsOn: new Date("2020-01-01"),
         endsOn: new Date("2030-12-31"),
-        hourlyRateHT: 20,
         status: "ACTIVE",
       },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: { contractId: contract.id, siteId: site.id, hourlyRateHT: 20 },
     });
     const shift = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         date: new Date(),
         startAt: new Date(),
         endAt: new Date(Date.now() + 3_600_000),
@@ -81,6 +83,7 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
 
     clientId = client.id;
     siteId = site.id;
+    contractId = contract.id;
     shiftId = shift.id;
     agentUser = { id: agentRow.id, email: agentRow.email, role: "AGENT", isActive: true };
     adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
@@ -90,7 +93,8 @@ describe("règles de pointage OPEN / VALIDATED (intégration DB)", () => {
     await prisma.auditLog.deleteMany({ where: { actorUserId: adminUser.id } });
     await prisma.timeEntry.deleteMany({ where: { userId: agentUser.id } });
     await prisma.shift.delete({ where: { id: shiftId } });
-    await prisma.contract.deleteMany({ where: { siteId } });
+    await prisma.contractSite.deleteMany({ where: { contractId } });
+    await prisma.contract.deleteMany({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });
     await prisma.user.delete({ where: { id: agentUser.id } });

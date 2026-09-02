@@ -296,7 +296,7 @@ model Site {
   updatedAt          DateTime @updatedAt
 
   client            Client             @relation(fields: [clientId], references: [id])
-  contracts         Contract[]
+  contractSites     ContractSite[]
   shifts            Shift[]
   timeEntries       TimeEntry[]
   serviceExceptions ServiceException[]
@@ -304,38 +304,58 @@ model Site {
   @@index([clientId])
 }
 
+// Cadre legal pur : client, reference, periode, facturation, preavis.
+// Tout ce qui varie par site (tarif, base de facturation, volume indicatif)
+// vit sur ContractSite. Un contrat-cadre peut couvrir plusieurs sites du
+// meme client ; chaque site garde son propre tarif et sa propre facturation.
 model Contract {
-  id                     String         @id @default(cuid())
-  clientId               String
-  siteId                 String
-  reference              String
-  startsOn               DateTime       @db.Date
-  endsOn                 DateTime       @db.Date
-  billingMode            BillingMode    @default(TIME_AND_MATERIALS_PLANNED)
-  billingBasis           BillingBasis   @default(FLAT_INDICATIVE_HOURS)
-  hourlyRateHT           Decimal        @db.Decimal(8, 2)
-  indicativeMonthlyHours Decimal?       @db.Decimal(7, 2)
-  vatRate                Decimal        @default(20) @db.Decimal(4, 2)
-  billingDayOfMonth      Int            @default(1)
-  status                 ContractStatus @default(DRAFT)
-  renewalNoticeDays      Int            @default(60)
-  notes                  String?
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+  id                String         @id @default(cuid())
+  clientId          String
+  reference         String
+  startsOn          DateTime       @db.Date
+  endsOn            DateTime       @db.Date
+  billingDayOfMonth Int            @default(1)
+  status            ContractStatus @default(DRAFT)
+  renewalNoticeDays Int            @default(60)
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
-  client           Client            @relation(fields: [clientId], references: [id])
+  client        Client         @relation(fields: [clientId], references: [id])
+  contractSites ContractSite[]
+
+  @@index([endsOn, status])
+}
+
+// Un site sous un contrat-cadre : porte le tarif, la base de facturation et
+// le volume indicatif propres a ce site — c'est l'entite 1:1-avec-un-site
+// que Contract etait auparavant (voir Invoice/Shift/ServiceTemplate, qui
+// pointent desormais ici plutot que sur Contract directement).
+model ContractSite {
+  id                     String       @id @default(cuid())
+  contractId             String
+  siteId                 String
+  billingMode            BillingMode  @default(TIME_AND_MATERIALS_PLANNED)
+  billingBasis           BillingBasis @default(FLAT_INDICATIVE_HOURS)
+  hourlyRateHT           Decimal      @db.Decimal(8, 2)
+  indicativeMonthlyHours Decimal?     @db.Decimal(7, 2)
+  vatRate                Decimal      @default(20) @db.Decimal(4, 2)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  contract         Contract          @relation(fields: [contractId], references: [id])
   site             Site              @relation(fields: [siteId], references: [id])
   serviceTemplates ServiceTemplate[]
   shifts           Shift[]
   invoices         Invoice[]
 
-  @@index([endsOn, status])
-  @@index([siteId, status])
+  @@unique([contractId, siteId])
+  @@index([siteId])
 }
 
 model ServiceTemplate {
   id              String   @id @default(cuid())
-  contractId      String
+  contractSiteId  String
   name            String
   daysOfWeek      Int[]
   startTime       DateTime @db.Time
@@ -347,18 +367,18 @@ model ServiceTemplate {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  contract          Contract           @relation(fields: [contractId], references: [id])
+  contractSite      ContractSite       @relation(fields: [contractSiteId], references: [id])
   shifts            Shift[]
   serviceExceptions ServiceException[]
 
-  @@index([contractId])
+  @@index([contractSiteId])
 }
 
 model Shift {
   id                    String      @id @default(cuid())
   serviceTemplateId     String?
   siteId                String
-  contractId            String
+  contractSiteId        String
   date                  DateTime    @db.Date
   startAt               DateTime
   endAt                 DateTime
@@ -375,13 +395,13 @@ model Shift {
 
   serviceTemplate ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
   site            Site             @relation(fields: [siteId], references: [id])
-  contract        Contract         @relation(fields: [contractId], references: [id])
+  contractSite    ContractSite     @relation(fields: [contractSiteId], references: [id])
   assignments     Assignment[]
   timeEntries     TimeEntry[]
 
   @@unique([serviceTemplateId, date, startAt], name: "uniq_generated_occurrence")
   @@index([date, siteId])
-  @@index([contractId, date])
+  @@index([contractSiteId, date])
 }
 
 model Assignment {
@@ -453,11 +473,11 @@ model Absence {
 model Invoice {
   id               String           @id @default(cuid())
   clientId         String
-  contractId       String?
+  contractSiteId   String?
   // Mois de prestation facturé (pas la date d'émission, qui peut être le
   // mois suivant — cf. Contract.billingDayOfMonth). Sert à empêcher de
-  // refacturer une même période pour un même contrat une fois émise ;
-  // absent de docs/DATA-MODEL.md, ajout technique voir docs/ARCHITECTURE.md.
+  // refacturer une même période pour un même site sous contrat une fois
+  // émise ; absent de docs/DATA-MODEL.md, ajout technique voir docs/ARCHITECTURE.md.
   periodYear       Int?
   periodMonth      Int?
   number           String?          @unique
@@ -471,13 +491,13 @@ model Invoice {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  client   Client        @relation(fields: [clientId], references: [id])
-  contract Contract?     @relation(fields: [contractId], references: [id])
-  lines    InvoiceLine[]
-  payments Payment[]
+  client       Client        @relation(fields: [clientId], references: [id])
+  contractSite ContractSite? @relation(fields: [contractSiteId], references: [id])
+  lines        InvoiceLine[]
+  payments     Payment[]
 
   @@index([status, issuedOn])
-  @@index([contractId, periodYear, periodMonth])
+  @@index([contractSiteId, periodYear, periodMonth])
 }
 
 model InvoiceLine {

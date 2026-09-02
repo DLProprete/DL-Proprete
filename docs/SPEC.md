@@ -92,12 +92,20 @@ déjà signés.
 
 ### 5.1 Créer un contrat
 
-ADMIN saisit le client, le ou les sites, la période (12 mois), le tarif
-horaire HT de régie, le volume horaire mensuel indicatif, le taux de TVA,
-la date de facturation (ex. le 1er du mois suivant), puis les vacations
-récurrentes :
+*Mis à jour le 02/09/2026 : contrat-cadre multi-sites (extension approuvée
+post-MVP, voir `docs/DATA-MODEL.md`) — chaque client ayant plusieurs
+sites, un contrat couvre désormais le client, pas un site unique. Le
+tarif, le volume horaire indicatif et le taux de TVA se fixent par site,
+pas au niveau du cadre.*
 
-- site ;
+En deux temps :
+
+1. ADMIN crée le contrat-cadre : client, référence, période (12 mois),
+   date de facturation (ex. le 1er du mois suivant), statut.
+2. ADMIN ajoute un ou plusieurs sites au contrat, chacun avec son propre
+   tarif horaire HT de régie, son volume horaire mensuel indicatif, son
+   taux de TVA, puis ses vacations récurrentes :
+
 - jours de la semaine ;
 - fenêtre horaire (ex. 06:00–08:00) ;
 - durée estimée ;
@@ -105,7 +113,9 @@ récurrentes :
 - consignes / cahier des charges (texte).
 
 Le système génère automatiquement les occurrences de planning sur la période
-du contrat. ADMIN affecte ensuite les agents.
+du contrat, pour chaque site. ADMIN affecte ensuite les agents. La
+facturation reste aussi granulaire qu'avant : une facture par site et par
+mois (voir 5.4).
 
 ### 5.2 Semaine type d’un agent
 
@@ -124,13 +134,15 @@ et au contrôle du chantier.
 ### 5.4 Facture mensuelle
 
 Chaque mois, ADMIN lance « générer les factures du mois ». Pour chaque
-contrat actif :
+site sous contrat actif (un contrat-cadre multi-sites produit une facture
+par site, voir 5.1) :
 
-- sommer les **heures d'agent** des Shift du mois liés au contrat, hors statut
+- sommer les **heures d'agent** des Shift du mois liés au site, hors statut
   CANCELLED : pour chaque vacation, `billableMinutes × requiredAgents`. On vend
   des heures de main-d'œuvre, pas des créneaux — une vacation d'1 h 30 à deux
   agents représente 3 h facturables ;
-- créer une ligne de régie : quantité = heures prévues, PU = tarif horaire HT ;
+- créer une ligne de régie : quantité = heures prévues, PU = tarif horaire HT
+  de ce site ;
 - refuser d'émettre en silence une facture manifestement incomplète : si le mois
   n'est pas planifié jusqu'au bout, ou si le total s'écarte de plus de 10 % de
   `indicativeMonthlyHours`, le brouillon est créé mais l'écran signale l'anomalie ;
@@ -142,7 +154,7 @@ contrat actif :
 (`billingBasis: FLAT_INDICATIVE_HOURS`, quantité = `indicativeMonthlyHours`).
 La pratique du secteur est un montant identique chaque mois, 1/12e du volume
 annuel ; un montant qui bouge tous les mois se fait contester tous les mois.
-`CALENDAR_SHIFTS` reste disponible contrat par contrat pour qui veut facturer
+`CALENDAR_SHIFTS` reste disponible site par site pour qui veut facturer
 le calendrier réel — un février plus court ou un mois à cinq lundis fait alors
 varier le montant, et c'est assumé.
 

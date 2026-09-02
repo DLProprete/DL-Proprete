@@ -109,7 +109,11 @@ export default async function InvoicesPage({
                   </Link>
                 </td>
                 <td className="text-zinc-600">{invoice.client.legalName}</td>
-                <td className="text-zinc-600">{invoice.contract?.reference ?? "—"}</td>
+                <td className="text-zinc-600">
+                  {invoice.contractSite
+                    ? `${invoice.contractSite.contract.reference} — ${invoice.contractSite.site.name}`
+                    : "—"}
+                </td>
                 <td className="text-zinc-600">
                   {invoice.periodMonth && invoice.periodYear
                     ? `${String(invoice.periodMonth).padStart(2, "0")}/${invoice.periodYear}`

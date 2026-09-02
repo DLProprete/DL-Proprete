@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { CompanyProfile } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/server/auth/session";
-import { coverageWarningsForContract, generateMonthlyInvoices } from "./generate-invoices";
+import { coverageWarningsForContractSite, generateMonthlyInvoices } from "./generate-invoices";
 import {
   addAdhocLine,
   issueInvoice,
@@ -38,8 +38,8 @@ describe("règles Facturation (intégration DB)", () => {
   const MONTH = 3;
   let clientId: string;
   let siteId: string;
-  let calendarContractId: string;
-  let flatContractId: string;
+  let calendarContractSiteId: string;
+  let flatContractSiteId: string;
   let adminUser: SessionUser;
   let originalCompanyProfile: CompanyProfile | null;
 
@@ -79,26 +79,36 @@ describe("règles Facturation (intégration DB)", () => {
     const calendarContract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-BILLING-CAL-${suffix}`,
         startsOn: new Date(Date.UTC(YEAR, 0, 1)),
         endsOn: new Date(Date.UTC(YEAR, 11, 31)),
+        status: "ACTIVE",
+      },
+    });
+    const calendarContractSite = await prisma.contractSite.create({
+      data: {
+        contractId: calendarContract.id,
+        siteId: site.id,
         hourlyRateHT: 20,
         vatRate: 20,
-        status: "ACTIVE",
         billingBasis: "CALENDAR_SHIFTS",
       },
     });
     const flatContract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-BILLING-FLAT-${suffix}`,
         startsOn: new Date(Date.UTC(YEAR, 0, 1)),
         endsOn: new Date(Date.UTC(YEAR, 11, 31)),
+        status: "ACTIVE",
+      },
+    });
+    const flatContractSite = await prisma.contractSite.create({
+      data: {
+        contractId: flatContract.id,
+        siteId: site.id,
         hourlyRateHT: 15,
         vatRate: 20,
-        status: "ACTIVE",
         billingBasis: "FLAT_INDICATIVE_HOURS",
         indicativeMonthlyHours: 80,
       },
@@ -109,7 +119,7 @@ describe("règles Facturation (intégration DB)", () => {
       await prisma.shift.create({
         data: {
           siteId: site.id,
-          contractId: calendarContract.id,
+          contractSiteId: calendarContractSite.id,
           date: new Date(Date.UTC(YEAR, MONTH - 1, day)),
           startAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 6, 0)),
           endAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 8, 0)),
@@ -123,7 +133,7 @@ describe("règles Facturation (intégration DB)", () => {
     await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: calendarContract.id,
+        contractSiteId: calendarContractSite.id,
         date: new Date(Date.UTC(YEAR, MONTH - 1, 10)),
         startAt: new Date(Date.UTC(YEAR, MONTH - 1, 10, 6, 0)),
         endAt: new Date(Date.UTC(YEAR, MONTH - 1, 10, 11, 0)),
@@ -169,8 +179,8 @@ describe("règles Facturation (intégration DB)", () => {
 
     clientId = client.id;
     siteId = site.id;
-    calendarContractId = calendarContract.id;
-    flatContractId = flatContract.id;
+    calendarContractSiteId = calendarContractSite.id;
+    flatContractSiteId = flatContractSite.id;
     adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
   });
 
@@ -208,7 +218,8 @@ describe("règles Facturation (intégration DB)", () => {
     await prisma.invoice.deleteMany({ where: { clientId } });
     await prisma.timeEntry.deleteMany({ where: { siteId } });
     await prisma.shift.deleteMany({ where: { siteId } });
-    await prisma.contract.deleteMany({ where: { siteId } });
+    await prisma.contractSite.deleteMany({ where: { siteId } });
+    await prisma.contract.deleteMany({ where: { clientId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });
     await prisma.user.deleteMany({
@@ -225,7 +236,7 @@ describe("règles Facturation (intégration DB)", () => {
     expect(result.created).toHaveLength(2);
 
     const calInvoice = await prisma.invoice.findFirstOrThrow({
-      where: { contractId: calendarContractId },
+      where: { contractSiteId: calendarContractSiteId },
       include: { lines: true },
     });
     expect(calInvoice.status).toBe("DRAFT");
@@ -233,7 +244,7 @@ describe("règles Facturation (intégration DB)", () => {
     expect(Number(calInvoice.amountHT)).toBe(120); // 6h x 20€
 
     const flatInvoice = await prisma.invoice.findFirstOrThrow({
-      where: { contractId: flatContractId },
+      where: { contractSiteId: flatContractSiteId },
       include: { lines: true },
     });
     expect(Number(flatInvoice.lines[0].quantity)).toBe(80); // forfait indicatif
@@ -250,12 +261,14 @@ describe("règles Facturation (intégration DB)", () => {
     expect(result.created).toHaveLength(0);
     expect(result.updated).toHaveLength(2);
 
-    const count = await prisma.invoice.count({ where: { contractId: calendarContractId } });
+    const count = await prisma.invoice.count({ where: { contractSiteId: calendarContractSiteId } });
     expect(count).toBe(1);
   });
 
   it("une ligne ADHOC s'ajoute sur un brouillon et met à jour les totaux", async () => {
-    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractId: calendarContractId } });
+    const invoice = await prisma.invoice.findFirstOrThrow({
+      where: { contractSiteId: calendarContractSiteId },
+    });
     await addAdhocLine(adminUser, invoice.id, {
       label: "Remise en état exceptionnelle",
       quantity: 1,
@@ -267,7 +280,7 @@ describe("règles Facturation (intégration DB)", () => {
   });
 
   it("émission refusée si la fiche entreprise est incomplète (capital social, IBAN manquants)", async () => {
-    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractId: calendarContractId } });
+    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractSiteId: calendarContractSiteId } });
     await prisma.companyProfile.update({
       where: { id: "default" },
       data: { shareCapital: null, iban: null },
@@ -284,7 +297,7 @@ describe("règles Facturation (intégration DB)", () => {
   });
 
   it("émission : verrouille le numéro F-YYYY-NNNN et calcule l'échéance", async () => {
-    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractId: calendarContractId } });
+    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractSiteId: calendarContractSiteId } });
     const issued = await issueInvoice(adminUser, invoice.id);
     expect(issued.status).toBe("ISSUED");
     // Le numéro se base sur l'année d'émission réelle (aujourd'hui), pas
@@ -297,7 +310,7 @@ describe("règles Facturation (intégration DB)", () => {
   });
 
   it("une facture émise ne peut pas être ré-émise ni recevoir de ligne ADHOC", async () => {
-    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractId: calendarContractId } });
+    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractSiteId: calendarContractSiteId } });
     await expect(issueInvoice(adminUser, invoice.id)).rejects.toBeInstanceOf(InvoiceNotDraftError);
     await expect(
       addAdhocLine(adminUser, invoice.id, { label: "x", quantity: 1, unitPriceHT: 1 }),
@@ -306,18 +319,18 @@ describe("règles Facturation (intégration DB)", () => {
 
   it("un Shift déjà inclus dans une facture ISSUED n'est pas refacturé : le contrat est ignoré à la régénération", async () => {
     const result = await generateMonthlyInvoices(adminUser, YEAR, MONTH);
-    const skippedContractIds = result.skipped.map((s) => s.contractId);
-    expect(skippedContractIds).toContain(calendarContractId);
+    const skippedContractIds = result.skipped.map((s) => s.contractSiteId);
+    expect(skippedContractIds).toContain(calendarContractSiteId);
     expect(result.updated).toContain(
-      (await prisma.invoice.findFirstOrThrow({ where: { contractId: flatContractId } })).id,
+      (await prisma.invoice.findFirstOrThrow({ where: { contractSiteId: flatContractSiteId } })).id,
     );
 
-    const count = await prisma.invoice.count({ where: { contractId: calendarContractId } });
+    const count = await prisma.invoice.count({ where: { contractSiteId: calendarContractSiteId } });
     expect(count).toBe(1); // toujours une seule facture pour ce contrat+mois
   });
 
   it("paiement : partiel puis complet fait passer le statut PARTIALLY_PAID puis PAID", async () => {
-    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractId: calendarContractId } });
+    const invoice = await prisma.invoice.findFirstOrThrow({ where: { contractSiteId: calendarContractSiteId } });
     const totalTTC = Number(invoice.amountTTC);
 
     await recordPayment(adminUser, invoice.id, {
@@ -345,7 +358,7 @@ describe("règles Facturation (intégration DB)", () => {
   });
 
   it("un paiement ne peut pas être saisi sur un brouillon", async () => {
-    const draft = await prisma.invoice.findFirstOrThrow({ where: { contractId: flatContractId } });
+    const draft = await prisma.invoice.findFirstOrThrow({ where: { contractSiteId: flatContractSiteId } });
     expect(draft.status).toBe("DRAFT");
     await expect(
       recordPayment(adminUser, draft.id, { paidOn: "2031-04-01", amount: 10, method: "CASH" }),
@@ -358,7 +371,7 @@ describe("règles Facturation (intégration DB)", () => {
     expect(control.totalHours).toBeCloseTo(3.5, 5); // 06:00-09:30
 
     const invoice = await prisma.invoice.findFirstOrThrow({
-      where: { contractId: calendarContractId },
+      where: { contractSiteId: calendarContractSiteId },
       include: { lines: true },
     });
     expect(Number(invoice.lines[0]?.quantity ?? 0)).not.toBe(control.totalHours);
@@ -503,7 +516,7 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
   const MONTH = 3;
   let clientId: string;
   let siteId: string;
-  let contractId: string;
+  let contractSiteId: string;
   let adminUser: SessionUser;
 
   beforeAll(async () => {
@@ -526,13 +539,18 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
     const contract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-MULTI-${suffix}`,
         startsOn: new Date(Date.UTC(YEAR, 0, 1)),
         endsOn: new Date(Date.UTC(YEAR, 11, 31)),
+        status: "ACTIVE",
+      },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: {
+        contractId: contract.id,
+        siteId: site.id,
         hourlyRateHT: 30,
         vatRate: 20,
-        status: "ACTIVE",
         billingBasis: "CALENDAR_SHIFTS",
         // Reference contractuelle volontairement eloignee du planning cree
         // ci-dessous, pour declencher l'alerte d'ecart.
@@ -546,7 +564,7 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
       await prisma.shift.create({
         data: {
           siteId: site.id,
-          contractId: contract.id,
+          contractSiteId: contractSite.id,
           date: new Date(Date.UTC(YEAR, MONTH - 1, day)),
           startAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 8, 30)),
           endAt: new Date(Date.UTC(YEAR, MONTH - 1, day, 10, 0)),
@@ -571,7 +589,7 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
 
     clientId = client.id;
     siteId = site.id;
-    contractId = contract.id;
+    contractSiteId = contractSite.id;
     adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
   });
 
@@ -588,7 +606,8 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
     await prisma.invoiceLine.deleteMany({ where: { invoice: { clientId } } });
     await prisma.invoice.deleteMany({ where: { clientId } });
     await prisma.shift.deleteMany({ where: { siteId } });
-    await prisma.contract.deleteMany({ where: { siteId } });
+    await prisma.contractSite.deleteMany({ where: { siteId } });
+    await prisma.contract.deleteMany({ where: { clientId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });
     await prisma.user.delete({ where: { id: adminUser.id } });
@@ -597,7 +616,7 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
   it("facture les heures d'agent, pas les créneaux", async () => {
     await generateMonthlyInvoices(adminUser, YEAR, MONTH);
     const invoice = await prisma.invoice.findFirstOrThrow({
-      where: { contractId },
+      where: { contractSiteId },
       include: { lines: true },
     });
     // 6 passages x 90 min x 2 agents = 18 h. Avant correction : 9 h, soit la
@@ -608,7 +627,7 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
 
   it("signale un mois partiellement planifié et un écart au volume contractuel", async () => {
     const result = await generateMonthlyInvoices(adminUser, YEAR, MONTH);
-    const entry = result.warnings.find((warning) => warning.contractId === contractId);
+    const entry = result.warnings.find((warning) => warning.contractSiteId === contractSiteId);
     expect(entry).toBeDefined();
     const kinds = entry!.warnings.map((warning) => warning.kind);
     // Derniere vacation le 19, mois de 31 jours.
@@ -617,12 +636,16 @@ describe("heures d'agent et complétude du mois (intégration DB)", () => {
     expect(kinds).toContain("FAR_FROM_INDICATIVE");
   });
 
-  it("coverageWarningsForContract est utilisable seule, hors génération groupée (fiche facture)", async () => {
+  it("coverageWarningsForContractSite est utilisable seule, hors génération groupée (fiche facture)", async () => {
     // C'est cette fonction que la fiche facture appelle pour reafficher
     // l'alerte si l'ADMIN emet le brouillon longtemps apres sa generation :
     // elle doit donner le meme resultat que le calcul interne a la
     // generation groupee, sans dependre d'un GenerateInvoicesResult.
-    const warnings = await coverageWarningsForContract({ id: contractId, indicativeMonthlyHours: 40 }, YEAR, MONTH);
+    const warnings = await coverageWarningsForContractSite(
+      { id: contractSiteId, indicativeMonthlyHours: 40 },
+      YEAR,
+      MONTH,
+    );
     const kinds = warnings.map((warning) => warning.kind);
     expect(kinds).toContain("PARTIAL_MONTH");
     expect(kinds).toContain("FAR_FROM_INDICATIVE");

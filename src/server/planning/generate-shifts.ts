@@ -18,7 +18,11 @@ export async function generateShifts(user: SessionUser) {
 
   const contracts = await prisma.contract.findMany({
     where: { status: "ACTIVE" },
-    include: { serviceTemplates: { where: { isActive: true } } },
+    include: {
+      contractSites: {
+        include: { serviceTemplates: { where: { isActive: true } } },
+      },
+    },
   });
 
   const holidays = await prisma.holiday.findMany({
@@ -43,59 +47,61 @@ export async function generateShifts(user: SessionUser) {
   const rows: Prisma.ShiftCreateManyInput[] = [];
 
   for (const contract of contracts) {
-    for (const template of contract.serviceTemplates) {
-      for (let cursor = windowStart; cursor <= windowEnd; cursor = addDays(cursor, 1)) {
-        if (cursor < contract.startsOn || cursor > contract.endsOn) continue;
+    for (const contractSite of contract.contractSites) {
+      for (const template of contractSite.serviceTemplates) {
+        for (let cursor = windowStart; cursor <= windowEnd; cursor = addDays(cursor, 1)) {
+          if (cursor < contract.startsOn || cursor > contract.endsOn) continue;
 
-        const dateKey = formatDateOnly(cursor);
-        const templateKey = `t:${template.id}:${dateKey}`;
-        const siteKey = `s:${contract.siteId}:${dateKey}`;
-        if (skipKeys.has(templateKey) || skipKeys.has(siteKey)) continue;
+          const dateKey = formatDateOnly(cursor);
+          const templateKey = `t:${template.id}:${dateKey}`;
+          const siteKey = `s:${contractSite.siteId}:${dateKey}`;
+          if (skipKeys.has(templateKey) || skipKeys.has(siteKey)) continue;
 
-        const isExtra = extraKeys.has(templateKey) || extraKeys.has(siteKey);
-        const weekday = cursor.getUTCDay(); // 0=dimanche..6=samedi
-        const dayOfWeek = weekday === 0 ? 7 : weekday; // 1=lundi..7=dimanche
-        const isScheduledWeekday = template.daysOfWeek.includes(dayOfWeek);
-        if (!isScheduledWeekday && !isExtra) continue;
-        if (holidaySet.has(dateKey) && !isExtra) continue;
+          const isExtra = extraKeys.has(templateKey) || extraKeys.has(siteKey);
+          const weekday = cursor.getUTCDay(); // 0=dimanche..6=samedi
+          const dayOfWeek = weekday === 0 ? 7 : weekday; // 1=lundi..7=dimanche
+          const isScheduledWeekday = template.daysOfWeek.includes(dayOfWeek);
+          if (!isScheduledWeekday && !isExtra) continue;
+          if (holidaySet.has(dateKey) && !isExtra) continue;
 
-        const year = cursor.getUTCFullYear();
-        const month = cursor.getUTCMonth() + 1;
-        const day = cursor.getUTCDate();
+          const year = cursor.getUTCFullYear();
+          const month = cursor.getUTCMonth() + 1;
+          const day = cursor.getUTCDate();
 
-        const startAt = parisWallTimeToUTC(
-          year,
-          month,
-          day,
-          template.startTime.getUTCHours(),
-          template.startTime.getUTCMinutes(),
-        );
-        let endAt = parisWallTimeToUTC(
-          year,
-          month,
-          day,
-          template.endTime.getUTCHours(),
-          template.endTime.getUTCMinutes(),
-        );
-        if (endAt <= startAt) {
-          // Vacation traversant minuit (rare mais possible) : fin le lendemain.
-          endAt = addDays(endAt, 1);
+          const startAt = parisWallTimeToUTC(
+            year,
+            month,
+            day,
+            template.startTime.getUTCHours(),
+            template.startTime.getUTCMinutes(),
+          );
+          let endAt = parisWallTimeToUTC(
+            year,
+            month,
+            day,
+            template.endTime.getUTCHours(),
+            template.endTime.getUTCMinutes(),
+          );
+          if (endAt <= startAt) {
+            // Vacation traversant minuit (rare mais possible) : fin le lendemain.
+            endAt = addDays(endAt, 1);
+          }
+
+          rows.push({
+            serviceTemplateId: template.id,
+            siteId: contractSite.siteId,
+            contractSiteId: contractSite.id,
+            date: dateOnlyUTC(year, month, day),
+            startAt,
+            endAt,
+            requiredAgents: template.requiredAgents,
+            // Duree vendue figee ici : une modification ulterieure du contrat ne
+            // doit pas changer retroactivement une periode deja facturee.
+            billableMinutes: template.durationMinutes,
+            status: "UNSTAFFED",
+            generatedFromTemplate: true,
+          });
         }
-
-        rows.push({
-          serviceTemplateId: template.id,
-          siteId: contract.siteId,
-          contractId: contract.id,
-          date: dateOnlyUTC(year, month, day),
-          startAt,
-          endAt,
-          requiredAgents: template.requiredAgents,
-          // Duree vendue figee ici : une modification ulterieure du contrat ne
-          // doit pas changer retroactivement une periode deja facturee.
-          billableMinutes: template.durationMinutes,
-          status: "UNSTAFFED",
-          generatedFromTemplate: true,
-        });
       }
     }
   }

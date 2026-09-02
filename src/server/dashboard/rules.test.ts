@@ -46,26 +46,28 @@ describe("règles Dashboard (intégration DB)", () => {
     const shortContract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-DASH-SHORT-${suffix}`,
         startsOn: new Date(todayDate.getTime() - 365 * 86_400_000),
         endsOn: in30Days,
-        hourlyRateHT: 20,
         status: "ACTIVE",
         renewalNoticeDays: 60,
       },
     });
+    const shortContractSite = await prisma.contractSite.create({
+      data: { contractId: shortContract.id, siteId: site.id, hourlyRateHT: 20 },
+    });
     const longContract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-DASH-LONG-${suffix}`,
         startsOn: new Date(todayDate.getTime() - 365 * 86_400_000),
         endsOn: in90Days,
-        hourlyRateHT: 20,
         status: "ACTIVE",
         renewalNoticeDays: 60,
       },
+    });
+    await prisma.contractSite.create({
+      data: { contractId: longContract.id, siteId: site.id, hourlyRateHT: 20 },
     });
 
     // Deux agents distincts : la contrainte "un seul TimeEntry OPEN par
@@ -110,7 +112,7 @@ describe("règles Dashboard (intégration DB)", () => {
     const todayShift = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: shortContract.id,
+        contractSiteId: shortContractSite.id,
         date: todayDate,
         startAt: new Date(),
         endAt: new Date(Date.now() + 3_600_000),
@@ -123,7 +125,7 @@ describe("règles Dashboard (intégration DB)", () => {
     const farShift = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: shortContract.id,
+        contractSiteId: shortContractSite.id,
         date: new Date(todayDate.getTime() + 5 * 86_400_000),
         startAt: new Date(Date.now() + 5 * 86_400_000),
         endAt: new Date(Date.now() + 5 * 86_400_000 + 3_600_000),
@@ -160,6 +162,9 @@ describe("règles Dashboard (intégration DB)", () => {
   afterAll(async () => {
     await prisma.timeEntry.deleteMany({ where: { id: { in: [recentEntryId, staleEntryId] } } });
     await prisma.shift.deleteMany({ where: { id: { in: [todayShiftId, farShiftId] } } });
+    await prisma.contractSite.deleteMany({
+      where: { contractId: { in: [shortContractId, longContractId] } },
+    });
     await prisma.contract.deleteMany({ where: { id: { in: [shortContractId, longContractId] } } });
     await prisma.site.delete({ where: { id: siteForShiftId } });
     await prisma.client.delete({ where: { id: clientId } });
@@ -214,20 +219,21 @@ describe("suggestAgentsForShift — disponibilité réelle (intégration DB)", (
     const contract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-SUGGEST-${suffix}`,
         startsOn: new Date("2020-01-01"),
         endsOn: new Date("2030-12-31"),
-        hourlyRateHT: 20,
         status: "ACTIVE",
       },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: { contractId: contract.id, siteId: site.id, hourlyRateHT: 20 },
     });
 
     const targetDate = new Date(Date.UTC(2031, 5, 15));
     const targetShift = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         date: targetDate,
         startAt: new Date(Date.UTC(2031, 5, 15, 6, 0)),
         endAt: new Date(Date.UTC(2031, 5, 15, 8, 0)),
@@ -242,7 +248,7 @@ describe("suggestAgentsForShift — disponibilité réelle (intégration DB)", (
     const overlappingShift = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         date: targetDate,
         startAt: new Date(Date.UTC(2031, 5, 15, 7, 0)),
         endAt: new Date(Date.UTC(2031, 5, 15, 9, 0)),
@@ -325,6 +331,7 @@ describe("suggestAgentsForShift — disponibilité réelle (intégration DB)", (
     await prisma.absence.delete({ where: { id: absenceId } });
     await prisma.assignment.deleteMany({ where: { shiftId: overlappingShiftId } });
     await prisma.shift.deleteMany({ where: { id: { in: [targetShiftId, overlappingShiftId] } } });
+    await prisma.contractSite.deleteMany({ where: { contractId } });
     await prisma.contract.delete({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });

@@ -36,20 +36,21 @@ describe("règles Absence / remplacement (intégration DB)", () => {
     const contract = await prisma.contract.create({
       data: {
         clientId: client.id,
-        siteId: site.id,
         reference: `C-TEST-ABSENCE-${suffix}`,
         startsOn: new Date("2020-01-01"),
         endsOn: new Date("2030-12-31"),
-        hourlyRateHT: 20,
         status: "ACTIVE",
       },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: { contractId: contract.id, siteId: site.id, hourlyRateHT: 20 },
     });
 
     const day = new Date("2026-09-15T00:00:00.000Z");
     const shiftA = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         date: day,
         startAt: new Date("2026-09-15T06:00:00.000Z"),
         endAt: new Date("2026-09-15T08:00:00.000Z"),
@@ -62,7 +63,7 @@ describe("règles Absence / remplacement (intégration DB)", () => {
     const shiftB = await prisma.shift.create({
       data: {
         siteId: site.id,
-        contractId: contract.id,
+        contractSiteId: contractSite.id,
         date: day,
         startAt: new Date("2026-09-15T07:00:00.000Z"), // chevauche shiftA
         endAt: new Date("2026-09-15T09:00:00.000Z"),
@@ -128,6 +129,7 @@ describe("règles Absence / remplacement (intégration DB)", () => {
     await prisma.absence.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.assignment.deleteMany({ where: { shiftId: { in: [shiftAId, shiftBId] } } });
     await prisma.shift.deleteMany({ where: { id: { in: [shiftAId, shiftBId] } } });
+    await prisma.contractSite.deleteMany({ where: { contractId } });
     await prisma.contract.delete({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });

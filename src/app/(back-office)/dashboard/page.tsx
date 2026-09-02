@@ -291,7 +291,8 @@ export default async function DashboardPage({
               {contract.reference}
             </Link>{" "}
             <span className="num text-zinc-600">
-              {contract.client.legalName} — {contract.site.name} · fin le{" "}
+              {contract.client.legalName} —{" "}
+              {contract.contractSites.map((cs) => cs.site.name).join(", ")} · fin le{" "}
               {formatDate(contract.endsOn)}
             </span>
           </li>

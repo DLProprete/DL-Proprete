@@ -7,7 +7,7 @@ function timeToMinutes(hhmm: string): number {
 
 export const serviceTemplateInputSchema = z
   .object({
-    contractId: z.string().min(1, "Contrat requis"),
+    contractSiteId: z.string().min(1, "Site du contrat requis"),
     name: z.string().min(1, "Nom requis"),
     daysOfWeek: z
       .array(z.coerce.number().int().min(1).max(7))

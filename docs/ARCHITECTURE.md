@@ -9,9 +9,13 @@ installée à ce stade. Ce document sert de référence pour la Session 1
 Trois points structurants pour le schéma / l'architecture ont été tranchés
 avant d'écrire ce document :
 
-1. **Facturation** : une facture par contrat (donc par site) et par mois.
-   Un client multi-sites reçoit plusieurs factures. Correspond au modèle de
-   données fourni (`Invoice.contractId`) sans le faire évoluer.
+1. **Facturation** : une facture par site couvert par le contrat, et par
+   mois (`Invoice.contractSiteId`). Un client multi-sites reçoit plusieurs
+   factures. *Mise à jour le 02/09/2026 : le contrat est devenu un
+   contrat-cadre pouvant couvrir plusieurs sites du même client
+   (`ContractSite`, voir `docs/DATA-MODEL.md`) — la granularité de la
+   facturation elle-même n'a pas changé, toujours une facture par site et
+   par mois.*
 2. **Authentification** : pas de réinitialisation de mot de passe en
    libre-service au MVP. L'ADMIN régénère un mot de passe temporaire pour un
    utilisateur bloqué. Aucun fournisseur d'e-mail transactionnel à intégrer

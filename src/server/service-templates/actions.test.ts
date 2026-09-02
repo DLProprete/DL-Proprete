@@ -6,7 +6,7 @@ import { createServiceTemplate, setServiceTemplateActive } from "./actions";
 const agent: SessionUser = { id: "u-agent", email: "agent@dlproprete.fr", role: "AGENT", isActive: true };
 
 const validInput = {
-  contractId: "any-contract-id",
+  contractSiteId: "any-contract-site-id",
   name: "Entretien quotidien",
   daysOfWeek: [1, 2, 3, 4, 5],
   startTime: "06:00",

@@ -10,7 +10,7 @@ export async function createServiceTemplate(user: SessionUser, input: unknown) {
   const data = serviceTemplateInputSchema.parse(input);
   return prisma.serviceTemplate.create({
     data: {
-      contractId: data.contractId,
+      contractSiteId: data.contractSiteId,
       name: data.name,
       daysOfWeek: data.daysOfWeek,
       startTime: timeStringToDate(data.startTime),
