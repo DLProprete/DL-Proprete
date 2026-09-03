@@ -12,14 +12,13 @@ import {
   Users,
   ScrollText,
   Settings,
+  Mail,
   type LucideIcon,
 } from "lucide-react";
 import { requireSession } from "@/server/auth/session";
 import { Sidebar, type NavGroup } from "@/components/sidebar";
 import { logoutAction } from "../actions";
 
-// Groupes et gates de rôle : reprend exactement les droits de l'ancienne
-// barre horizontale (aucun changement d'accès), juste regroupés par thème.
 const NAV_GROUPS: {
   label: string;
   items: { href: string; label: string; icon: LucideIcon; adminOnly?: boolean }[];
@@ -50,6 +49,7 @@ const NAV_GROUPS: {
   {
     label: "Pilotage",
     items: [
+      { href: "/mail", label: "Messagerie", icon: Mail, adminOnly: true },
       { href: "/audit", label: "Audit", icon: ScrollText, adminOnly: true },
       { href: "/settings", label: "Paramètres", icon: Settings, adminOnly: true },
     ],
