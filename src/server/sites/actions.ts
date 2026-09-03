@@ -34,6 +34,7 @@ export async function createSiteLog(
   user: SessionUser,
   input: { siteId: string; type: "ANOMALY" | "EQUIPMENT" | "OTHER"; comment: string; photoPath?: string | null },
 ) {
+  requireRole(user, ["ADMIN", "PLANNER", "AGENT"]);
   if (!input.comment.trim()) throw new Error("Un commentaire est requis.");
   return prisma.siteLog.create({
     data: {
