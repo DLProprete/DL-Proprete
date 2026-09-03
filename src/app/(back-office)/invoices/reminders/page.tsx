@@ -4,6 +4,7 @@ import { requireSession } from "@/server/auth/session";
 import { listInvoicesForReminders } from "@/server/billing/reminders";
 import { parisToday } from "@/lib/dates";
 import { markInvoiceRemindedAction } from "../actions";
+import { sendInvoiceReminderAction } from "../mail-actions";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("fr-FR").format(date);
@@ -16,13 +17,11 @@ function amount(value: number) {
 export default async function InvoiceRemindersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; sent?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, sent } = await searchParams;
   const user = await requireSession();
-  if (user.role !== "ADMIN") {
-    redirect("/");
-  }
+  if (user.role !== "ADMIN") redirect("/");
 
   const invoices = await listInvoicesForReminders(user);
   const today = parisToday();
@@ -32,19 +31,18 @@ export default async function InvoiceRemindersPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Relances</h1>
-        <Link href="/invoices" className="text-sm underline">
-          Retour aux factures
-        </Link>
+        <Link href="/invoices" className="text-sm underline">Retour aux factures</Link>
       </div>
       <p className="text-sm text-zinc-600">
-        Factures émises ou partiellement payées, échéance dépassée ou dans les 7 prochains jours.
+        Factures émises ou partiellement payées, échéance dépassée ou proche.
+        L'envoi e-mail choisit automatiquement J+5 ou J+15 selon le retard.
       </p>
-      {error && (
-        <p className="alert alert-danger">
-          {error}
+      {sent && (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          Relance envoyée par e-mail.
         </p>
       )}
-
+      {error && <p className="alert alert-danger">{error}</p>}
       <div className="card-table">
         <table>
           <thead>
@@ -54,7 +52,7 @@ export default async function InvoiceRemindersPage({
               <th>Échéance</th>
               <th>Restant dû</th>
               <th>Dernière relance</th>
-              <th>Marquer relancé</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -71,40 +69,21 @@ export default async function InvoiceRemindersPage({
                 <td className="text-zinc-600">
                   {invoice.lastRemindedAt ? formatDate(invoice.lastRemindedAt) : "—"}
                 </td>
-                <td>
-                  <form
-                    action={markInvoiceRemindedAction.bind(null, invoice.id)}
-                    className="flex flex-wrap items-end gap-2"
-                  >
-                    <input
-                      type="date"
-                      name="remindedOn"
-                      required
-                      defaultValue={todayValue}
-                      className="field field-sm text-xs"
-                    />
-                    <input
-                      type="text"
-                      name="note"
-                      placeholder="Note (facultatif)"
-                      maxLength={200}
-                      className="field field-sm text-xs"
-                    />
-                    <button
-                      type="submit"
-                      className="btn btn-secondary btn-xs"
-                    >
-                      Marquer relancé le
-                    </button>
+                <td className="space-y-2">
+                  <form action={sendInvoiceReminderAction.bind(null, invoice.id)}>
+                    <button type="submit" className="btn btn-dark btn-xs">Envoyer relance e-mail</button>
+                  </form>
+                  <form action={markInvoiceRemindedAction.bind(null, invoice.id)} className="flex flex-wrap items-end gap-2">
+                    <input type="date" name="remindedOn" required defaultValue={todayValue} className="field field-sm text-xs" />
+                    <input type="text" name="note" placeholder="Note (facultatif)" maxLength={200} className="field field-sm text-xs" />
+                    <button type="submit" className="btn btn-secondary btn-xs">Marquer relancé</button>
                   </form>
                 </td>
               </tr>
             ))}
             {invoices.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-zinc-500">
-                  Aucune relance à faire.
-                </td>
+                <td colSpan={6} className="text-zinc-500">Aucune relance à faire.</td>
               </tr>
             )}
           </tbody>
