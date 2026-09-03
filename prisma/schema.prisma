@@ -29,6 +29,14 @@ enum ContractStatus {
   ENDED
 }
 
+// Suivi manuel : signature geree hors outil (interface web Yousign, palier
+// gratuit), pas d'API. L'ADMIN/PLANNER fait avancer ce statut a la main.
+enum ContractSignatureStatus {
+  NOT_SENT
+  SENT
+  SIGNED
+}
+
 enum ShiftStatus {
   PLANNED
   PARTIALLY_STAFFED
@@ -320,6 +328,10 @@ model Contract {
   notes             String?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
+
+  signatureStatus ContractSignatureStatus @default(NOT_SENT)
+  signatureSentAt DateTime?
+  signedAt        DateTime?
 
   client        Client         @relation(fields: [clientId], references: [id])
   contractSites ContractSite[]

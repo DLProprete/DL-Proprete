@@ -5,6 +5,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   CONTRACT_UPDATED: "Contrat modifié",
   CONTRACT_ACTIVATED: "Contrat activé",
   CONTRACT_SITE_CREATED: "Site ajouté au contrat",
+  CONTRACT_SIGNATURE_SENT: "Contrat envoyé à signer",
+  CONTRACT_SIGNATURE_SIGNED: "Contrat signé",
   INVOICE_CREATED: "Facture créée",
   INVOICE_ISSUED: "Facture émise",
   INVOICE_PAYMENT: "Paiement enregistré",

@@ -8,7 +8,16 @@ import { contractMonthlyProjection } from "@/server/contracts/projection";
 import { formatTime } from "@/lib/dates";
 import { Badge } from "@/components/badge";
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_TONE } from "@/lib/contract-status";
-import { setServiceTemplateActiveAction, createServiceExceptionAction } from "../actions";
+import {
+  CONTRACT_SIGNATURE_STATUS_LABELS,
+  CONTRACT_SIGNATURE_STATUS_TONE,
+} from "@/lib/contract-signature-status";
+import {
+  setServiceTemplateActiveAction,
+  createServiceExceptionAction,
+  markContractSignatureSentAction,
+  markContractSignatureSignedAction,
+} from "../actions";
 import { ServiceTemplateForm } from "./ServiceTemplateForm";
 import { ContractSiteForm } from "./ContractSiteForm";
 
@@ -54,6 +63,34 @@ export default async function ContractDetailPage({
             tone={CONTRACT_STATUS_TONE[contract.status] ?? "neutral"}
             label={CONTRACT_STATUS_LABELS[contract.status] ?? contract.status}
           />
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Badge
+            tone={CONTRACT_SIGNATURE_STATUS_TONE[contract.signatureStatus] ?? "neutral"}
+            label={`Signature : ${CONTRACT_SIGNATURE_STATUS_LABELS[contract.signatureStatus] ?? contract.signatureStatus}`}
+          />
+          <a
+            href={`/api/contracts/${contract.id}/pdf`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm underline"
+          >
+            Télécharger le PDF
+          </a>
+          {contract.signatureStatus === "NOT_SENT" && (
+            <form action={markContractSignatureSentAction.bind(null, contract.id)}>
+              <button type="submit" className="btn btn-secondary btn-sm">
+                Marquer comme envoyé à signer
+              </button>
+            </form>
+          )}
+          {contract.signatureStatus !== "SIGNED" && (
+            <form action={markContractSignatureSignedAction.bind(null, contract.id)}>
+              <button type="submit" className="btn btn-secondary btn-sm">
+                Marquer comme signé
+              </button>
+            </form>
+          )}
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <dt className="text-zinc-600">Client</dt>

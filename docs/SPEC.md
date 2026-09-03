@@ -117,6 +117,16 @@ du contrat, pour chaque site. ADMIN affecte ensuite les agents. La
 facturation reste aussi granulaire qu'avant : une facture par site et par
 mois (voir 5.4).
 
+**Signature électronique (ajouté le 03/09/2026)** : la fiche contrat permet
+de télécharger un PDF du contrat-cadre (identité DL Propreté et client,
+sites couverts avec leur tarif). La signature elle-même se fait *hors de
+l'outil*, sur l'interface web gratuite de Yousign (5 signatures/mois,
+suffisant pour le volume réel — 1 à 3 par an et par contrat) : pas
+d'intégration API, jugée non pertinente pour ce volume face à son coût de
+mise en production (voir chantier numérique). ADMIN/PLANNER fait avancer
+à la main le statut affiché sur la fiche (Non envoyé → Envoyé → Signé)
+une fois l'envoi puis la signature effectués côté Yousign.
+
 ### 5.2 Semaine type d’un agent
 
 L’agent ouvre l’application le matin, voit ses sites du jour, démarre le

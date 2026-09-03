@@ -67,6 +67,14 @@ site et par mois.*
 - status: DRAFT | ACTIVE | SUSPENDED | ENDED
 - renewalNoticeDays (défaut 60)
 - notes
+- signatureStatus: NOT_SENT | SENT | SIGNED (défaut NOT_SENT) — suivi
+  *manuel* de la signature électronique (ajouté le 03/09/2026, voir
+  `docs/SPEC.md`). La signature elle-même se fait hors outil, sur
+  l'interface web gratuite de Yousign (pas d'intégration API : voir
+  ci-dessous).
+- signatureSentAt, signedAt (nullables) — horodatage renseigné par
+  l'ADMIN/PLANNER au moment où il fait avancer `signatureStatus` à la
+  main, pas par un webhook
 
 ### ContractSite (un site sous un contrat-cadre)
 *Nouveau le 02/09/2026.* Porte tout ce qui varie par site sous un même

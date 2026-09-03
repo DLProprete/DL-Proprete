@@ -4,7 +4,11 @@ import { ZodError } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { createContract } from "@/server/contracts/actions";
+import {
+  createContract,
+  markContractSignatureSent,
+  markContractSignatureSigned,
+} from "@/server/contracts/actions";
 import { ContractOverlapError } from "@/server/contracts/overlap";
 import { createContractSite } from "@/server/contract-sites/actions";
 import { createServiceTemplate, setServiceTemplateActive } from "@/server/service-templates/actions";
@@ -81,6 +85,18 @@ export async function createServiceTemplateAction(formData: FormData) {
 
   revalidatePath(`/contracts/${contractId}`);
   redirect(`/contracts/${contractId}`);
+}
+
+export async function markContractSignatureSentAction(contractId: string) {
+  const user = await requireSession();
+  await markContractSignatureSent(user, contractId);
+  revalidatePath(`/contracts/${contractId}`);
+}
+
+export async function markContractSignatureSignedAction(contractId: string) {
+  const user = await requireSession();
+  await markContractSignatureSigned(user, contractId);
+  revalidatePath(`/contracts/${contractId}`);
 }
 
 export async function setServiceTemplateActiveAction(
