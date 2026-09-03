@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { deleteMailboxMessage, saveMailboxDraft, sendMailboxMessage } from "@/server/mail/actions";
+import { deleteMailboxMessages, saveMailboxDraft, sendMailboxMessage } from "@/server/mail/actions";
 import { encodeFolder } from "@/server/mail/imap";
 
 function field(formData: FormData, name: string) {
@@ -43,6 +43,17 @@ export async function saveDraftAction(formData: FormData) {
 
 export async function deleteMailAction(folder: string, uid: number) {
   const user = await requireSession();
-  await deleteMailboxMessage(user, folder, uid);
+  await deleteMailboxMessages(user, folder, [uid]);
+  redirect(`/mail?folder=${encodeFolder(folder)}&deleted=1`);
+}
+
+export async function bulkDeleteMailAction(formData: FormData) {
+  const user = await requireSession();
+  const folder = field(formData, "folder") || "INBOX";
+  const uids = formData.getAll("uid").map((value) => Number(value));
+  if (uids.length === 0) {
+    redirect(`/mail?folder=${encodeFolder(folder)}`);
+  }
+  await deleteMailboxMessages(user, folder, uids);
   redirect(`/mail?folder=${encodeFolder(folder)}&deleted=1`);
 }

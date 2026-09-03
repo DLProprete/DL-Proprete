@@ -70,21 +70,27 @@ export async function saveMailboxDraft(
   invalidateMailCache();
 }
 
-export async function deleteMailboxMessage(user: SessionUser, folder: string, uid: number) {
+export async function deleteMailboxMessages(user: SessionUser, folder: string, uids: number[]) {
   requireRole(user, [...WRITE_ROLES]);
-  if (!Number.isInteger(uid) || uid < 1) return;
+  const unique = [...new Set(uids.filter((uid) => Number.isInteger(uid) && uid > 0))];
+  if (unique.length === 0) return;
   await withImap(async (client) => {
     const folders = await resolveFolders(client);
     const lock = await client.getMailboxLock(folder);
     try {
+      const range = unique.join(",");
       if (folder === folders.trash) {
-        await client.messageDelete(String(uid), { uid: true });
+        await client.messageDelete(range, { uid: true });
       } else {
-        await client.messageMove(String(uid), folders.trash, { uid: true });
+        await client.messageMove(range, folders.trash, { uid: true });
       }
     } finally {
       lock.release();
     }
   });
   invalidateMailCache();
+}
+
+export async function deleteMailboxMessage(user: SessionUser, folder: string, uid: number) {
+  await deleteMailboxMessages(user, folder, [uid]);
 }
