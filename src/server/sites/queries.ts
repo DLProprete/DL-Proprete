@@ -11,20 +11,23 @@ export async function listSites(user: SessionUser) {
   });
 }
 
-// Pour le formulaire "Ajouter un site à ce contrat" : ne proposer que les
-// sites du client concerné, pas tous les sites de l'outil.
 export async function listSitesForClient(user: SessionUser, clientId: string) {
   requireRole(user, [...MANAGE_ROLES]);
-  return prisma.site.findMany({
-    where: { clientId },
-    orderBy: { name: "asc" },
-  });
+  return prisma.site.findMany({ where: { clientId }, orderBy: { name: "asc" } });
 }
 
 export async function getSite(user: SessionUser, id: string) {
   requireRole(user, [...MANAGE_ROLES]);
   return prisma.site.findUnique({
     where: { id },
-    include: { client: true, contractSites: { include: { contract: true } } },
+    include: {
+      client: true,
+      contractSites: { include: { contract: true } },
+      logs: {
+        orderBy: { createdAt: "desc" },
+        take: 40,
+        include: { user: { select: { firstName: true, lastName: true } } },
+      },
+    },
   });
 }
