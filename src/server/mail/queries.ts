@@ -1,101 +1,109 @@
-import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import { requireRole, type SessionUser } from "@/server/auth/session";
-import { getMailboxConfig } from "./config";
+import { folderLabel, resolveFolders, withImap } from "./imap";
+
+export { MailboxNotConfiguredError, MailboxUnavailableError } from "./imap";
 
 const READ_ROLES = ["ADMIN"] as const;
 const LIST_LIMIT = 50;
-
-export class MailboxNotConfiguredError extends Error {}
-export class MailboxUnavailableError extends Error {}
 
 export type MailListItem = {
   uid: number;
   subject: string;
   from: string;
+  to: string;
   date: Date | null;
   unseen: boolean;
 };
 
 export type MailMessage = MailListItem & {
   text: string;
+  messageId: string | null;
 };
 
-async function withInbox<T>(fn: (client: ImapFlow) => Promise<T>): Promise<T> {
-  const config = getMailboxConfig();
-  if (!config) {
-    throw new MailboxNotConfiguredError("Boîte mail non configurée");
-  }
-
-  const client = new ImapFlow({
-    host: config.host,
-    port: config.port,
-    secure: true,
-    auth: { user: config.user, pass: config.password },
-    logger: false,
+export async function listMailFolders(user: SessionUser) {
+  requireRole(user, [...READ_ROLES]);
+  return withImap(async (client) => {
+    const folders = await resolveFolders(client);
+    return [
+      { path: folders.inbox, label: folderLabel(folders.inbox, folders) },
+      { path: folders.sent, label: folderLabel(folders.sent, folders) },
+      { path: folders.drafts, label: folderLabel(folders.drafts, folders) },
+      { path: folders.junk, label: folderLabel(folders.junk, folders) },
+      { path: folders.trash, label: folderLabel(folders.trash, folders) },
+    ];
   });
+}
 
-  try {
-    await client.connect();
-    const lock = await client.getMailboxLock("INBOX");
+export async function listMessages(user: SessionUser, folder: string): Promise<MailListItem[]> {
+  requireRole(user, [...READ_ROLES]);
+  return withImap(async (client) => {
+    const lock = await client.getMailboxLock(folder);
     try {
-      return await fn(client);
+      const exists = client.mailbox && typeof client.mailbox === "object" ? client.mailbox.exists : 0;
+      if (!exists) return [];
+      const from = Math.max(1, exists - LIST_LIMIT + 1);
+      const items: MailListItem[] = [];
+      for await (const msg of client.fetch(`${from}:${exists}`, { envelope: true, flags: true, uid: true })) {
+        items.push(toListItem(msg));
+      }
+      return items.reverse();
     } finally {
       lock.release();
     }
-  } catch (error) {
-    if (error instanceof MailboxNotConfiguredError) throw error;
-    const message = error instanceof Error ? error.message : "erreur inconnue";
-    throw new MailboxUnavailableError(`Impossible de lire la boîte OVH : ${message}`);
-  } finally {
-    try {
-      await client.logout();
-    } catch {
-      /* déjà déconnecté */
-    }
-  }
-}
-
-export async function listInbox(user: SessionUser): Promise<MailListItem[]> {
-  requireRole(user, [...READ_ROLES]);
-  return withInbox(async (client) => {
-    const exists = client.mailbox && typeof client.mailbox === "object" ? client.mailbox.exists : 0;
-    if (!exists) return [];
-    const from = Math.max(1, exists - LIST_LIMIT + 1);
-    const items: MailListItem[] = [];
-    for await (const msg of client.fetch(`${from}:${exists}`, { envelope: true, flags: true, uid: true })) {
-      const fromAddress = msg.envelope?.from?.[0];
-      items.push({
-        uid: msg.uid,
-        subject: msg.envelope?.subject?.trim() || "(sans objet)",
-        from: fromAddress?.address || fromAddress?.name || "—",
-        date: msg.envelope?.date ?? null,
-        unseen: !(msg.flags && msg.flags.has("\\Seen")),
-      });
-    }
-    return items.reverse();
   });
 }
 
-export async function getInboxMessage(user: SessionUser, uid: number): Promise<MailMessage | null> {
+export async function getMessage(user: SessionUser, folder: string, uid: number): Promise<MailMessage | null> {
   requireRole(user, [...READ_ROLES]);
   if (!Number.isInteger(uid) || uid < 1) return null;
-  return withInbox(async (client) => {
-    const msg = await client.fetchOne(String(uid), { envelope: true, flags: true, uid: true, source: true }, { uid: true });
-    if (!msg || !msg.source) return null;
-    const parsed = await simpleParser(msg.source);
-    const fromAddress = msg.envelope?.from?.[0];
-    const text =
-      parsed.text?.trim() ||
-      parsed.html?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() ||
-      "(message vide)";
-    return {
-      uid: msg.uid,
-      subject: msg.envelope?.subject?.trim() || parsed.subject || "(sans objet)",
-      from: fromAddress?.address || fromAddress?.name || parsed.from?.text || "—",
-      date: msg.envelope?.date ?? parsed.date ?? null,
-      unseen: !(msg.flags && msg.flags.has("\\Seen")),
-      text,
-    };
+  return withImap(async (client) => {
+    const lock = await client.getMailboxLock(folder);
+    try {
+      const msg = await client.fetchOne(
+        String(uid),
+        { envelope: true, flags: true, uid: true, source: true },
+        { uid: true },
+      );
+      if (!msg || !msg.source) return null;
+      await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
+      const parsed = await simpleParser(msg.source);
+      const text =
+        parsed.text?.trim() ||
+        parsed.html?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() ||
+        "(message vide)";
+      return {
+        ...toListItem(msg),
+        text,
+        messageId: parsed.messageId ?? null,
+      };
+    } finally {
+      lock.release();
+    }
   });
+}
+
+function formatAddresses(list: { name?: string; address?: string }[] | undefined) {
+  if (!list?.length) return "—";
+  return list.map((item) => item.address || item.name || "—").join(", ");
+}
+
+function toListItem(msg: {
+  uid: number;
+  envelope?: {
+    subject?: string | null;
+    from?: { name?: string; address?: string }[];
+    to?: { name?: string; address?: string }[];
+    date?: Date | null;
+  } | null;
+  flags?: Set<string>;
+}): MailListItem {
+  return {
+    uid: msg.uid,
+    subject: msg.envelope?.subject?.trim() || "(sans objet)",
+    from: formatAddresses(msg.envelope?.from),
+    to: formatAddresses(msg.envelope?.to),
+    date: msg.envelope?.date ?? null,
+    unseen: !(msg.flags && msg.flags.has("\\Seen")),
+  };
 }
