@@ -1,11 +1,14 @@
 import { simpleParser } from "mailparser";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { folderLabel, resolveFolders, withImap } from "./imap";
+import { cachedFolders, cachedList } from "./cache";
 
 export { MailboxNotConfiguredError, MailboxUnavailableError } from "./imap";
 
 const READ_ROLES = ["ADMIN"] as const;
 const LIST_LIMIT = 50;
+
+export type MailFolder = { path: string; label: string };
 
 export type MailListItem = {
   uid: number;
@@ -21,22 +24,17 @@ export type MailMessage = MailListItem & {
   messageId: string | null;
 };
 
-export async function listMailFolders(user: SessionUser) {
-  requireRole(user, [...READ_ROLES]);
-  return withImap(async (client) => {
-    const folders = await resolveFolders(client);
-    return [
-      { path: folders.inbox, label: folderLabel(folders.inbox, folders) },
-      { path: folders.sent, label: folderLabel(folders.sent, folders) },
-      { path: folders.drafts, label: folderLabel(folders.drafts, folders) },
-      { path: folders.junk, label: folderLabel(folders.junk, folders) },
-      { path: folders.trash, label: folderLabel(folders.trash, folders) },
-    ];
-  });
+function navFromResolved(folders: Awaited<ReturnType<typeof resolveFolders>>): MailFolder[] {
+  return [
+    { path: folders.inbox, label: folderLabel(folders.inbox, folders) },
+    { path: folders.sent, label: folderLabel(folders.sent, folders) },
+    { path: folders.drafts, label: folderLabel(folders.drafts, folders) },
+    { path: folders.junk, label: folderLabel(folders.junk, folders) },
+    { path: folders.trash, label: folderLabel(folders.trash, folders) },
+  ];
 }
 
-export async function listMessages(user: SessionUser, folder: string): Promise<MailListItem[]> {
-  requireRole(user, [...READ_ROLES]);
+async function fetchMessageList(folder: string): Promise<MailListItem[]> {
   return withImap(async (client) => {
     const lock = await client.getMailboxLock(folder);
     try {
@@ -52,6 +50,29 @@ export async function listMessages(user: SessionUser, folder: string): Promise<M
       lock.release();
     }
   });
+}
+
+export async function listMailFolders(user: SessionUser) {
+  requireRole(user, [...READ_ROLES]);
+  return cachedFolders(() => withImap(async (client) => navFromResolved(await resolveFolders(client))));
+}
+
+export async function listMessages(user: SessionUser, folder: string): Promise<MailListItem[]> {
+  requireRole(user, [...READ_ROLES]);
+  return cachedList(folder, () => fetchMessageList(folder));
+}
+
+export async function listMailboxPage(user: SessionUser, requestedFolder: string) {
+  requireRole(user, [...READ_ROLES]);
+  const folders = await cachedFolders(() =>
+    withImap(async (client) => navFromResolved(await resolveFolders(client))),
+  );
+  const match = folders.find(
+    (folder) => folder.path === requestedFolder || folder.path.toLowerCase() === requestedFolder.toLowerCase(),
+  );
+  const current = match?.path ?? folders[0]?.path ?? "INBOX";
+  const messages = await cachedList(current, () => fetchMessageList(current));
+  return { folders, current, messages };
 }
 
 export async function getMessage(user: SessionUser, folder: string, uid: number): Promise<MailMessage | null> {
