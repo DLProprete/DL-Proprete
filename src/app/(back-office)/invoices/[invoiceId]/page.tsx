@@ -15,6 +15,7 @@ import { dateOnlyUTC, parisToday } from "@/lib/dates";
 import { invoiceStatusBadge } from "@/lib/invoice-status";
 import { Badge } from "@/components/badge";
 import { addAdhocLineAction, issueInvoiceAction, recordPaymentAction } from "../actions";
+import { sendInvoiceEmailAction } from "../mail-actions";
 
 const SOURCE_LABELS: Record<string, string> = {
   PLANNED_HOURS: "Heures prévues",
@@ -34,19 +35,15 @@ export default async function InvoiceDetailPage({
   searchParams,
 }: {
   params: Promise<{ invoiceId: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; sent?: string }>;
 }) {
   const { invoiceId } = await params;
-  const { error } = await searchParams;
+  const { error, sent } = await searchParams;
   const user = await requireSession();
-  if (user.role !== "ADMIN") {
-    redirect("/clients");
-  }
+  if (user.role !== "ADMIN") redirect("/clients");
 
   const invoice = await getInvoice(user, invoiceId);
-  if (!invoice) {
-    notFound();
-  }
+  if (!invoice) notFound();
 
   const control =
     invoice.contractSite && invoice.periodYear && invoice.periodMonth
@@ -61,17 +58,8 @@ export default async function InvoiceDetailPage({
   const balanceDue = computeBalanceDue(invoice);
   const today = parisToday();
   const todayDate = dateOnlyUTC(today.year, today.month, today.day);
-
-  // Controle avant emission, pas apres : une facture emise est verrouillee et
-  // ne se corrige que par un avoir.
   const company = await getCompanyProfile();
   const missingMentions = missingLegalMentions(companyProfileToLegalIdentity(company));
-
-  // Alerte de couverture (mois incomplet / ecart au volume contractuel),
-  // recalculee a chaque affichage : contrairement au flash affiche juste
-  // apres une generation groupee, elle doit rester visible si l'ADMIN emet
-  // le brouillon plus tard. N'a de sens que pour les contrats factures au
-  // calendrier (le forfait lisse ne depend pas des Shift generes).
   const coverageWarningsList =
     invoice.contractSite?.billingBasis === "CALENDAR_SHIFTS" &&
     invoice.periodYear &&
@@ -82,6 +70,9 @@ export default async function InvoiceDetailPage({
           invoice.periodMonth,
         )
       : [];
+
+  const canEmail =
+    invoice.status !== "DRAFT" && invoice.status !== "CANCELLED";
 
   return (
     <div className="max-w-3xl space-y-8">
@@ -95,55 +86,49 @@ export default async function InvoiceDetailPage({
               : ""}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Badge {...invoiceStatusBadge({ status: invoice.status, dueOn: invoice.dueOn, balanceDue }, todayDate)} />
-          <a
-            href={`/api/invoices/${invoice.id}/pdf`}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-secondary"
-          >
+          <a href={`/api/invoices/${invoice.id}/pdf`} target="_blank" rel="noreferrer" className="btn btn-secondary">
             PDF
           </a>
+          {canEmail && (
+            <form action={sendInvoiceEmailAction.bind(null, invoice.id)}>
+              <button type="submit" className="btn btn-secondary">
+                Envoyer par e-mail
+              </button>
+            </form>
+          )}
           {invoice.status === "DRAFT" && (
             <form action={issueInvoiceAction.bind(null, invoice.id)}>
-              <button
-                type="submit"
-                className="btn btn-primary"
-              >
-                Émettre
-              </button>
+              <button type="submit" className="btn btn-primary">Émettre</button>
             </form>
           )}
         </div>
       </div>
 
+      {sent && (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          Facture envoyée{invoice.client.email ? ` à ${invoice.client.email}` : ""}.
+        </p>
+      )}
+      {error && <p className="alert alert-danger">{error}</p>}
+
       {invoice.status === "DRAFT" && missingMentions.length > 0 && (
         <div className="alert alert-warning">
-          <span className="font-medium">Mentions légales incomplètes</span> —{" "}
-          {describeMissingMentions(missingMentions)}.{" "}
-          <Link href="/settings" className="underline">
-            Compléter les paramètres
-          </Link>{" "}
-          avant d&apos;émettre : une facture émise ne se corrige que par un avoir.
+          <span className="font-medium">Mentions légales incomplètes</span> — {describeMissingMentions(missingMentions)}.{" "}
+          <Link href="/settings" className="underline">Compléter les paramètres</Link> avant d'émettre.
         </div>
       )}
 
       {invoice.status === "DRAFT" && coverageWarningsList.length > 0 && (
         <div className="alert alert-warning">
-          <span className="font-medium">À vérifier avant d&apos;émettre</span>
+          <span className="font-medium">À vérifier avant d'émettre</span>
           <ul className="mt-1 list-disc space-y-1 pl-5">
             {coverageWarningsList.map((warning) => (
               <li key={warning.kind}>{describeCoverageWarning(warning)}</li>
             ))}
           </ul>
         </div>
-      )}
-
-      {error && (
-        <p className="alert alert-danger">
-          {error}
-        </p>
       )}
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -157,6 +142,8 @@ export default async function InvoiceDetailPage({
             ? `${String(invoice.periodMonth).padStart(2, "0")}/${invoice.periodYear}`
             : "—"}
         </dd>
+        <dt className="text-zinc-600">E-mail client</dt>
+        <dd>{invoice.client.email ?? "—"}</dd>
       </dl>
 
       <div>
@@ -180,9 +167,7 @@ export default async function InvoiceDetailPage({
                 <td className="text-zinc-600">{Number(line.quantity).toFixed(2)}</td>
                 <td className="text-zinc-600">{amount(line.unitPriceHT)}</td>
                 <td className="text-zinc-600">{Number(line.vatRate).toFixed(0)} %</td>
-                <td className="text-zinc-600">
-                  {amount(Number(line.quantity) * Number(line.unitPriceHT))}
-                </td>
+                <td className="text-zinc-600">{amount(Number(line.quantity) * Number(line.unitPriceHT))}</td>
               </tr>
             ))}
           </tbody>
@@ -200,86 +185,38 @@ export default async function InvoiceDetailPage({
       {invoice.status === "DRAFT" && (
         <div>
           <h2 className="text-sm font-medium text-zinc-700">Ajouter une ligne ponctuelle</h2>
-          <form
-            action={addAdhocLineAction.bind(null, invoice.id)}
-            className="mt-2 flex flex-wrap items-end gap-3"
-          >
+          <form action={addAdhocLineAction.bind(null, invoice.id)} className="mt-2 flex flex-wrap items-end gap-3">
             <div>
-              <label htmlFor="label" className="block text-xs text-zinc-600">
-                Libellé
-              </label>
-              <input
-                id="label"
-                name="label"
-                required
-                className="field field-sm"
-              />
+              <label htmlFor="label" className="block text-xs text-zinc-600">Libellé</label>
+              <input id="label" name="label" required className="field field-sm" />
             </div>
             <div>
-              <label htmlFor="quantity" className="block text-xs text-zinc-600">
-                Quantité
-              </label>
-              <input
-                id="quantity"
-                name="quantity"
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                className="w-24 field field-sm"
-              />
+              <label htmlFor="quantity" className="block text-xs text-zinc-600">Quantité</label>
+              <input id="quantity" name="quantity" type="number" step="0.01" min="0" required className="w-24 field field-sm" />
             </div>
             <div>
-              <label htmlFor="unitPriceHT" className="block text-xs text-zinc-600">
-                PU HT (€)
-              </label>
-              <input
-                id="unitPriceHT"
-                name="unitPriceHT"
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                className="w-28 field field-sm"
-              />
+              <label htmlFor="unitPriceHT" className="block text-xs text-zinc-600">PU HT (€)</label>
+              <input id="unitPriceHT" name="unitPriceHT" type="number" step="0.01" min="0" required className="w-28 field field-sm" />
             </div>
             <div>
-              <label htmlFor="vatRate" className="block text-xs text-zinc-600">
-                TVA (%)
-              </label>
-              <input
-                id="vatRate"
-                name="vatRate"
-                type="number"
-                step="0.01"
-                defaultValue={20}
-                className="w-20 field field-sm"
-              />
+              <label htmlFor="vatRate" className="block text-xs text-zinc-600">TVA (%)</label>
+              <input id="vatRate" name="vatRate" type="number" step="0.01" defaultValue={20} className="w-20 field field-sm" />
             </div>
-            <button
-              type="submit"
-              className="btn btn-secondary btn-sm"
-            >
-              Ajouter
-            </button>
+            <button type="submit" className="btn btn-secondary btn-sm">Ajouter</button>
           </form>
         </div>
       )}
 
       {control && (
         <div>
-          <h2 className="text-sm font-medium text-zinc-700">
-            Contrôle — heures pointées validées du mois (non facturées)
-          </h2>
+          <h2 className="text-sm font-medium text-zinc-700">Contrôle — heures pointées validées du mois (non facturées)</h2>
           <p className="text-sm text-zinc-600">
             {control.totalHours.toFixed(2)} h sur {control.entryCount} pointage(s) validé(s)
           </p>
         </div>
       )}
 
-      {(invoice.status === "ISSUED" ||
-        invoice.status === "PARTIALLY_PAID" ||
-        invoice.status === "PAID") && (
+      {(invoice.status === "ISSUED" || invoice.status === "PARTIALLY_PAID" || invoice.status === "PAID") && (
         <div>
           <h2 className="text-sm font-medium text-zinc-700">Paiements</h2>
           <ul className="mt-2 divide-y divide-zinc-100 text-sm">
@@ -289,55 +226,22 @@ export default async function InvoiceDetailPage({
                 {payment.reference ? ` — ${payment.reference}` : ""}
               </li>
             ))}
-            {invoice.payments.length === 0 && (
-              <li className="py-2 text-zinc-500">Aucun paiement pour l&apos;instant.</li>
-            )}
+            {invoice.payments.length === 0 && <li className="py-2 text-zinc-500">Aucun paiement pour l'instant.</li>}
           </ul>
-          <p className="mt-1 text-sm text-zinc-600">
-            Reste dû : {amount(Math.max(balanceDue, 0))}
-          </p>
-
+          <p className="mt-1 text-sm text-zinc-600">Reste dû : {amount(Math.max(balanceDue, 0))}</p>
           {balanceDue > 0 && (
-            <form
-              action={recordPaymentAction.bind(null, invoice.id)}
-              className="mt-3 flex flex-wrap items-end gap-3"
-            >
+            <form action={recordPaymentAction.bind(null, invoice.id)} className="mt-3 flex flex-wrap items-end gap-3">
               <div>
-                <label htmlFor="paidOn" className="block text-xs text-zinc-600">
-                  Date
-                </label>
-                <input
-                  id="paidOn"
-                  name="paidOn"
-                  type="date"
-                  required
-                  className="field field-sm"
-                />
+                <label htmlFor="paidOn" className="block text-xs text-zinc-600">Date</label>
+                <input id="paidOn" name="paidOn" type="date" required className="field field-sm" />
               </div>
               <div>
-                <label htmlFor="amount" className="block text-xs text-zinc-600">
-                  Montant (€)
-                </label>
-                <input
-                  id="amount"
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  defaultValue={balanceDue.toFixed(2)}
-                  className="w-28 field field-sm"
-                />
+                <label htmlFor="amount" className="block text-xs text-zinc-600">Montant (€)</label>
+                <input id="amount" name="amount" type="number" step="0.01" min="0" required defaultValue={balanceDue.toFixed(2)} className="w-28 field field-sm" />
               </div>
               <div>
-                <label htmlFor="method" className="block text-xs text-zinc-600">
-                  Moyen
-                </label>
-                <select
-                  id="method"
-                  name="method"
-                  className="field field-sm"
-                >
+                <label htmlFor="method" className="block text-xs text-zinc-600">Moyen</label>
+                <select id="method" name="method" className="field field-sm">
                   <option value="TRANSFER">Virement</option>
                   <option value="CHEQUE">Chèque</option>
                   <option value="CASH">Espèces</option>
@@ -345,30 +249,17 @@ export default async function InvoiceDetailPage({
                 </select>
               </div>
               <div>
-                <label htmlFor="reference" className="block text-xs text-zinc-600">
-                  Référence
-                </label>
-                <input
-                  id="reference"
-                  name="reference"
-                  className="field field-sm"
-                />
+                <label htmlFor="reference" className="block text-xs text-zinc-600">Référence</label>
+                <input id="reference" name="reference" className="field field-sm" />
               </div>
-              <button
-                type="submit"
-                className="btn btn-secondary btn-sm"
-              >
-                Enregistrer le paiement
-              </button>
+              <button type="submit" className="btn btn-secondary btn-sm">Enregistrer le paiement</button>
             </form>
           )}
         </div>
       )}
 
       <p>
-        <Link href="/invoices" className="text-sm underline">
-          Retour aux factures
-        </Link>
+        <Link href="/invoices" className="text-sm underline">Retour aux factures</Link>
       </p>
     </div>
   );
