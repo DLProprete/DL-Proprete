@@ -12,6 +12,23 @@ export async function createClient(user: SessionUser, input: unknown) {
   });
 }
 
+export async function updateClient(user: SessionUser, id: string, input: unknown) {
+  requireRole(user, [...MANAGE_ROLES]);
+  const data = clientInputSchema.parse(input);
+  return prisma.client.update({
+    where: { id },
+    data: {
+      ...data,
+      email: data.email || null,
+      tradeName: data.tradeName || null,
+      siret: data.siret || null,
+      vatNumber: data.vatNumber || null,
+      phone: data.phone || null,
+      notes: data.notes || null,
+    },
+  });
+}
+
 export async function setClientActive(user: SessionUser, id: string, isActive: boolean) {
   requireRole(user, [...MANAGE_ROLES]);
   return prisma.client.update({ where: { id }, data: { isActive } });

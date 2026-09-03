@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getClient } from "@/server/clients/queries";
-import { setClientActiveAction, sendPortalLinkAction } from "../actions";
+import { setClientActiveAction, sendPortalLinkAction, updateClientAction } from "../actions";
 
 const PORTAL_ERROR_MESSAGES: Record<string, string> = {
   "no-email": "Ce client n'a pas d'adresse e-mail renseignée — à compléter avant d'envoyer un lien.",
@@ -13,10 +13,10 @@ export default async function ClientDetailPage({
   searchParams,
 }: {
   params: Promise<{ clientId: string }>;
-  searchParams: Promise<{ portalSent?: string; portalError?: string }>;
+  searchParams: Promise<{ portalSent?: string; portalError?: string; updated?: string }>;
 }) {
   const { clientId } = await params;
-  const { portalSent, portalError } = await searchParams;
+  const { portalSent, portalError, updated } = await searchParams;
   const user = await requireSession();
   const client = await getClient(user, clientId);
 
@@ -26,6 +26,7 @@ export default async function ClientDetailPage({
 
   const toggleActive = setClientActiveAction.bind(null, client.id, !client.isActive);
   const sendPortalLink = sendPortalLinkAction.bind(null, client.id);
+  const updateClient = updateClientAction.bind(null, client.id);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -41,6 +42,7 @@ export default async function ClientDetailPage({
         </form>
       </div>
 
+      {updated && <p className="alert alert-info">Fiche client enregistrée.</p>}
       {portalSent && <p className="alert alert-info">Lien d&apos;accès envoyé.</p>}
       {portalError && (
         <p className="alert alert-danger">
@@ -48,33 +50,134 @@ export default async function ClientDetailPage({
         </p>
       )}
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-        <dt className="text-zinc-600">Statut</dt>
-        <dd>{client.isActive ? "Actif" : "Désactivé"}</dd>
-        <dt className="text-zinc-600">Nom commercial</dt>
-        <dd>{client.tradeName ?? "—"}</dd>
-        <dt className="text-zinc-600">Adresse de facturation</dt>
-        <dd>{client.billingAddress}</dd>
-        <dt className="text-zinc-600">SIRET</dt>
-        <dd>{client.siret ?? "—"}</dd>
-        <dt className="text-zinc-600">N° TVA</dt>
-        <dd>{client.vatNumber ?? "—"}</dd>
-        <dt className="text-zinc-600">E-mail</dt>
-        <dd>
-          {client.email ?? "—"}
-          {client.email && (
-            <form action={sendPortalLink} className="mt-1">
-              <button type="submit" className="text-xs text-brand-700 underline">
-                Envoyer un lien d&apos;accès à l&apos;espace client
-              </button>
-            </form>
-          )}
-        </dd>
-        <dt className="text-zinc-600">Téléphone</dt>
-        <dd>{client.phone ?? "—"}</dd>
-        <dt className="text-zinc-600">Délai de paiement</dt>
-        <dd>{client.paymentTermDays} jours</dd>
-      </dl>
+      <p className="text-sm text-zinc-600">
+        Statut : {client.isActive ? "Actif" : "Désactivé"}
+      </p>
+
+      <form action={updateClient} className="card space-y-4">
+        <div>
+          <label htmlFor="legalName" className="block text-sm text-zinc-700">
+            Raison sociale
+          </label>
+          <input
+            id="legalName"
+            name="legalName"
+            required
+            defaultValue={client.legalName}
+            className="mt-1 w-full field"
+          />
+        </div>
+        <div>
+          <label htmlFor="tradeName" className="block text-sm text-zinc-700">
+            Nom commercial
+          </label>
+          <input
+            id="tradeName"
+            name="tradeName"
+            defaultValue={client.tradeName ?? ""}
+            className="mt-1 w-full field"
+          />
+        </div>
+        <div>
+          <label htmlFor="billingAddress" className="block text-sm text-zinc-700">
+            Adresse de facturation
+          </label>
+          <input
+            id="billingAddress"
+            name="billingAddress"
+            required
+            defaultValue={client.billingAddress}
+            className="mt-1 w-full field"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="siret" className="block text-sm text-zinc-700">
+              SIRET
+            </label>
+            <input
+              id="siret"
+              name="siret"
+              defaultValue={client.siret ?? ""}
+              className="mt-1 w-full field"
+            />
+          </div>
+          <div>
+            <label htmlFor="vatNumber" className="block text-sm text-zinc-700">
+              N° TVA
+            </label>
+            <input
+              id="vatNumber"
+              name="vatNumber"
+              defaultValue={client.vatNumber ?? ""}
+              className="mt-1 w-full field"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="email" className="block text-sm text-zinc-700">
+              E-mail
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              defaultValue={client.email ?? ""}
+              className="mt-1 w-full field"
+            />
+          </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm text-zinc-700">
+              Téléphone
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              defaultValue={client.phone ?? ""}
+              className="mt-1 w-full field"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="paymentTermDays" className="block text-sm text-zinc-700">
+            Délai de paiement (jours)
+          </label>
+          <input
+            id="paymentTermDays"
+            name="paymentTermDays"
+            type="number"
+            min={0}
+            defaultValue={client.paymentTermDays}
+            className="mt-1 w-full field"
+          />
+        </div>
+        <div>
+          <label htmlFor="notes" className="block text-sm text-zinc-700">
+            Notes
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            defaultValue={client.notes ?? ""}
+            className="mt-1 w-full field"
+          />
+        </div>
+        {client.email && (
+          <button formAction={sendPortalLink} type="submit" className="text-sm text-brand-700 underline">
+            Envoyer un lien d&apos;accès à l&apos;espace client
+          </button>
+        )}
+        <div>
+          <button
+            type="submit"
+            className="btn btn-dark"
+          >
+            Enregistrer
+          </button>
+        </div>
+      </form>
 
       <div>
         <div className="flex items-center justify-between">
