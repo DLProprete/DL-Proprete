@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { createClient, updateClient, setClientActive } from "@/server/clients/actions";
-import { sendPortalLink, ClientEmailMissingError } from "@/server/client-portal/actions";
+import {
+  sendPortalLink,
+  ClientEmailMissingError,
+  PortalLinkAlreadyActiveError,
+} from "@/server/client-portal/actions";
 
 export async function createClientAction(formData: FormData) {
   const user = await requireSession();
@@ -35,6 +39,9 @@ export async function sendPortalLinkAction(clientId: string) {
   } catch (error) {
     if (error instanceof ClientEmailMissingError) {
       redirect(`/clients/${clientId}?portalError=no-email`);
+    }
+    if (error instanceof PortalLinkAlreadyActiveError) {
+      redirect(`/clients/${clientId}?portalError=already-sent`);
     }
     throw error;
   }
