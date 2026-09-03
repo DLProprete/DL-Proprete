@@ -6,12 +6,24 @@ import { sendEmail } from "@/lib/email";
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
 export class ClientEmailMissingError extends Error {}
+export class PortalLinkAlreadyActiveError extends Error {}
 
 export async function sendPortalLink(user: SessionUser, clientId: string): Promise<void> {
   requireRole(user, [...MANAGE_ROLES]);
   const client = await prisma.client.findUnique({ where: { id: clientId } });
   if (!client) throw new Error("Client introuvable");
   if (!client.email) throw new ClientEmailMissingError("Ce client n'a pas d'adresse e-mail renseignée");
+
+  const activeToken = await prisma.clientPortalToken.findFirst({
+    where: {
+      clientId,
+      usedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+  });
+  if (activeToken) {
+    throw new PortalLinkAlreadyActiveError("Un lien encore valable a déjà été envoyé");
+  }
 
   const token = await createPortalToken(clientId);
   const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";

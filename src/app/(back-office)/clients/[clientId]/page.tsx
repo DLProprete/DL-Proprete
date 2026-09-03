@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getClient } from "@/server/clients/queries";
 import { setClientActiveAction, sendPortalLinkAction, updateClientAction } from "../actions";
+import { SendPortalLinkButton } from "./SendPortalLinkButton";
 
 const PORTAL_ERROR_MESSAGES: Record<string, string> = {
   "no-email": "Ce client n'a pas d'adresse e-mail renseignée — à compléter avant d'envoyer un lien.",
+  "already-sent": "Un lien encore valable a déjà été envoyé. Attendez 15 minutes ou que le destinataire l'ouvre avant d'en renvoyer un.",
 };
 
 export default async function ClientDetailPage({
@@ -43,9 +45,14 @@ export default async function ClientDetailPage({
       </div>
 
       {updated && <p className="alert alert-info">Fiche client enregistrée.</p>}
-      {portalSent && <p className="alert alert-info">Lien d&apos;accès envoyé.</p>}
+      {portalSent && (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          E-mail envoyé{client.email ? ` à ${client.email}` : ""}. Le lien est valable 15 minutes.
+          Un nouveau lien ne pourra être envoyé qu'après expiration ou utilisation.
+        </p>
+      )}
       {portalError && (
-        <p className="alert alert-danger">
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">
           {PORTAL_ERROR_MESSAGES[portalError] ?? portalError}
         </p>
       )}
@@ -173,10 +180,11 @@ export default async function ClientDetailPage({
       </form>
 
       {client.email ? (
-        <form action={sendPortalLink}>
-          <button type="submit" className="btn btn-secondary">
-            Envoyer un lien d&apos;accès à l&apos;espace client
-          </button>
+        <form action={sendPortalLink} className="space-y-2">
+          <SendPortalLinkButton />
+          <p className="text-sm text-zinc-600">
+            Un seul lien actif à la fois, valable 15 minutes.
+          </p>
         </form>
       ) : (
         <p className="text-sm text-zinc-600">
