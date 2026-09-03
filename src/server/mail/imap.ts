@@ -12,6 +12,9 @@ export type MailFolders = {
   junk: string;
 };
 
+let shared: ImapFlow | null = null;
+let queue: Promise<void> = Promise.resolve();
+
 export function encodeFolder(path: string) {
   return encodeURIComponent(path);
 }
@@ -25,10 +28,9 @@ export function decodeFolder(path: string | undefined, fallback = "INBOX") {
   }
 }
 
-export async function withImap<T>(fn: (client: ImapFlow) => Promise<T>): Promise<T> {
+async function connectClient() {
   const config = getMailboxConfig();
   if (!config) throw new MailboxNotConfiguredError("Boîte mail non configurée");
-
   const client = new ImapFlow({
     host: config.host,
     port: config.port,
@@ -36,20 +38,49 @@ export async function withImap<T>(fn: (client: ImapFlow) => Promise<T>): Promise
     auth: { user: config.user, pass: config.password },
     logger: false,
   });
+  await client.connect();
+  client.on("close", () => {
+    if (shared === client) shared = null;
+  });
+  client.on("error", () => {
+    if (shared === client) shared = null;
+  });
+  shared = client;
+  return client;
+}
 
+async function ensureClient() {
+  if (shared?.usable) return shared;
+  return connectClient();
+}
+
+export async function withImap<T>(fn: (client: ImapFlow) => Promise<T>): Promise<T> {
+  let release = () => {};
+  const previous = queue;
+  queue = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await previous;
   try {
-    await client.connect();
-    return await fn(client);
-  } catch (error) {
-    if (error instanceof MailboxNotConfiguredError) throw error;
-    const message = error instanceof Error ? error.message : "erreur inconnue";
-    throw new MailboxUnavailableError(`Impossible d'accéder à la boîte OVH : ${message}`);
-  } finally {
     try {
-      await client.logout();
-    } catch {
-      /* déjà déconnecté */
+      return await fn(await ensureClient());
+    } catch (error) {
+      if (error instanceof MailboxNotConfiguredError) throw error;
+      try {
+        await shared?.logout();
+      } catch {
+        /* ignore */
+      }
+      shared = null;
+      try {
+        return await fn(await ensureClient());
+      } catch (retry) {
+        const message = retry instanceof Error ? retry.message : "erreur inconnue";
+        throw new MailboxUnavailableError(`Impossible d'accéder à la boîte OVH : ${message}`);
+      }
     }
+  } finally {
+    release();
   }
 }
 

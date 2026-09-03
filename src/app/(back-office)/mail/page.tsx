@@ -4,6 +4,9 @@ import { requireSession } from "@/server/auth/session";
 import { listMailboxPage, MailboxNotConfiguredError, MailboxUnavailableError } from "@/server/mail/queries";
 import { getMailboxConfig } from "@/server/mail/config";
 import { decodeFolder, encodeFolder } from "@/server/mail/imap";
+import { SelectAllCheckbox } from "@/components/select-all-checkbox";
+import { bulkDeleteMailAction } from "./actions";
+import { PendingButton } from "./PendingButton";
 
 function formatDate(date: Date | null) {
   if (!date) return "—";
@@ -54,6 +57,7 @@ export default async function MailPage({
   }
 
   const currentMeta = folders.find((folder) => folder.path === current);
+  const inTrash = currentMeta?.label === "Corbeille";
 
   return (
     <div className="space-y-4">
@@ -78,7 +82,9 @@ export default async function MailPage({
         </p>
       )}
       {params.deleted && (
-        <p className="alert alert-info">Message déplacé vers la corbeille.</p>
+        <p className="alert alert-info">
+          {inTrash ? "Message(s) supprimé(s)." : "Message(s) déplacé(s) vers la corbeille."}
+        </p>
       )}
       {error && (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</p>
@@ -96,37 +102,49 @@ export default async function MailPage({
         ))}
       </div>
 
-      <div className="card-table">
-        <table>
-          <thead>
-            <tr>
-              <th>{currentMeta?.label === "Envoyés" ? "À" : "De"}</th>
-              <th>Objet</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {messages.map((message) => (
-              <tr key={`${current}-${message.uid}`}>
-                <td className={message.unseen ? "font-medium text-zinc-900" : "text-zinc-600"}>
-                  {currentMeta?.label === "Envoyés" ? message.to : message.from}
-                </td>
-                <td>
-                  <Link href={`/mail/${message.uid}?folder=${encodeFolder(current)}`} className="underline">
-                    {message.subject}
-                  </Link>
-                </td>
-                <td className="text-zinc-600">{formatDate(message.date)}</td>
-              </tr>
-            ))}
-            {messages.length === 0 && !error && (
+      <form action={bulkDeleteMailAction} className="space-y-3">
+        <input type="hidden" name="folder" value={current} />
+        <PendingButton className="btn btn-secondary" pendingLabel="Suppression…">
+          {inTrash ? "Supprimer la sélection" : "Mettre à la corbeille"}
+        </PendingButton>
+        <div className="card-table">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={3} className="text-zinc-500">Aucun message dans ce dossier.</td>
+                <th className="w-10">
+                  <SelectAllCheckbox targetName="uid" />
+                </th>
+                <th>{currentMeta?.label === "Envoyés" ? "À" : "De"}</th>
+                <th>Objet</th>
+                <th>Date</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {messages.map((message) => (
+                <tr key={`${current}-${message.uid}`}>
+                  <td>
+                    <input type="checkbox" name="uid" value={message.uid} className="h-4 w-4" />
+                  </td>
+                  <td className={message.unseen ? "font-medium text-zinc-900" : "text-zinc-600"}>
+                    {currentMeta?.label === "Envoyés" ? message.to : message.from}
+                  </td>
+                  <td>
+                    <Link href={`/mail/${message.uid}?folder=${encodeFolder(current)}`} className="underline">
+                      {message.subject}
+                    </Link>
+                  </td>
+                  <td className="text-zinc-600">{formatDate(message.date)}</td>
+                </tr>
+              ))}
+              {messages.length === 0 && !error && (
+                <tr>
+                  <td colSpan={4} className="text-zinc-500">Aucun message dans ce dossier.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </form>
     </div>
   );
 }
