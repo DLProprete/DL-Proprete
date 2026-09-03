@@ -33,3 +33,39 @@ export async function createContract(user: SessionUser, input: unknown) {
   });
   return contract;
 }
+
+// Suivi manuel de la signature (interface web Yousign, hors outil — voir
+// docs/SPEC.md) : pas de retour en arrière au MVP, juste NOT_SENT -> SENT
+// -> SIGNED (SENT peut être sauté si le contrat est signé sans passer par
+// l'envoi tracé ici).
+export async function markContractSignatureSent(user: SessionUser, contractId: string) {
+  requireRole(user, [...MANAGE_ROLES]);
+  const contract = await prisma.contract.update({
+    where: { id: contractId },
+    data: { signatureStatus: "SENT", signatureSentAt: new Date() },
+  });
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "CONTRACT_SIGNATURE_SENT",
+    entityType: "Contract",
+    entityId: contract.id,
+    summary: `Contrat envoyé à signer : ${contract.reference}`,
+  });
+  return contract;
+}
+
+export async function markContractSignatureSigned(user: SessionUser, contractId: string) {
+  requireRole(user, [...MANAGE_ROLES]);
+  const contract = await prisma.contract.update({
+    where: { id: contractId },
+    data: { signatureStatus: "SIGNED", signedAt: new Date() },
+  });
+  await logAudit(prisma, {
+    actorUserId: user.id,
+    action: "CONTRACT_SIGNATURE_SIGNED",
+    entityType: "Contract",
+    entityId: contract.id,
+    summary: `Contrat signé : ${contract.reference}`,
+  });
+  return contract;
+}

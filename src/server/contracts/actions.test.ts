@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ForbiddenError, type SessionUser } from "@/server/auth/session";
-import { createContract } from "./actions";
+import { createContract, markContractSignatureSent, markContractSignatureSigned } from "./actions";
 import { listContracts, getContract } from "./queries";
 
 const agent: SessionUser = { id: "u-agent", email: "agent@dlproprete.fr", role: "AGENT", isActive: true };
@@ -24,5 +24,13 @@ describe("droits Contract — un AGENT reçoit un refus (403)", () => {
 
   it("createContract rejette un AGENT avant même de valider les données", async () => {
     await expect(createContract(agent, validInput)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("markContractSignatureSent rejette un AGENT", async () => {
+    await expect(markContractSignatureSent(agent, "any-id")).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("markContractSignatureSigned rejette un AGENT", async () => {
+    await expect(markContractSignatureSigned(agent, "any-id")).rejects.toBeInstanceOf(ForbiddenError);
   });
 });
