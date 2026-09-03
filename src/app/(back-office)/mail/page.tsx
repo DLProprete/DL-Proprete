@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { listMailFolders, listMessages, MailboxNotConfiguredError, MailboxUnavailableError } from "@/server/mail/queries";
+import { listMailboxPage, MailboxNotConfiguredError, MailboxUnavailableError } from "@/server/mail/queries";
 import { getMailboxConfig } from "@/server/mail/config";
 import { decodeFolder, encodeFolder } from "@/server/mail/imap";
 
@@ -36,16 +36,15 @@ export default async function MailPage({
   }
 
   let folders: { path: string; label: string }[] = [];
-  let messages: Awaited<ReturnType<typeof listMessages>> = [];
+  let messages: Awaited<ReturnType<typeof listMailboxPage>>["messages"] = [];
+  let current = decodeFolder(params.folder);
   let error: string | null = null;
-  const requested = decodeFolder(params.folder);
-  let current = requested;
 
   try {
-    folders = await listMailFolders(user);
-    const match = folders.find((folder) => folder.path === requested || folder.path.toLowerCase() === requested.toLowerCase());
-    current = match?.path ?? folders[0]?.path ?? "INBOX";
-    messages = await listMessages(user, current);
+    const view = await listMailboxPage(user, current);
+    folders = view.folders;
+    messages = view.messages;
+    current = view.current;
   } catch (caught) {
     if (caught instanceof MailboxNotConfiguredError || caught instanceof MailboxUnavailableError) {
       error = caught.message;

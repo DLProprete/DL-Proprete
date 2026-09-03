@@ -1,6 +1,7 @@
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { mailFromAddress, sendEmail } from "@/lib/email";
 import { resolveFolders, withImap } from "./imap";
+import { invalidateMailCache } from "./cache";
 
 const WRITE_ROLES = ["ADMIN"] as const;
 
@@ -46,6 +47,7 @@ export async function sendMailboxMessage(
       }
     }
   });
+  invalidateMailCache();
 }
 
 export async function saveMailboxDraft(
@@ -65,6 +67,7 @@ export async function saveMailboxDraft(
       }
     }
   });
+  invalidateMailCache();
 }
 
 export async function deleteMailboxMessage(user: SessionUser, folder: string, uid: number) {
@@ -83,4 +86,5 @@ export async function deleteMailboxMessage(user: SessionUser, folder: string, ui
       lock.release();
     }
   });
+  invalidateMailCache();
 }
