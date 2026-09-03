@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ForbiddenError, type SessionUser } from "@/server/auth/session";
-import { createClient, setClientActive } from "./actions";
+import { createClient, updateClient, setClientActive } from "./actions";
 import { listClients, getClient } from "./queries";
 
 const agent: SessionUser = { id: "u-agent", email: "agent@dlproprete.fr", role: "AGENT", isActive: true };
@@ -22,6 +22,10 @@ describe("droits Client — un AGENT reçoit un refus (403)", () => {
 
   it("createClient rejette un AGENT", async () => {
     await expect(createClient(agent, validInput)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("updateClient rejette un AGENT", async () => {
+    await expect(updateClient(agent, "any-id", validInput)).rejects.toBeInstanceOf(ForbiddenError);
   });
 
   it("setClientActive rejette un AGENT", async () => {

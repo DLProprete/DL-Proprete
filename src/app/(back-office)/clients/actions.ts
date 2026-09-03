@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { createClient, setClientActive } from "@/server/clients/actions";
+import { createClient, updateClient, setClientActive } from "@/server/clients/actions";
 import { sendPortalLink, ClientEmailMissingError } from "@/server/client-portal/actions";
 
 export async function createClientAction(formData: FormData) {
@@ -11,6 +11,14 @@ export async function createClientAction(formData: FormData) {
   const client = await createClient(user, Object.fromEntries(formData));
   revalidatePath("/clients");
   redirect(`/clients/${client.id}`);
+}
+
+export async function updateClientAction(id: string, formData: FormData) {
+  const user = await requireSession();
+  await updateClient(user, id, Object.fromEntries(formData));
+  revalidatePath("/clients");
+  revalidatePath(`/clients/${id}`);
+  redirect(`/clients/${id}?updated=1`);
 }
 
 export async function setClientActiveAction(id: string, isActive: boolean) {
