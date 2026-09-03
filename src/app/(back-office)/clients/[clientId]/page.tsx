@@ -164,20 +164,25 @@ export default async function ClientDetailPage({
             className="mt-1 w-full field"
           />
         </div>
-        {client.email && (
-          <button formAction={sendPortalLink} type="submit" className="text-sm text-brand-700 underline">
+        <button
+          type="submit"
+          className="btn btn-dark"
+        >
+          Enregistrer
+        </button>
+      </form>
+
+      {client.email ? (
+        <form action={sendPortalLink}>
+          <button type="submit" className="btn btn-secondary">
             Envoyer un lien d&apos;accès à l&apos;espace client
           </button>
-        )}
-        <div>
-          <button
-            type="submit"
-            className="btn btn-dark"
-          >
-            Enregistrer
-          </button>
-        </div>
-      </form>
+        </form>
+      ) : (
+        <p className="text-sm text-zinc-600">
+          Renseignez et enregistrez un e-mail pour pouvoir envoyer un lien d&apos;accès.
+        </p>
+      )}
 
       <div>
         <div className="flex items-center justify-between">
