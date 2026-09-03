@@ -1,12 +1,54 @@
-// Aucune infrastructure d'envoi n'existe encore dans ce dépôt. Plutôt que
-// d'ajouter une dépendance pour un seul appel POST, on parle directement à
-// l'API REST de Resend (choisi dans le chantier numérique) via fetch. Sans
-// clé configurée (dev local), on journalise à la place — testable de bout
-// en bout sans compte externe.
-export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+import nodemailer from "nodemailer";
+
+export type SendEmailInput = {
+  to: string | string[];
+  subject: string;
+  html?: string;
+  text?: string;
+  cc?: string | string[];
+  inReplyTo?: string;
+  references?: string;
+};
+
+function smtpTransport() {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const password = process.env.SMTP_PASSWORD;
+  if (!host || !user || !password) return null;
+  const port = Number(process.env.SMTP_PORT || 465);
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass: password },
+  });
+}
+
+export function mailFromAddress() {
+  return process.env.SMTP_FROM || process.env.SMTP_USER || "DL Propreté <contact@dlproprete.fr>";
+}
+
+export async function sendEmail({ to, subject, html, text, cc, inReplyTo, references }: SendEmailInput) {
+  const from = mailFromAddress();
+  const bodyText = text ?? html?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() ?? "";
+  const transport = smtpTransport();
+  if (transport) {
+    await transport.sendMail({
+      from,
+      to,
+      cc,
+      subject,
+      text: bodyText,
+      html: html ?? `<pre>${escapeHtml(bodyText)}</pre>`,
+      inReplyTo,
+      references,
+    });
+    return;
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.log(`[email] (RESEND_API_KEY absent, non envoyé)\nÀ : ${to}\nSujet : ${subject}\n${html}`);
+    console.log(`[email] (SMTP/RESEND absents, non envoyé)\nÀ : ${to}\nSujet : ${subject}\n${bodyText}`);
     return;
   }
 
@@ -17,15 +59,21 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "DL Propreté <no-reply@dlproprete.fr>",
+      from,
       to,
       subject,
-      html,
+      html: html ?? `<pre>${escapeHtml(bodyText)}</pre>`,
     }),
   });
-
   if (!response.ok) {
     const body = await response.text();
     throw new Error(`Échec de l'envoi de l'e-mail (${response.status}) : ${body}`);
   }
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }

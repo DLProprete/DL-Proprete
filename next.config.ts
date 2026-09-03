@@ -11,7 +11,7 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.22"],
   devIndicators: false,
-  serverExternalPackages: ["imapflow", "mailparser"],
+  serverExternalPackages: ["imapflow", "mailparser", "nodemailer"],
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
