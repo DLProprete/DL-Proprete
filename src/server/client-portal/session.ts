@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { UnauthorizedError } from "@/server/auth/session";
@@ -13,7 +14,9 @@ export async function createPortalSession(clientId: string): Promise<{ id: strin
 
 export type PortalSession = { clientId: string };
 
-export async function requireClientSession(): Promise<PortalSession> {
+// Mémoïsé par requête (voir requireSession) : le layout et chaque page du
+// portail client l'appellent chacun.
+export const requireClientSession = cache(async (): Promise<PortalSession> => {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get(PORTAL_COOKIE_NAME)?.value;
   if (!sessionId) {
@@ -24,4 +27,4 @@ export async function requireClientSession(): Promise<PortalSession> {
     throw new UnauthorizedError("Session client expirée");
   }
   return { clientId: session.clientId };
-}
+});

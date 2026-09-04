@@ -26,3 +26,23 @@ export async function hasSchedulingConflict(
     timeRangesOverlap(assignment.shift.startAt, assignment.shift.endAt, startAt, endAt),
   );
 }
+
+// Variante par lot de hasSchedulingConflict : une seule requête pour N
+// agents candidats plutôt qu'une par agent (suggestions de remplaçants).
+export async function findConflictingUserIds(
+  userIds: string[],
+  startAt: Date,
+  endAt: Date,
+): Promise<Set<string>> {
+  const activeAssignments = await prisma.assignment.findMany({
+    where: { userId: { in: userIds }, status: "ASSIGNED" },
+    select: { userId: true, shift: { select: { startAt: true, endAt: true } } },
+  });
+  const conflicting = new Set<string>();
+  for (const assignment of activeAssignments) {
+    if (timeRangesOverlap(assignment.shift.startAt, assignment.shift.endAt, startAt, endAt)) {
+      conflicting.add(assignment.userId);
+    }
+  }
+  return conflicting;
+}
