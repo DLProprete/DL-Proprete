@@ -25,8 +25,41 @@ pas le droit de le lire/écrire) avec :
 
 ```
 DATABASE_URL="postgresql://user:password@localhost:5432/dlproprete?schema=public"
+DIRECT_URL="postgresql://user:password@localhost:5432/dlproprete?schema=public"
 BETTER_AUTH_SECRET="une valeur aléatoire longue"
 BETTER_AUTH_URL="http://localhost:3000"
+```
+
+`DIRECT_URL` est exigée par `prisma/schema.prisma` dès que le champ y est
+déclaré (connexion hors pooler, utilisée par `prisma migrate` — voir
+"Hébergement" plus bas) : en local, même valeur que `DATABASE_URL`, pas de
+pooler sur un Postgres local.
+
+Optionnel (envoi d'e-mail réel — lien magique du portail client, mail IMAP/SMTP,
+factures/relances par e-mail ; `src/lib/email.ts`, `src/server/mail/`) : sans ces
+variables, l'e-mail est journalisé en console au lieu d'être envoyé, testable de
+bout en bout sans boîte mail réelle.
+
+```
+SMTP_HOST="..."                 # host SMTP exact de la boîte : voir Zimbra
+                                 # > Paramètres > Comptes > config. client mail
+SMTP_PORT="465"                 # 465 = SSL implicite, 587 = STARTTLS
+SMTP_USER="contact@dlproprete.fr"
+SMTP_PASSWORD="mot de passe de cette boîte"
+SMTP_FROM="DL Propreté <contact@dlproprete.fr>"  # optionnel, défaut = SMTP_USER
+IMAP_HOST="imap.mail.ovh.net"   # optionnel, défaut si absent
+IMAP_USER / IMAP_PASSWORD       # optionnel, replie sur SMTP_USER/SMTP_PASSWORD
+```
+
+Optionnel (fichiers uploadés — justificatifs d'absence, photos de main
+courante ; `src/lib/uploads.ts`) : sans ces variables, les fichiers sont
+écrits sur le disque local (`uploads/`), qui ne persiste pas sur un
+hébergement serverless (Vercel). À renseigner une fois le projet Supabase
+créé (Storage > bucket privé `uploads`).
+
+```
+SUPABASE_URL="https://xxxx.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="..."  # clé service_role, jamais la clé anon
 ```
 
 La migration initiale (`prisma/migrations/*_init/`) avait été générée hors

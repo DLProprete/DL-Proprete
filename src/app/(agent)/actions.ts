@@ -1,7 +1,5 @@
 "use server";
 
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
@@ -12,6 +10,7 @@ import {
   TimeEntryTooShortError,
 } from "@/server/time/actions";
 import { createSiteLog } from "@/server/sites/actions";
+import { saveUpload, InvalidUploadError } from "@/lib/uploads";
 
 export async function startTimeEntryAction(shiftId: string) {
   const user = await requireSession();
@@ -48,12 +47,14 @@ export async function createSiteLogAction(formData: FormData) {
   let photoPath: string | null = null;
   const photo = formData.get("photo");
   if (photo instanceof File && photo.size > 0) {
-    const ext = photo.name.toLowerCase().endsWith(".png") ? "png" : "jpg";
-    const dir = path.join(process.cwd(), "public", "uploads", "site-logs");
-    await mkdir(dir, { recursive: true });
-    const filename = `${Date.now()}-${user.id.slice(0, 6)}.${ext}`;
-    await writeFile(path.join(dir, filename), Buffer.from(await photo.arrayBuffer()));
-    photoPath = `/uploads/site-logs/${filename}`;
+    try {
+      photoPath = await saveUpload("site-logs", photo);
+    } catch (error) {
+      if (error instanceof InvalidUploadError) {
+        redirect(`/today?error=${encodeURIComponent(error.message)}`);
+      }
+      throw error;
+    }
   }
 
   await createSiteLog(user, { siteId, type, comment, photoPath });
