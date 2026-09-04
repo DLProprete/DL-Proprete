@@ -32,7 +32,7 @@ export default async function AbsencesReviewPage() {
   const shiftsWithCandidates = await Promise.all(
     shiftsNeedingReplacement.map(async (shift) => ({
       shift,
-      candidates: await listReplacementCandidates(user, shift.id),
+      candidates: await listReplacementCandidates(user, shift),
     })),
   );
 

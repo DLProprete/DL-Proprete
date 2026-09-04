@@ -180,7 +180,8 @@ describe("règles Absence / remplacement (intégration DB)", () => {
   });
 
   it("propose un remplaçant : exclut l'agent en conflit d'horaire et celui déjà en congé, garde l'agent libre", async () => {
-    const candidates = await listReplacementCandidates(adminUser, shiftAId);
+    const shiftA = await prisma.shift.findUniqueOrThrow({ where: { id: shiftAId } });
+    const candidates = await listReplacementCandidates(adminUser, shiftA);
     const candidateIds = candidates.map((c) => c.id);
 
     expect(candidateIds).not.toContain(conflictingAgent.id);

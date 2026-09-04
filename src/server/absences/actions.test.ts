@@ -50,7 +50,8 @@ describe("droits Absence — déclaration AGENT, validation ADMIN uniquement", (
   });
 
   it("listReplacementCandidates rejette un PLANNER", async () => {
-    await expect(listReplacementCandidates(planner, "any-shift")).rejects.toBeInstanceOf(
+    const dummyShift = { id: "any-shift", date: new Date(), startAt: new Date(), endAt: new Date() };
+    await expect(listReplacementCandidates(planner, dummyShift)).rejects.toBeInstanceOf(
       ForbiddenError,
     );
   });

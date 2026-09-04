@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { addDays, dateOnlyUTC, daysBetween, parisToday } from "@/lib/dates";
 import { agentConstraintViolation } from "@/server/planning/agent-constraints";
-import { hasSchedulingConflict } from "@/server/planning/conflicts";
+import { findConflictingUserIds } from "@/server/planning/conflicts";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
 const MAX_SUGGESTIONS = 3;
@@ -53,12 +53,21 @@ export async function suggestAgentsForShift(user: SessionUser, shiftId: string) 
     ).map((absence) => absence.userId),
   );
 
+  // Une seule requête pour tous les candidats plutôt qu'une par agent dans
+  // la boucle (idem absences ci-dessus) : hasSchedulingConflict ferait un
+  // aller-retour DB par agent testé.
+  const conflictingAgentIds = await findConflictingUserIds(
+    agents.map((agent) => agent.id),
+    shift.startAt,
+    shift.endAt,
+  );
+
   const suggestions: { id: string; firstName: string; lastName: string }[] = [];
   for (const agent of agents) {
     if (suggestions.length >= MAX_SUGGESTIONS) break;
     if (absentAgentIds.has(agent.id)) continue;
     if (agentConstraintViolation(agent, shift)) continue;
-    if (await hasSchedulingConflict(agent.id, shift.startAt, shift.endAt)) continue;
+    if (conflictingAgentIds.has(agent.id)) continue;
     suggestions.push({ id: agent.id, firstName: agent.firstName, lastName: agent.lastName });
   }
   return suggestions;
