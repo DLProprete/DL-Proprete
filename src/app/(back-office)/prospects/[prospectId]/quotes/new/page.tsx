@@ -23,7 +23,7 @@ export default async function NewQuotePage({
       {error === "empty" && <p className="alert alert-danger">Ajoutez au moins une ligne.</p>}
       <form action={createQuoteAction.bind(null, prospect.id)} className="card space-y-4">
         <div>
-          <label htmlFor="validUntil" className="block text-sm text-zinc-700">Valable jusqu'au</label>
+          <label htmlFor="validUntil" className="block text-sm text-zinc-700">Valable jusqu&apos;au</label>
           <input id="validUntil" name="validUntil" type="date" className="mt-1 field" />
         </div>
         <div className="space-y-2">

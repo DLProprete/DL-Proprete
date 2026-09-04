@@ -53,7 +53,7 @@ export default async function ClientDetailPage({
       {portalSent && (
         <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
           E-mail envoyé{client.email ? ` à ${client.email}` : ""}. Le lien est valable 15 minutes.
-          Un nouveau lien ne pourra être envoyé qu'après expiration ou utilisation.
+          Un nouveau lien ne pourra être envoyé qu&apos;après expiration ou utilisation.
         </p>
       )}
       {portalError && (
@@ -65,7 +65,7 @@ export default async function ClientDetailPage({
       {isEditing ? (
         <>
           <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-            Mode modification. Les changements ne sont pris en compte qu'après
+            Mode modification. Les changements ne sont pris en compte qu&apos;après
             <strong> Enregistrer</strong>. Un champ mal saisi (e-mail, adresse, SIRET)
             peut bloquer un envoi ou une facture. Vérifiez avant de valider.
           </p>

@@ -36,7 +36,7 @@ export default async function QuotePage({
         </div>
         <div className="flex gap-2">
           {quote.status !== "ACCEPTED" && quote.prospect.email && (
-            <form action={sendQuoteAction.bind(null, quote.id, quote.prospectId)}>
+            <form action={sendQuoteAction.bind(null, quote.id)}>
               <button type="submit" className="btn btn-secondary">Envoyer par e-mail</button>
             </form>
           )}

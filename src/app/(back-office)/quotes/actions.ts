@@ -33,7 +33,7 @@ export async function createQuoteAction(prospectId: string, formData: FormData) 
   redirect(`/quotes/${quote.id}`);
 }
 
-export async function sendQuoteAction(quoteId: string, prospectId: string) {
+export async function sendQuoteAction(quoteId: string) {
   const user = await requireSession();
   await sendQuoteEmail(user, quoteId);
   revalidatePath(`/quotes/${quoteId}`);

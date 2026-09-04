@@ -6,7 +6,7 @@ export type MailboxConfig = {
 };
 
 export function getMailboxConfig(
-  env: NodeJS.ProcessEnv = process.env,
+  env: Record<string, string | undefined> = process.env,
 ): MailboxConfig | null {
   const user = env.IMAP_USER || env.SMTP_USER;
   const password = env.IMAP_PASSWORD || env.SMTP_PASSWORD;

@@ -21,7 +21,9 @@ export async function createSite(user: SessionUser, input: unknown) {
 export async function updateSite(user: SessionUser, id: string, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
   const parsed = emptyToNull(siteInputSchema.parse(input));
+  // clientId volontairement exclu : un site ne change pas de client via ce formulaire.
   const { clientId: _clientId, ...data } = parsed;
+  void _clientId;
   return prisma.site.update({ where: { id }, data });
 }
 
