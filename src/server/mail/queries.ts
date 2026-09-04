@@ -91,7 +91,7 @@ export async function getMessage(user: SessionUser, folder: string, uid: number)
       const parsed = await simpleParser(msg.source);
       const text =
         parsed.text?.trim() ||
-        parsed.html?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() ||
+        (parsed.html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() ||
         "(message vide)";
       return {
         ...toListItem(msg),

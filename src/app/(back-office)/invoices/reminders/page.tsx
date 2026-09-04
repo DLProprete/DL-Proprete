@@ -35,7 +35,7 @@ export default async function InvoiceRemindersPage({
       </div>
       <p className="text-sm text-zinc-600">
         Factures émises ou partiellement payées, échéance dépassée ou proche.
-        L'envoi e-mail choisit automatiquement J+5 ou J+15 selon le retard.
+        L&apos;envoi e-mail choisit automatiquement J+5 ou J+15 selon le retard.
       </p>
       {sent && (
         <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">

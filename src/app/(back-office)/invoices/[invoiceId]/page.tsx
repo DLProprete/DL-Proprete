@@ -116,13 +116,13 @@ export default async function InvoiceDetailPage({
       {invoice.status === "DRAFT" && missingMentions.length > 0 && (
         <div className="alert alert-warning">
           <span className="font-medium">Mentions légales incomplètes</span> — {describeMissingMentions(missingMentions)}.{" "}
-          <Link href="/settings" className="underline">Compléter les paramètres</Link> avant d'émettre.
+          <Link href="/settings" className="underline">Compléter les paramètres</Link> avant d&apos;émettre.
         </div>
       )}
 
       {invoice.status === "DRAFT" && coverageWarningsList.length > 0 && (
         <div className="alert alert-warning">
-          <span className="font-medium">À vérifier avant d'émettre</span>
+          <span className="font-medium">À vérifier avant d&apos;émettre</span>
           <ul className="mt-1 list-disc space-y-1 pl-5">
             {coverageWarningsList.map((warning) => (
               <li key={warning.kind}>{describeCoverageWarning(warning)}</li>
@@ -226,7 +226,7 @@ export default async function InvoiceDetailPage({
                 {payment.reference ? ` — ${payment.reference}` : ""}
               </li>
             ))}
-            {invoice.payments.length === 0 && <li className="py-2 text-zinc-500">Aucun paiement pour l'instant.</li>}
+            {invoice.payments.length === 0 && <li className="py-2 text-zinc-500">Aucun paiement pour l&apos;instant.</li>}
           </ul>
           <p className="mt-1 text-sm text-zinc-600">Reste dû : {amount(Math.max(balanceDue, 0))}</p>
           {balanceDue > 0 && (
