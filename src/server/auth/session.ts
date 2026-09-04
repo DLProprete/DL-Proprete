@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
@@ -12,7 +13,10 @@ export type SessionUser = {
   isActive: boolean;
 };
 
-export async function requireSession(): Promise<SessionUser> {
+// Mémoïsé par requête (React cache) : le layout ET chaque page appellent
+// requireSession, sans ce cache chaque navigation ferait 2+ allers-retours
+// DB identiques pour la même session.
+export const requireSession = cache(async (): Promise<SessionUser> => {
   const session = await auth.api.getSession({ headers: await headers() });
   const user = session?.user;
   // role/isActive viennent des additionalFields Better Auth (typés "string"/
@@ -27,7 +31,7 @@ export async function requireSession(): Promise<SessionUser> {
     role: (user as { role: string }).role as Role,
     isActive: true,
   };
-}
+});
 
 export function requireRole(user: SessionUser, allowed: Role[]): void {
   if (!allowed.includes(user.role)) {
