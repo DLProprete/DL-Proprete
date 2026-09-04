@@ -109,7 +109,7 @@ export default async function SiteDetailPage({
               <p className="mt-1">{log.comment}</p>
               {log.photoPath && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={log.photoPath} alt="" className="mt-2 max-h-48 rounded" />
+                <img src={`/api/site-logs/${log.id}/photo`} alt="" className="mt-2 max-h-48 rounded" />
               )}
             </li>
           ))}

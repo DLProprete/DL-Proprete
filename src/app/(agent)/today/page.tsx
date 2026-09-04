@@ -81,7 +81,7 @@ export default async function TodayPage({
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">Bonjour, {greetingName}</h1>
           <p className="text-sm text-zinc-600">
-            {shifts.length} vacation{shifts.length > 1 ? "s" : ""} aujourd'hui
+            {shifts.length} vacation{shifts.length > 1 ? "s" : ""} aujourd&apos;hui
           </p>
         </div>
         <Link href="/today/week" className="pt-1 text-sm text-brand-700 underline">Voir la semaine →</Link>
@@ -90,6 +90,9 @@ export default async function TodayPage({
       {error === "already-open" && <p className="alert alert-danger">Un pointage est déjà en cours.</p>}
       {error === "too-short" && <p className="alert alert-danger">Pointage trop court (moins de 5 min).</p>}
       {error === "log" && <p className="alert alert-danger">Indiquez un commentaire pour la main courante.</p>}
+      {error && !["already-open", "too-short", "log"].includes(error) && (
+        <p className="alert alert-danger">{error}</p>
+      )}
       {logged && <p className="alert alert-info">Main courante enregistrée.</p>}
       {warning && <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">{warning}</p>}
 
@@ -167,7 +170,7 @@ export default async function TodayPage({
       ) : shifts.length > 0 ? (
         <div className="card text-center text-sm text-zinc-600">Journée terminée.</div>
       ) : (
-        <div className="card text-center text-sm text-zinc-600">Aucune vacation prévue aujourd'hui.</div>
+        <div className="card text-center text-sm text-zinc-600">Aucune vacation prévue aujourd&apos;hui.</div>
       )}
     </div>
   );
