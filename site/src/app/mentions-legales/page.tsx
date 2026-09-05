@@ -20,18 +20,20 @@ export default function MentionsLegalesPage() {
         <p className="mt-3 leading-relaxed text-foreground/70">
           {business.name}
           <br />
-          Forme juridique et capital social : à compléter
+          {business.legalForm} au capital de {business.shareCapital}
           <br />
           Siège social : {business.address.street}, {business.address.postalCode}{" "}
           {business.address.city}
           <br />
-          SIREN : {business.siren}
+          SIREN : {business.siren} — SIRET : {business.siret}
           <br />
-          Immatriculée depuis {business.foundedLabel}
+          {business.rcs}, immatriculée le {business.foundedDateLabel}
+          <br />
+          N° TVA intracommunautaire : {business.vatNumber}
           <br />
           E-mail : {business.email}
           <br />
-          Directeur de la publication : à compléter
+          Directeur de la publication : {business.publicationDirector}
         </p>
 
         <h2 className="mt-8 text-lg font-semibold text-brand">Hébergement</h2>

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business } from "@/lib/business";
-import { PinIcon } from "@/components/icons";
+import { cities } from "@/lib/cities";
+import { ArrowRightIcon, PinIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Zone d'intervention",
@@ -47,6 +48,24 @@ export default function ZoneInterventionPage() {
       </section>
 
       <section className="py-16">
+        <Container>
+          <h2 className="text-lg font-semibold text-brand">Pages par secteur</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            {cities.map((city) => (
+              <Link
+                key={city.slug}
+                href={`/zone-intervention/${city.slug}`}
+                className="group/link flex items-center justify-between rounded-xl border border-black/5 bg-surface-mint p-5 transition-colors hover:border-accent/30"
+              >
+                <span className="font-semibold text-brand">{city.name}</span>
+                <ArrowRightIcon className="h-4 w-4 text-accent-dark transition-transform group-hover/link:translate-x-1" />
+              </Link>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="border-t border-black/5 py-16">
         <Container className="grid gap-10 md:grid-cols-2">
           <div className="overflow-hidden rounded-2xl border border-black/5">
             <iframe
