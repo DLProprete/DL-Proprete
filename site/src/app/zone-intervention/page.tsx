@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business } from "@/lib/business";
+import { PinIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Zone d'intervention",
@@ -70,7 +71,10 @@ export default function ZoneInterventionPage() {
               </ul>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-brand">Notre siège</h2>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-brand">
+                <PinIcon className="h-4 w-4 text-accent" />
+                Notre siège
+              </h2>
               <address className="mt-3 not-italic text-sm text-foreground/60">
                 {business.address.street}
                 <br />
@@ -79,7 +83,7 @@ export default function ZoneInterventionPage() {
             </div>
             <Link
               href="/contact"
-              className="inline-block rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-dark"
+              className="inline-block rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-dark"
             >
               Vérifier si nous intervenons chez vous
             </Link>

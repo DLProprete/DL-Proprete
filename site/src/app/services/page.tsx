@@ -2,6 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business, services } from "@/lib/business";
+import { BottleIcon, BuildingIcon, FactoryIcon, ToolboxIcon } from "@/components/icons";
+
+const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "nettoyage-industriel": FactoryIcon,
+  "nettoyage-batiments": BuildingIcon,
+  "negoce-produits-entretien": BottleIcon,
+  "manutention-depannages": ToolboxIcon,
+};
 
 export const metadata: Metadata = {
   title: "Services",
@@ -31,25 +39,28 @@ export default function ServicesPage() {
 
       <section className="py-16">
         <Container className="space-y-10">
-          {services.map((service, index) => (
-            <div
-              key={service.slug}
-              id={service.slug}
-              className="grid gap-6 border-b border-black/5 pb-10 last:border-0 md:grid-cols-[auto_1fr] md:gap-10"
-            >
-              <span className="text-sm font-semibold text-accent">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <div>
-                <h2 className="text-2xl font-semibold text-brand">
-                  {service.title}
-                </h2>
-                <p className="mt-3 max-w-2xl text-foreground/60">
-                  {service.summary}
-                </p>
+          {services.map((service) => {
+            const Icon = SERVICE_ICONS[service.slug];
+            return (
+              <div
+                key={service.slug}
+                id={service.slug}
+                className="grid gap-6 border-b border-black/5 pb-10 last:border-0 md:grid-cols-[auto_1fr] md:gap-10"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-brand">
+                    {service.title}
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-foreground/60">
+                    {service.summary}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </Container>
       </section>
 
