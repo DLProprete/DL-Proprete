@@ -8,7 +8,7 @@ export function Logo({ className }: { className?: string }) {
         DL
       </span>
       <span className="flex flex-col leading-none">
-        <span className="text-base font-semibold tracking-tight text-brand">
+        <span className="font-display text-base font-semibold tracking-tight text-brand">
           DL Propreté
         </span>
         <span className="text-[11px] font-medium uppercase tracking-wide text-accent">

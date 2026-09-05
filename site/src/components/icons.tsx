@@ -89,6 +89,23 @@ export function PhoneIcon({ className }: IconProps) {
   );
 }
 
+export function MessageIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden>
+      <path d="M4 5h16v11H8l-4 4V5Z" />
+    </svg>
+  );
+}
+
+export function CalendarCheckIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden>
+      <rect x="4" y="5" width="16" height="15" rx="1.5" />
+      <path d="M4 10h16M8 3v4M16 3v4M9 14.5l2 2 4-4.5" />
+    </svg>
+  );
+}
+
 export function ArrowRightIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
