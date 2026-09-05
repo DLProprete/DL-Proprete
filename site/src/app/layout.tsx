@@ -57,6 +57,8 @@ const localBusinessJsonLd = {
   areaServed: business.serviceArea,
   foundingDate: `${business.foundedYear}-04`,
   description: site.description,
+  vatID: business.vatNumber,
+  taxID: business.siret,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

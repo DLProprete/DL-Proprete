@@ -1,7 +1,14 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/lib/business";
+import { cities } from "@/lib/cities";
 
-const routes = ["", "/services", "/zone-intervention", "/contact"];
+const routes = [
+  "",
+  "/services",
+  "/zone-intervention",
+  ...cities.map((city) => `/zone-intervention/${city.slug}`),
+  "/contact",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return routes.map((route) => ({
