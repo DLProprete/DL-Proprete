@@ -99,7 +99,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 href={`mailto:${business.email}?subject=${encodeURIComponent("Demande de devis — DL Propreté")}`}
-                className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/25 transition-all hover:-translate-y-0.5 hover:bg-accent-dark hover:shadow-xl hover:shadow-accent/30"
+                className="rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/25 transition-all hover:-translate-y-0.5 hover:bg-accent-darker hover:shadow-xl hover:shadow-accent/30"
               >
                 Demander un devis
               </Link>
@@ -247,7 +247,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/contact"
-            className="relative shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-dark"
+            className="relative shrink-0 rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
           >
             Nous contacter
           </Link>

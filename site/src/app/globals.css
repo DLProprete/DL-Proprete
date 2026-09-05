@@ -7,6 +7,7 @@
   --brand-dark: #081b2c;
   --accent: #12a37a;
   --accent-dark: #0c8563;
+  --accent-darker: #0a5f49;
   --surface-muted: #f4f8f6;
   --surface-mint: #edf9f4;
 }
@@ -18,6 +19,7 @@
   --color-brand-dark: var(--brand-dark);
   --color-accent: var(--accent);
   --color-accent-dark: var(--accent-dark);
+  --color-accent-darker: var(--accent-darker);
   --color-surface-muted: var(--surface-muted);
   --color-surface-mint: var(--surface-mint);
   --font-sans: var(--font-geist-sans);

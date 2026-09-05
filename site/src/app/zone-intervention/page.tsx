@@ -31,7 +31,7 @@ export default function ZoneInterventionPage() {
     <>
       <section className="border-b border-black/5 bg-surface-muted py-16">
         <Container>
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          <p className="text-sm font-semibold uppercase tracking-wide text-accent-dark">
             Zone d&apos;intervention
           </p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
@@ -83,7 +83,7 @@ export default function ZoneInterventionPage() {
             </div>
             <Link
               href="/contact"
-              className="inline-block rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-dark"
+              className="inline-block rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
             >
               Vérifier si nous intervenons chez vous
             </Link>

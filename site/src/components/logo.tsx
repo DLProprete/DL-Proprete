@@ -11,7 +11,7 @@ export function Logo({ className }: { className?: string }) {
         <span className="font-display text-base font-semibold tracking-tight text-brand">
           DL Propreté
         </span>
-        <span className="text-[11px] font-medium uppercase tracking-wide text-accent">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-accent-dark">
           Depuis 2011
         </span>
       </span>

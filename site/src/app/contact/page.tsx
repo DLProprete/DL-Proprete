@@ -43,7 +43,7 @@ export default function ContactPage() {
     <section className="py-16">
       <Container className="grid gap-12 md:grid-cols-2">
         <div>
-          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-accent">
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-accent-dark">
             <SparkleIcon className="h-4 w-4" />
             Contact
           </p>
@@ -56,7 +56,7 @@ export default function ContactPage() {
           </p>
           <a
             href={devisHref}
-            className="mt-8 inline-block rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-dark"
+            className="mt-8 inline-block rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
           >
             Écrire pour un devis
           </a>
