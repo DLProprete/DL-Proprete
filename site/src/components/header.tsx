@@ -9,6 +9,7 @@ import { business } from "@/lib/business";
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
   { href: "/zone-intervention", label: "Zone d'intervention" },
+  { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
 ];
 
