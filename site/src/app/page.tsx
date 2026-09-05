@@ -1,6 +1,29 @@
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business, services } from "@/lib/business";
+import {
+  ArrowRightIcon,
+  BottleIcon,
+  BuildingIcon,
+  CheckIcon,
+  FactoryIcon,
+  SparkleIcon,
+  ToolboxIcon,
+} from "@/components/icons";
+
+const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "nettoyage-industriel": FactoryIcon,
+  "nettoyage-batiments": BuildingIcon,
+  "negoce-produits-entretien": BottleIcon,
+  "manutention-depannages": ToolboxIcon,
+};
+
+const STATS = [
+  { label: "Activité", value: "15+ ans" },
+  { label: "Zone couverte", value: "Calvados" },
+  { label: "Basée à", value: "Colombelles" },
+  { label: "Domaines", value: "4 métiers" },
+];
 
 const WHY_US = [
   {
@@ -20,10 +43,25 @@ const WHY_US = [
 export default function HomePage() {
   return (
     <>
-      <section className="border-b border-black/5 bg-brand text-white">
-        <Container className="grid gap-10 py-20 md:grid-cols-2 md:items-center md:py-28">
-          <div className="space-y-6">
-            <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+      <section className="relative overflow-hidden border-b border-black/5 bg-brand text-white">
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.08]"
+          aria-hidden
+        >
+          <pattern id="grid-dots" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.4" fill="currentColor" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#grid-dots)" />
+        </svg>
+        <div
+          className="pointer-events-none absolute -right-40 -top-40 h-96 w-96 rounded-full bg-accent/20 blur-3xl"
+          aria-hidden
+        />
+
+        <Container className="relative grid gap-10 py-20 md:grid-cols-2 md:items-center md:py-28">
+          <div className="animate-fade-up space-y-6">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-accent">
+              <SparkleIcon className="h-4 w-4" />
               Nettoyage professionnel · {business.serviceArea.join(" & ")}
             </p>
             <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
@@ -38,7 +76,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 href={`mailto:${business.email}?subject=${encodeURIComponent("Demande de devis — DL Propreté")}`}
-                className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-dark"
+                className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-dark hover:shadow-xl hover:shadow-accent/30"
               >
                 Demander un devis
               </Link>
@@ -50,23 +88,14 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <dl className="grid grid-cols-2 gap-6 rounded-2xl bg-white/5 p-8">
-            <div>
-              <dt className="text-sm text-white/60">Activité</dt>
-              <dd className="mt-1 text-2xl font-bold">15+ ans</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-white/60">Zone couverte</dt>
-              <dd className="mt-1 text-2xl font-bold">Calvados</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-white/60">Basée à</dt>
-              <dd className="mt-1 text-2xl font-bold">Colombelles</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-white/60">Domaines</dt>
-              <dd className="mt-1 text-2xl font-bold">4 métiers</dd>
-            </div>
+
+          <dl className="animate-fade-up grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 [animation-delay:150ms]">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="bg-brand-dark/60 p-7">
+                <dt className="text-sm text-white/60">{stat.label}</dt>
+                <dd className="mt-1 text-2xl font-bold">{stat.value}</dd>
+              </div>
+            ))}
           </dl>
         </Container>
       </section>
@@ -83,25 +112,32 @@ export default function HomePage() {
             </p>
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {services.map((service) => (
-              <div
-                key={service.slug}
-                className="rounded-2xl border border-black/5 bg-surface-muted p-7"
-              >
-                <h3 className="text-lg font-semibold text-brand">
-                  {service.title}
-                </h3>
-                <p className="mt-2 text-sm text-foreground/60">
-                  {service.summary}
-                </p>
-              </div>
-            ))}
+            {services.map((service) => {
+              const Icon = SERVICE_ICONS[service.slug];
+              return (
+                <div
+                  key={service.slug}
+                  className="group rounded-2xl border border-black/5 bg-surface-muted p-7 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg hover:shadow-black/5"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white transition-colors group-hover:bg-accent">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-brand">
+                    {service.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-foreground/60">
+                    {service.summary}
+                  </p>
+                </div>
+              );
+            })}
           </div>
           <Link
             href="/services"
-            className="mt-8 inline-block text-sm font-semibold text-accent hover:text-accent-dark"
+            className="group/link mt-8 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-colors hover:text-accent-dark"
           >
-            Voir le détail de nos services →
+            Voir le détail de nos services
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
           </Link>
         </Container>
       </section>
@@ -113,9 +149,14 @@ export default function HomePage() {
           </h2>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
             {WHY_US.map((item) => (
-              <div key={item.title}>
-                <h3 className="font-semibold text-brand">{item.title}</h3>
-                <p className="mt-2 text-sm text-foreground/60">{item.text}</p>
+              <div key={item.title} className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+                  <CheckIcon className="h-3.5 w-3.5" />
+                </span>
+                <div>
+                  <h3 className="font-semibold text-brand">{item.title}</h3>
+                  <p className="mt-1.5 text-sm text-foreground/60">{item.text}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -123,8 +164,12 @@ export default function HomePage() {
       </section>
 
       <section className="py-20">
-        <Container className="flex flex-col items-start justify-between gap-8 rounded-2xl bg-brand px-10 py-14 text-white md:flex-row md:items-center">
-          <div>
+        <Container className="relative flex flex-col items-start justify-between gap-8 overflow-hidden rounded-2xl bg-brand px-10 py-14 text-white md:flex-row md:items-center">
+          <div
+            className="pointer-events-none absolute -left-24 -bottom-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl"
+            aria-hidden
+          />
+          <div className="relative">
             <h2 className="text-2xl font-bold tracking-tight">
               Un projet de nettoyage à nous confier ?
             </h2>
@@ -135,7 +180,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/contact"
-            className="shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-dark"
+            className="relative shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-dark"
           >
             Nous contacter
           </Link>
