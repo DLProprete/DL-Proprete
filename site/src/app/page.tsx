@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business, services } from "@/lib/business";
@@ -180,6 +181,35 @@ export default function HomePage() {
             Voir le détail de nos services
             <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
           </Link>
+        </Container>
+      </section>
+
+      <section className="pb-4">
+        <Container className="grid gap-6 sm:grid-cols-2">
+          <figure className="group relative overflow-hidden rounded-2xl">
+            <Image
+              src="/images/office-building.jpg"
+              alt="Bâtiment tertiaire moderne"
+              width={800}
+              height={534}
+              className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-brand-dark/80 to-transparent p-5 text-sm font-semibold text-white">
+              Bureaux &amp; locaux tertiaires
+            </figcaption>
+          </figure>
+          <figure className="group relative overflow-hidden rounded-2xl">
+            <Image
+              src="/images/industrial-interior.jpg"
+              alt="Site industriel aux sols propres"
+              width={800}
+              height={534}
+              className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-brand-dark/80 to-transparent p-5 text-sm font-semibold text-white">
+              Sites industriels &amp; entrepôts
+            </figcaption>
+          </figure>
         </Container>
       </section>
 
