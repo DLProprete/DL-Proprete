@@ -38,7 +38,7 @@ export default function OpengraphImage() {
         <div style={{ marginTop: 40, fontSize: 56, fontWeight: 700, lineHeight: 1.15 }}>
           {business.name}
         </div>
-        <div style={{ marginTop: 16, fontSize: 28, color: "#0f9d6e" }}>
+        <div style={{ marginTop: 16, fontSize: 28, color: "#12a37a" }}>
           {`Nettoyage professionnel en ${business.serviceArea[0]} · depuis ${business.foundedYear}`}
         </div>
         <div style={{ marginTop: 24, fontSize: 22, color: "rgba(255,255,255,0.7)" }}>
