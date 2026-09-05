@@ -23,7 +23,7 @@ export default function ServicesPage() {
     <>
       <section className="border-b border-black/5 bg-surface-muted py-16">
         <Container>
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          <p className="text-sm font-semibold uppercase tracking-wide text-accent-dark">
             Nos services
           </p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
@@ -77,7 +77,7 @@ export default function ServicesPage() {
           </div>
           <Link
             href="/contact"
-            className="shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-dark"
+            className="shrink-0 rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
           >
             Demander un devis
           </Link>
