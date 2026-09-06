@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/server/auth/session";
-import { dateOnlyUTC, parisToday } from "@/lib/dates";
+import { dateOnlyUTC, monthRange, parisToday } from "@/lib/dates";
 import {
   getLongOpenTimeEntries,
   getContractsEndingSoon,
+  getMonthlyRevenue,
   getUnstaffedShiftsTodayTomorrow,
   suggestAgentsForShift,
 } from "./queries";
@@ -351,5 +352,85 @@ describe("suggestAgentsForShift — disponibilité réelle (intégration DB)", (
   it("propose un agent libre, sans conflit ni absence", async () => {
     const suggestions = await suggestAgentsForShift(adminUser, targetShiftId);
     expect(suggestions.map((s) => s.id)).toContain(freeAgentId);
+  });
+});
+
+// Mesuré en delta (avant/après) plutôt qu'en valeur absolue : getMonthlyRevenue
+// additionne sur toute la base, pas sur un client isolé — d'autres tests ou
+// données réelles peuvent déjà contribuer au même mois calendaire.
+describe("getMonthlyRevenue — CA facturé du mois (intégration DB)", () => {
+  const suffix = Date.now();
+  let clientId: string;
+  let adminUser: SessionUser;
+  let invoiceIds: string[] = [];
+
+  beforeAll(async () => {
+    const client = await prisma.client.create({
+      data: { legalName: `Client Test CA ${suffix}`, billingAddress: "1 rue Test" },
+    });
+    const admin = await prisma.user.create({
+      data: {
+        email: `test-ca-admin-${suffix}@dlproprete.fr`,
+        name: "Admin CA",
+        firstName: "Admin",
+        lastName: "CA",
+        role: "ADMIN",
+        emailVerified: true,
+      },
+    });
+    clientId = client.id;
+    adminUser = { id: admin.id, email: admin.email, role: "ADMIN", isActive: true };
+  });
+
+  afterAll(async () => {
+    await prisma.invoice.deleteMany({ where: { id: { in: invoiceIds } } });
+    await prisma.client.delete({ where: { id: clientId } });
+    await prisma.user.delete({ where: { id: adminUser.id } });
+  });
+
+  it("additionne le HT des factures émises (pas brouillon) du mois, mois précédent inclus", async () => {
+    const today = parisToday();
+    const previous =
+      today.month === 1
+        ? { year: today.year - 1, month: 12 }
+        : { year: today.year, month: today.month - 1 };
+    const { start: currentStart } = monthRange(today.year, today.month);
+    const { start: previousStart } = monthRange(previous.year, previous.month);
+
+    const before = await getMonthlyRevenue(adminUser);
+
+    const [issuedThisMonth, draftThisMonth, issuedLastMonth] = await Promise.all([
+      prisma.invoice.create({
+        data: {
+          clientId,
+          status: "ISSUED",
+          issuedOn: currentStart,
+          amountHT: 1000,
+          amountTTC: 1200,
+          number: `F-TEST-CA-1-${suffix}`,
+        },
+      }),
+      prisma.invoice.create({
+        data: { clientId, status: "DRAFT", issuedOn: currentStart, amountHT: 500, amountTTC: 600 },
+      }),
+      prisma.invoice.create({
+        data: {
+          clientId,
+          status: "PAID",
+          issuedOn: previousStart,
+          amountHT: 800,
+          amountTTC: 960,
+          number: `F-TEST-CA-2-${suffix}`,
+        },
+      }),
+    ]);
+    invoiceIds = [issuedThisMonth.id, draftThisMonth.id, issuedLastMonth.id];
+
+    const after = await getMonthlyRevenue(adminUser);
+
+    // Seule la facture ISSUED compte pour le mois en cours — le brouillon
+    // (500) est exclu, donc le delta est exactement 1000, pas 1500.
+    expect(after.currentMonthHT - before.currentMonthHT).toBe(1000);
+    expect(after.previousMonthHT - before.previousMonthHT).toBe(800);
   });
 });

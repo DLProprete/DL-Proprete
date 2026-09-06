@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
-import { addDays, dateOnlyUTC, daysBetween, parisToday } from "@/lib/dates";
+import { addDays, dateOnlyUTC, daysBetween, monthRange, parisToday } from "@/lib/dates";
 import { agentConstraintViolation } from "@/server/planning/agent-constraints";
 import { findConflictingUserIds } from "@/server/planning/conflicts";
 
@@ -116,4 +116,42 @@ export async function getContractsEndingSoon(user: SessionUser) {
   });
 
   return contracts.filter((contract) => daysBetween(todayDate, contract.endsOn) <= contract.renewalNoticeDays);
+}
+
+// CA facturé HT du mois en cours, comparé au mois précédent — "facturé" au
+// sens où une facture émise compte dans le CA dès son émission, indépendant
+// de son statut de paiement (DRAFT et CANCELLED exclus : ce n'est pas encore,
+// ou plus, une facture réelle).
+export async function getMonthlyRevenue(user: SessionUser) {
+  requireRole(user, [...MANAGE_ROLES]);
+  const today = parisToday();
+  const previous =
+    today.month === 1
+      ? { year: today.year - 1, month: 12 }
+      : { year: today.year, month: today.month - 1 };
+
+  const currentRange = monthRange(today.year, today.month);
+  const previousRange = monthRange(previous.year, previous.month);
+
+  const [current, previous_] = await Promise.all([
+    prisma.invoice.aggregate({
+      _sum: { amountHT: true },
+      where: {
+        issuedOn: { gte: currentRange.start, lt: currentRange.end },
+        status: { notIn: ["DRAFT", "CANCELLED"] },
+      },
+    }),
+    prisma.invoice.aggregate({
+      _sum: { amountHT: true },
+      where: {
+        issuedOn: { gte: previousRange.start, lt: previousRange.end },
+        status: { notIn: ["DRAFT", "CANCELLED"] },
+      },
+    }),
+  ]);
+
+  return {
+    currentMonthHT: Number(current._sum.amountHT ?? 0),
+    previousMonthHT: Number(previous_._sum.amountHT ?? 0),
+  };
 }
