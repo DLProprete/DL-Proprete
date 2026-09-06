@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { readUpload } from "@/lib/uploads";
 import { requireSession } from "@/server/auth/session";
+import { agentHasWorkedAtSite } from "@/server/sites/access";
 
 const CONTENT_TYPES: Record<string, string> = {
   jpg: "image/jpeg",
@@ -16,9 +17,15 @@ export async function GET(
   { params }: { params: Promise<{ logId: string }> },
 ) {
   const { logId } = await params;
-  await requireSession();
+  const user = await requireSession();
 
   const log = await prisma.siteLog.findUniqueOrThrow({ where: { id: logId } });
+  // Un AGENT ne voit que la main courante des sites où il est (ou a été)
+  // affecté — sans ça, changer l'id dans l'URL donnait accès aux photos de
+  // n'importe quel client.
+  if (user.role === "AGENT" && !(await agentHasWorkedAtSite(user.id, log.siteId))) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
   if (!log.photoPath) {
     return NextResponse.json({ error: "Aucune photo" }, { status: 404 });
   }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, type SessionUser } from "@/server/auth/session";
+import { ForbiddenError, requireRole, type SessionUser } from "@/server/auth/session";
 import { siteInputSchema } from "@/lib/zod/site";
+import { agentHasWorkedAtSite } from "./access";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
@@ -37,6 +38,9 @@ export async function createSiteLog(
   input: { siteId: string; type: "ANOMALY" | "EQUIPMENT" | "OTHER"; comment: string; photoPath?: string | null },
 ) {
   requireRole(user, ["ADMIN", "PLANNER", "AGENT"]);
+  if (user.role === "AGENT" && !(await agentHasWorkedAtSite(user.id, input.siteId))) {
+    throw new ForbiddenError("Vous n'intervenez pas sur ce site.");
+  }
   if (!input.comment.trim()) throw new Error("Un commentaire est requis.");
   return prisma.siteLog.create({
     data: {
