@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/container";
-import { business, services } from "@/lib/business";
+import { business, services, site } from "@/lib/business";
 import { cities, getCity } from "@/lib/cities";
 import {
   ArrowRightIcon,
@@ -47,8 +47,32 @@ export default async function CityPage({
   const city = getCity(slug);
   if (!city) notFound();
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: site.url },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Zone d'intervention",
+        item: `${site.url}/zone-intervention`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: city.name,
+        item: `${site.url}/zone-intervention/${city.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <section className="border-b border-black/5 bg-surface-muted py-16">
         <Container>
           <Link

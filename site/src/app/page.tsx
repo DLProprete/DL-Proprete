@@ -46,6 +46,34 @@ const STEPS = [
   },
 ];
 
+const FAQS = [
+  {
+    question: "Dans quelles zones intervenez-vous ?",
+    answer:
+      "En priorité l'agglomération de Caen et l'ensemble du Calvados. Pour un site ailleurs en Normandie, contactez-nous : on étudie chaque demande au cas par cas.",
+  },
+  {
+    question: "Peut-on ajuster la fréquence en cours de contrat ?",
+    answer:
+      "Oui. La fréquence est définie avec vous au démarrage selon l'usage réel des locaux, et peut être revue si vos besoins changent — ce n'est pas figé pour un an.",
+  },
+  {
+    question: "Travaillez-vous avec les copropriétés et les syndics ?",
+    answer:
+      "Oui, c'est une part importante de notre activité : entretien des parties communes, comptes-rendus réguliers pour les assemblées générales.",
+  },
+  {
+    question: "Fournissez-vous les produits d'entretien ?",
+    answer:
+      "Oui, c'est l'un de nos quatre métiers : détergents, hygiène, papeterie sanitaire — en complément du nettoyage ou en fourniture seule.",
+  },
+  {
+    question: "Comment obtenir un devis ?",
+    answer:
+      "Décrivez-nous vos locaux par e-mail (type de site, surface approximative, fréquence souhaitée) : on revient vers vous avec une proposition adaptée, sans engagement.",
+  },
+];
+
 const WHY_US = [
   {
     title: "Entreprise locale, depuis 2011",
@@ -61,9 +89,23 @@ const WHY_US = [
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+};
+
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <section className="relative overflow-hidden bg-white">
         <div
           className="pointer-events-none absolute -left-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-accent/15 blur-3xl"
@@ -255,6 +297,25 @@ export default function HomePage() {
                   <p className="mt-1.5 text-sm text-foreground/60">{item.text}</p>
                 </div>
               </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="border-t border-black/5 py-20">
+        <Container className="max-w-3xl">
+          <h2 className="text-3xl font-bold tracking-tight text-brand">Questions fréquentes</h2>
+          <div className="mt-8 divide-y divide-black/5">
+            {FAQS.map((faq) => (
+              <details key={faq.question} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-brand marker:content-none">
+                  {faq.question}
+                  <span className="shrink-0 text-xl text-accent-dark transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 text-sm text-foreground/60">{faq.answer}</p>
+              </details>
             ))}
           </div>
         </Container>
