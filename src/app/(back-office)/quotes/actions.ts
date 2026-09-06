@@ -5,19 +5,22 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "@/server/auth/session";
 import { acceptQuoteAndConvert, createQuote, sendQuoteEmail } from "@/server/quotes/actions";
 
+// Ne fait qu'écarter les lignes vides (formulaire à rangées fixes, certaines
+// non remplies) — la validation réelle (nombres positifs, etc.) se fait dans
+// createQuote via quoteInputSchema, pas ici.
 function linesFrom(formData: FormData) {
   const labels = formData.getAll("label").map(String);
-  const quantities = formData.getAll("quantity").map(Number);
-  const prices = formData.getAll("unitPriceHT").map(Number);
-  const rates = formData.getAll("vatRate").map(Number);
+  const quantities = formData.getAll("quantity").map(String);
+  const prices = formData.getAll("unitPriceHT").map(String);
+  const rates = formData.getAll("vatRate").map(String);
   return labels
     .map((label, index) => ({
       label: label.trim(),
-      quantity: quantities[index] || 0,
-      unitPriceHT: prices[index] || 0,
-      vatRate: Number.isFinite(rates[index]) ? rates[index] : 20,
+      quantity: quantities[index],
+      unitPriceHT: prices[index],
+      vatRate: rates[index],
     }))
-    .filter((line) => line.label && line.quantity > 0);
+    .filter((line) => line.label);
 }
 
 export async function createQuoteAction(prospectId: string, formData: FormData) {

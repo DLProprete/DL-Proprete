@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email";
 import { logAudit } from "@/server/audit/log";
 import { createContract } from "@/server/contracts/actions";
 import { convertProspectToClient } from "@/server/prospects/actions";
+import { quoteInputSchema } from "@/lib/zod/quote";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
@@ -18,12 +19,9 @@ function totals(lines: { quantity: number; unitPriceHT: number; vatRate: number 
   return { amountHT, vatAmount, amountTTC: amountHT + vatAmount };
 }
 
-export async function createQuote(
-  user: SessionUser,
-  prospectId: string,
-  input: { notes?: string; validUntil?: string; lines: { label: string; quantity: number; unitPriceHT: number; vatRate: number }[] },
-) {
+export async function createQuote(user: SessionUser, prospectId: string, rawInput: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
+  const input = quoteInputSchema.parse(rawInput);
   const prospect = await prisma.prospect.findUniqueOrThrow({ where: { id: prospectId } });
   const year = new Date().getFullYear();
   const count = await prisma.quote.count({ where: { reference: { startsWith: `D-${year}-` } } });
