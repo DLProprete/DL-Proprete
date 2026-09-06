@@ -1,4 +1,5 @@
 import { loginAction } from "./actions";
+import { Logo } from "@/components/logo";
 
 export default async function LoginPage({
   searchParams,
@@ -13,7 +14,8 @@ export default async function LoginPage({
         action={loginAction}
         className="w-full max-w-sm space-y-4 rounded border border-zinc-200 bg-white p-6 shadow-sm"
       >
-        <h1 className="text-lg font-semibold text-zinc-900">DL Propreté — Connexion</h1>
+        <Logo />
+        <h1 className="text-lg font-semibold text-zinc-900">Connexion</h1>
         {error === "rate_limit" && (
           <p className="text-sm text-red-600">Trop de tentatives, réessayez plus tard.</p>
         )}

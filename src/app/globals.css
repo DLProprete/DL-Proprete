@@ -15,13 +15,16 @@
  */
 
 @theme {
-  /* Accent unique. Reprend le teal déjà en place (themeColor du manifeste). */
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
+  /* Accent unique — bleu marine de la marque DL Propreté (même valeur que
+     --brand/--brand-dark côté site vitrine). 700 = couleur active des
+     boutons/liens, 800 = un ton plus foncé pour le hover, même pattern que
+     l'ancien accent teal qu'il remplace. */
+  --color-brand-50: #eef2f6;
+  --color-brand-100: #dde5ec;
+  --color-brand-600: #1c4767;
+  --color-brand-700: #0f2a43;
+  --color-brand-800: #081b2c;
+  --color-brand-900: #050f19;
 
   /* Pile système : SF Pro sur le Mac de la direction, Roboto sur les
      téléphones Android des agents. Aucun téléchargement, aucun décalage de
