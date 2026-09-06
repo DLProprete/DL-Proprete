@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { AgentBottomNav } from "@/components/agent-nav";
 import { OfflineBanner } from "@/components/offline-banner";
+import { LogoBadge } from "@/components/logo";
 import { logoutAction } from "../actions";
 
 export default async function AgentLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,9 @@ export default async function AgentLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
+      <div className="flex items-center justify-center border-b border-zinc-200 bg-white py-2">
+        <LogoBadge />
+      </div>
       <main className="flex-1 px-6 py-6 pb-24">
         <OfflineBanner />
         {children}

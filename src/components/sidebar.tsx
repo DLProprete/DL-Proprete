@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { ReactNode } from "react";
+import { Logo } from "./logo";
 
 export type NavGroup = {
   label: string;
@@ -23,7 +24,7 @@ export function Sidebar({
   return (
     <>
       <div className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
-        <span className="text-sm font-semibold text-zinc-900">DL Propreté</span>
+        <Logo />
         <button
           type="button"
           aria-label="Ouvrir le menu"
@@ -49,8 +50,8 @@ export function Sidebar({
           open ? "translate-x-0" : ""
         }`}
       >
-        <div className="hidden px-4 py-4 text-sm font-semibold text-zinc-900 lg:block">
-          DL Propreté
+        <div className="hidden px-4 py-4 lg:block">
+          <Logo />
         </div>
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
           {groups.map((group) => (
