@@ -45,6 +45,8 @@
   --color-cat-magenta-bg: #fdf1f6;
   --color-cat-violet: #4a3aa7;
   --color-cat-violet-bg: #f1eefb;
+  --color-cat-terracotta: #b5651d;
+  --color-cat-terracotta-bg: #fbf1e8;
 }
 
 :root {
@@ -269,5 +271,10 @@
   .stat-badge-violet {
     background: var(--color-cat-violet-bg);
     color: var(--color-cat-violet);
+  }
+
+  .stat-badge-terracotta {
+    background: var(--color-cat-terracotta-bg);
+    color: var(--color-cat-terracotta);
   }
 }

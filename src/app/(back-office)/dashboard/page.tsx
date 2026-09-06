@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UserX, TimerOff, ReceiptEuro, FileClock } from "lucide-react";
+import { UserX, TimerOff, ReceiptEuro, FileClock, Wallet } from "lucide-react";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import {
@@ -7,6 +7,7 @@ import {
   getLongOpenTimeEntries,
   getUnpaidIssuedInvoices,
   getContractsEndingSoon,
+  getMonthlyRevenue,
   suggestAgentsForShift,
 } from "@/server/dashboard/queries";
 import { listAgents } from "@/server/planning/queries";
@@ -57,12 +58,13 @@ export default async function DashboardPage({
     redirect("/clients");
   }
 
-  const [unstaffedShifts, longOpenEntries, unpaidInvoices, endingContracts, agents] =
+  const [unstaffedShifts, longOpenEntries, unpaidInvoices, endingContracts, revenue, agents] =
     await Promise.all([
       getUnstaffedShiftsTodayTomorrow(user),
       getLongOpenTimeEntries(user),
       getUnpaidIssuedInvoices(user),
       getContractsEndingSoon(user),
+      getMonthlyRevenue(user),
       listAgents(user),
     ]);
 
@@ -71,6 +73,10 @@ export default async function DashboardPage({
   const overdueCount = unpaidInvoices.filter(
     (invoice) => invoice.dueOn && invoice.dueOn < today,
   ).length;
+  const revenueDelta =
+    revenue.previousMonthHT > 0
+      ? ((revenue.currentMonthHT - revenue.previousMonthHT) / revenue.previousMonthHT) * 100
+      : null;
 
   // La couleur d'état (ambre sur la valeur) ne sort que quand il y a quelque
   // chose à faire : un compteur à zéro reste en encre neutre. La pastille de
@@ -158,6 +164,25 @@ export default async function DashboardPage({
             : `Affectation refusée — ${error}`}
         </p>
       )}
+
+      <div className="stat-card max-w-xs !cursor-default hover:bg-white">
+        <span className="stat-badge stat-badge-terracotta">
+          <Wallet size={18} strokeWidth={2} aria-hidden />
+        </span>
+        <span className="num text-2xl font-semibold text-zinc-900">
+          {revenue.currentMonthHT.toFixed(2)} €
+        </span>
+        <span className="text-sm text-zinc-600">
+          CA facturé ce mois-ci
+          {revenueDelta !== null && (
+            <span className={revenueDelta >= 0 ? "text-emerald-700" : "text-zinc-500"}>
+              {" "}
+              · {revenueDelta >= 0 ? "+" : ""}
+              {revenueDelta.toFixed(0)} % vs mois dernier
+            </span>
+          )}
+        </span>
+      </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {counters.map((counter) => (
