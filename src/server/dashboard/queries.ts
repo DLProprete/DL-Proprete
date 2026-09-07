@@ -3,6 +3,7 @@ import { requireRole, type SessionUser } from "@/server/auth/session";
 import { addDays, dateOnlyUTC, daysBetween, monthRange, parisToday } from "@/lib/dates";
 import { agentConstraintViolation } from "@/server/planning/agent-constraints";
 import { findConflictingUserIds } from "@/server/planning/conflicts";
+import { haversineKm } from "@/lib/geo";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
 const MAX_SUGGESTIONS = 3;
@@ -25,12 +26,18 @@ export async function getUnstaffedShiftsTodayTomorrow(user: SessionUser) {
 }
 
 // Jusqu'à 3 agents actifs compatibles (contraintes + pas de chevauchement +
-// pas d'absence approuvée ce jour-là) pour une vacation non pourvue — pas
-// de notion de proximité géographique (pas d'appel Google Maps, pas
-// d'itinéraire inventé).
+// pas d'absence approuvée ce jour-là) pour une vacation non pourvue,
+// triés par distance à vol d'oiseau (domicile ↔ site) quand les deux sont
+// géocodés (voir src/lib/geo.ts, src/lib/geocoding.ts) — calcul local, pur,
+// toujours aucun appel API ni itinéraire inventé au moment de la
+// suggestion. Un agent sans coordonnées reste proposable, juste relégué en
+// fin de liste (repli sur l'ordre alphabétique).
 export async function suggestAgentsForShift(user: SessionUser, shiftId: string) {
   requireRole(user, [...MANAGE_ROLES]);
-  const shift = await prisma.shift.findUniqueOrThrow({ where: { id: shiftId } });
+  const shift = await prisma.shift.findUniqueOrThrow({
+    where: { id: shiftId },
+    include: { site: { select: { lat: true, lng: true } } },
+  });
   const agents = await prisma.user.findMany({
     where: { role: "AGENT", isActive: true },
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
@@ -62,15 +69,34 @@ export async function suggestAgentsForShift(user: SessionUser, shiftId: string) 
     shift.endAt,
   );
 
-  const suggestions: { id: string; firstName: string; lastName: string }[] = [];
-  for (const agent of agents) {
-    if (suggestions.length >= MAX_SUGGESTIONS) break;
-    if (absentAgentIds.has(agent.id)) continue;
-    if (agentConstraintViolation(agent, shift)) continue;
-    if (conflictingAgentIds.has(agent.id)) continue;
-    suggestions.push({ id: agent.id, firstName: agent.firstName, lastName: agent.lastName });
-  }
-  return suggestions;
+  const eligible = agents.filter(
+    (agent) =>
+      !absentAgentIds.has(agent.id) &&
+      !agentConstraintViolation(agent, shift) &&
+      !conflictingAgentIds.has(agent.id),
+  );
+
+  const suggestions = eligible.map((agent) => ({
+    id: agent.id,
+    firstName: agent.firstName,
+    lastName: agent.lastName,
+    experienceLevel: agent.experienceLevel,
+    distanceKm:
+      shift.site.lat != null && shift.site.lng != null && agent.homeLat != null && agent.homeLng != null
+        ? haversineKm({ lat: shift.site.lat, lng: shift.site.lng }, { lat: agent.homeLat, lng: agent.homeLng })
+        : null,
+  }));
+
+  // Array.prototype.sort est stable : à distance égale (ou absente des
+  // deux côtés), l'ordre alphabétique de départ est conservé.
+  suggestions.sort((a, b) => {
+    if (a.distanceKm == null && b.distanceKm == null) return 0;
+    if (a.distanceKm == null) return 1;
+    if (b.distanceKm == null) return -1;
+    return a.distanceKm - b.distanceKm;
+  });
+
+  return suggestions.slice(0, MAX_SUGGESTIONS);
 }
 
 // Pointages en cours depuis plus de 12h — a priori un oubli de "Terminer".

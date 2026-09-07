@@ -28,6 +28,7 @@ type AgentProfileValues = {
   homeLat?: number | null;
   homeLng?: number | null;
   hasDrivingLicense?: boolean;
+  experienceLevel?: "JUNIOR" | "CONFIRMED" | "SENIOR" | null;
   maxEndTime?: Date | null;
   minStartTime?: Date | null;
   noWorkWeekdays?: number[];
@@ -180,42 +181,34 @@ export function AgentProfileFields({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="homeLat" className="block text-sm text-zinc-700">
-                Latitude (facultatif)
-              </label>
-              <input
-                id="homeLat"
-                name="homeLat"
-                type="number"
-                step="any"
-                defaultValue={v.homeLat ?? ""}
-                className="mt-1 w-full field"
-              />
-            </div>
-            <div>
-              <label htmlFor="homeLng" className="block text-sm text-zinc-700">
-                Longitude (facultatif)
-              </label>
-              <input
-                id="homeLng"
-                name="homeLng"
-                type="number"
-                step="any"
-                defaultValue={v.homeLng ?? ""}
-                className="mt-1 w-full field"
-              />
-            </div>
-          </div>
-          <p className="-mt-3 text-xs text-zinc-500">
-            Facultatif — collecté pour de futures suggestions d&apos;affectation par proximité
-            du domicile, pas encore exploité.
+          <p className="-mt-1 text-xs text-zinc-500">
+            {v.homeLat != null && v.homeLng != null
+              ? "Position détectée — utilisée pour proposer l'agent le plus proche en cas de remplacement."
+              : "Position non détectée (adresse introuvable ou géocodage non configuré) — l'agent reste proposable, sans tri par proximité."}
           </p>
           <label className="flex items-center gap-2 text-sm text-zinc-700">
             <input type="checkbox" name="hasDrivingLicense" defaultChecked={v.hasDrivingLicense ?? false} />
             Permis de conduire
           </label>
+          <div>
+            <label htmlFor="experienceLevel" className="block text-sm text-zinc-700">
+              Niveau d&apos;expérience
+            </label>
+            <select
+              id="experienceLevel"
+              name="experienceLevel"
+              defaultValue={v.experienceLevel ?? ""}
+              className="mt-1 w-full field"
+            >
+              <option value="">Non renseigné</option>
+              <option value="JUNIOR">Débutant</option>
+              <option value="CONFIRMED">Confirmé</option>
+              <option value="SENIOR">Expérimenté</option>
+            </select>
+            <p className="mt-1 text-xs text-zinc-500">
+              Aide à composer de bons binômes sur les vacations à plusieurs agents.
+            </p>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="minStartTime" className="block text-sm text-zinc-700">

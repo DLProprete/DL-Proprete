@@ -4,6 +4,12 @@ import { requireSession } from "@/server/auth/session";
 import { listTeam } from "@/server/team/queries";
 import { Badge } from "@/components/badge";
 
+const EXPERIENCE_BADGES: Record<string, { tone: "neutral" | "success"; label: string }> = {
+  JUNIOR: { tone: "neutral", label: "Débutant" },
+  CONFIRMED: { tone: "neutral", label: "Confirmé" },
+  SENIOR: { tone: "success", label: "Expérimenté" },
+};
+
 export default async function TeamPage() {
   const user = await requireSession();
   if (user.role !== "ADMIN") {
@@ -30,6 +36,7 @@ export default async function TeamPage() {
               <th>Rôle</th>
               <th>Téléphone</th>
               <th>Permis</th>
+              <th>Expérience</th>
               <th>Statut</th>
             </tr>
           </thead>
@@ -45,13 +52,20 @@ export default async function TeamPage() {
                 <td className="text-zinc-600">{agent.phone ?? "—"}</td>
                 <td className="text-zinc-600">{agent.hasDrivingLicense ? "Oui" : "Non"}</td>
                 <td>
+                  {agent.experienceLevel ? (
+                    <Badge {...EXPERIENCE_BADGES[agent.experienceLevel]} />
+                  ) : (
+                    <span className="text-zinc-400">—</span>
+                  )}
+                </td>
+                <td>
                   <Badge tone={agent.isActive ? "success" : "muted"} label={agent.isActive ? "Actif" : "Désactivé"} />
                 </td>
               </tr>
             ))}
             {agents.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-zinc-500">
+                <td colSpan={6} className="text-zinc-500">
                   Aucun membre pour l&apos;instant.
                 </td>
               </tr>

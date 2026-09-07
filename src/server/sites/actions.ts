@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { ForbiddenError, requireRole, type SessionUser } from "@/server/auth/session";
 import { siteInputSchema } from "@/lib/zod/site";
 import { sendEmail } from "@/lib/email";
+import { geocodeAddress } from "@/lib/geocoding";
 import { agentHasWorkedAtSite } from "./access";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
@@ -14,10 +15,18 @@ function emptyToNull<T extends Record<string, unknown>>(data: T) {
   return next;
 }
 
+// Un échec de géocodage ne doit jamais empêcher d'enregistrer un site —
+// même principe que le repli silencieux dans src/lib/geocoding.ts.
+async function geocodeSiteCoordinates(address: string, postalCode: string, city: string) {
+  const coordinates = await geocodeAddress(`${address}, ${postalCode} ${city}`);
+  return { lat: coordinates?.lat ?? null, lng: coordinates?.lng ?? null };
+}
+
 export async function createSite(user: SessionUser, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
   const data = emptyToNull(siteInputSchema.parse(input));
-  return prisma.site.create({ data });
+  const coordinates = await geocodeSiteCoordinates(data.address, data.postalCode, data.city);
+  return prisma.site.create({ data: { ...data, ...coordinates } });
 }
 
 export async function updateSite(user: SessionUser, id: string, input: unknown) {
@@ -26,7 +35,24 @@ export async function updateSite(user: SessionUser, id: string, input: unknown) 
   // clientId volontairement exclu : un site ne change pas de client via ce formulaire.
   const { clientId: _clientId, ...data } = parsed;
   void _clientId;
-  return prisma.site.update({ where: { id }, data });
+
+  // Ce formulaire est aussi soumis pour enregistrer les seules consignes
+  // (accès, alarme...), adresse inchangée à chaque fois (champs cachés) —
+  // ne géocoder que si l'adresse a réellement changé, pour ne pas payer un
+  // appel Google Maps à chaque sauvegarde de consignes.
+  const current = await prisma.site.findUniqueOrThrow({
+    where: { id },
+    select: { address: true, postalCode: true, city: true },
+  });
+  const addressChanged =
+    current.address !== data.address ||
+    current.postalCode !== data.postalCode ||
+    current.city !== data.city;
+  const coordinates = addressChanged
+    ? await geocodeSiteCoordinates(data.address, data.postalCode, data.city)
+    : {};
+
+  return prisma.site.update({ where: { id }, data: { ...data, ...coordinates } });
 }
 
 export async function setSiteActive(user: SessionUser, id: string, isActive: boolean) {

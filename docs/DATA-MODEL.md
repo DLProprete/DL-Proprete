@@ -12,6 +12,17 @@ Cible Prisma / PostgreSQL. Les noms d’entités restent en anglais dans le code
 - classification (texte libre CCN, ex. "AS1") — informatif
 - isActive
 - hiredAt, endedAt
+- homeAddress, homeCity, homePostalCode (agent uniquement) — `homeLat`/
+  `homeLng` (`Float?`) sont **calculés automatiquement** par géocodage
+  (`src/lib/geocoding.ts`, ajouté le 07/09/2026) à la création/mise à
+  jour du profil, jamais saisis à la main. `null` si l'adresse n'a pas pu
+  être géocodée (clé `GOOGLE_MAPS_API_KEY` absente ou adresse
+  introuvable) — l'agent reste utilisable, juste sans tri par proximité.
+- `experienceLevel: ExperienceLevel?` (JUNIOR | CONFIRMED | SENIOR,
+  ajouté le 07/09/2026) — informatif, aide à composer un binôme
+  expérimenté/débutant sur une vacation à plusieurs agents ; surfacé sur
+  `/team` et dans les suggestions de remplacement
+  (`suggestAgentsForShift`), jamais utilisé pour un choix automatique.
 
 ### Prospect
 *Ajouté le 02/09/2026, extension approuvée du périmètre MVP — pipeline
@@ -50,6 +61,12 @@ aucune table ni cookie partagé, séparation garantie par construction.
 - accessNotes (digicode, consignes d’accès — pas de données santé)
 - onSiteContactName, onSiteContactPhone
 - surfaceM2 (optionnel)
+- `lat`/`lng` (`Float?`, ajouté le 07/09/2026) — calculés automatiquement
+  par géocodage de l'adresse à la création/mise à jour du site (voir
+  `User.homeLat`/`homeLng` ci-dessus, même mécanisme), `null` si non
+  géocodable. Utilisés uniquement pour trier les suggestions de
+  remplacement par distance (`suggestAgentsForShift`), jamais pour un
+  itinéraire.
 - isActive
 
 ### SiteLog (main courante)
