@@ -8,6 +8,7 @@ import { Logo } from "./logo";
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
   { href: "/zone-intervention", label: "Zone d'intervention" },
+  { href: "/a-propos", label: "À propos" },
   { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
 ];

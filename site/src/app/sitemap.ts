@@ -7,6 +7,7 @@ const routes = [
   "",
   "/services",
   "/zone-intervention",
+  "/a-propos",
   ...cities.map((city) => `/zone-intervention/${city.slug}`),
   "/blog",
   ...posts.map((post) => `/blog/${post.slug}`),
