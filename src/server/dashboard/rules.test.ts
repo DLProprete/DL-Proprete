@@ -214,8 +214,21 @@ describe("suggestAgentsForShift — disponibilité réelle (intégration DB)", (
     const client = await prisma.client.create({
       data: { legalName: "Client Test Suggestions", billingAddress: "1 rue Test" },
     });
+    // Coordonnées arbitraires (pas un vrai lieu) partagées avec Agent Libre
+    // ci-dessous : sans elles, ce test dépend de sa place dans MAX_SUGGESTIONS
+    // face à d'autres agents actifs de la base partagée (voir CLAUDE.md) qui
+    // peuvent avoir de vraies coordonnées (autres fixtures géo du dépôt) —
+    // une distance nulle garantie devance tout agent sans coordonnées.
     const site = await prisma.site.create({
-      data: { clientId: client.id, name: "Site Test Suggestions", address: "1 rue Test", city: "Caen", postalCode: "14000" },
+      data: {
+        clientId: client.id,
+        name: "Site Test Suggestions",
+        address: "1 rue Test",
+        city: "Caen",
+        postalCode: "14000",
+        lat: 2,
+        lng: 2,
+      },
     });
     const contract = await prisma.contract.create({
       data: {
@@ -269,6 +282,8 @@ describe("suggestAgentsForShift — disponibilité réelle (intégration DB)", (
           lastName: "Libre",
           role: "AGENT",
           emailVerified: true,
+          homeLat: 2,
+          homeLng: 2,
         },
       }),
       prisma.user.create({
