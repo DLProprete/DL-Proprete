@@ -80,6 +80,9 @@ export default async function PlanningWeekPage({
           <Link href="/planning/day" className="underline">
             Vue jour par site
           </Link>
+          <Link href="/planning/generate" className="underline">
+            Génération assistée
+          </Link>
           {/* Action de maintenance, pas l'action principale de l'écran :
               affecter un agent l'est. Bouton secondaire, donc. */}
           <form action={generateShiftsAction.bind(null, returnTo)}>

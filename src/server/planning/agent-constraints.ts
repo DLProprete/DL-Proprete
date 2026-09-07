@@ -1,4 +1,4 @@
-import { formatTime, formatTimeInParis } from "@/lib/dates";
+import { formatDateOnly, formatTime, formatTimeInParis } from "@/lib/dates";
 
 const WEEKDAY_NAMES = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 
@@ -8,6 +8,8 @@ type ConstrainedAgent = {
   maxEndTime: Date | null;
   minStartTime: Date | null;
   noWorkWeekdays: number[];
+  contractType?: "CDI" | "CDD" | null;
+  contractEndDate?: Date | null;
 };
 
 type ConstrainedShift = {
@@ -27,6 +29,10 @@ export function agentConstraintViolation(
   const name = `${agent.firstName} ${agent.lastName}`;
   const weekday = shift.date.getUTCDay();
   const dayOfWeek = weekday === 0 ? 7 : weekday;
+
+  if (agent.contractType === "CDD" && agent.contractEndDate && shift.date > agent.contractEndDate) {
+    return `${name} : contrat CDD terminé le ${formatDateOnly(agent.contractEndDate)}`;
+  }
 
   if (agent.noWorkWeekdays.includes(dayOfWeek)) {
     return `${name} : jour non travaillé (${WEEKDAY_NAMES[dayOfWeek]})`;
