@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/container";
 import { business, site } from "@/lib/business";
 
@@ -59,7 +60,12 @@ export default function MentionsLegalesPage() {
         <p className="mt-3 leading-relaxed text-foreground/70">
           Les informations transmises via ce site (formulaire, e-mail) sont
           utilisées exclusivement pour répondre à votre demande de contact ou de
-          devis et ne sont ni cédées ni exploitées à d&apos;autres fins.
+          devis et ne sont ni cédées ni exploitées à d&apos;autres fins. Détail
+          complet (durée de conservation, droits, destinataires) dans notre{" "}
+          <Link href="/politique-confidentialite" className="text-accent hover:text-accent-dark">
+            politique de confidentialité
+          </Link>
+          .
         </p>
       </Container>
     </section>

@@ -70,7 +70,7 @@ const FAQS = [
   {
     question: "Comment obtenir un devis ?",
     answer:
-      "Décrivez-nous vos locaux par e-mail (type de site, surface approximative, fréquence souhaitée) : on revient vers vous avec une proposition adaptée, sans engagement.",
+      "Remplissez le formulaire de contact (type de site, surface approximative, fréquence souhaitée) : on revient vers vous sous 24 h ouvrées avec une proposition adaptée, sans engagement.",
   },
 ];
 
@@ -141,7 +141,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
-                href={`mailto:${business.email}?subject=${encodeURIComponent("Demande de devis — DL Propreté")}`}
+                href="/contact"
                 className="rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/25 transition-all hover:-translate-y-0.5 hover:bg-accent-darker hover:shadow-xl hover:shadow-accent/30"
               >
                 Demander un devis

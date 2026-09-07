@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/container";
+import { DevisForm } from "@/components/devis-form";
 import { business } from "@/lib/business";
 import { MailIcon, PhoneIcon, PinIcon, SparkleIcon } from "@/components/icons";
 
@@ -32,12 +33,12 @@ function InfoRow({
   );
 }
 
-export default function ContactPage() {
-  const devisHref = `mailto:${business.email}?subject=${encodeURIComponent(
-    "Demande de devis — DL Propreté",
-  )}&body=${encodeURIComponent(
-    "Bonjour,\n\nJe souhaite obtenir un devis pour :\n- Type de local : \n- Adresse : \n- Fréquence souhaitée : \n\nMerci,\n",
-  )}`;
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ commune?: string }>;
+}) {
+  const { commune } = await searchParams;
 
   return (
     <section className="py-16">
@@ -51,15 +52,12 @@ export default function ContactPage() {
             Parlons de votre projet
           </h1>
           <p className="mt-4 max-w-md text-foreground/60">
-            Décrivez-nous votre local et vos besoins par e-mail, nous revenons
-            vers vous avec une proposition adaptée.
+            Décrivez-nous votre local et vos besoins, nous revenons vers vous sous 24 h ouvrées
+            avec une proposition adaptée.
           </p>
-          <a
-            href={devisHref}
-            className="mt-8 inline-block rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
-          >
-            Écrire pour un devis
-          </a>
+          <div className="mt-8">
+            <DevisForm defaultCommune={commune} />
+          </div>
         </div>
 
         <div className="space-y-6 rounded-2xl border border-black/5 bg-surface-muted p-8">
@@ -83,7 +81,7 @@ export default function ContactPage() {
                 {business.phone}
               </a>
             ) : (
-              <p>Nous contacter par e-mail, un numéro sera indiqué prochainement.</p>
+              <p>Pas encore de ligne directe : passez par le formulaire, on répond sous 24 h ouvrées.</p>
             )}
           </InfoRow>
 

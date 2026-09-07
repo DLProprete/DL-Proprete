@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { business, site } from "@/lib/business";
+import { business, services, site } from "@/lib/business";
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
@@ -60,6 +60,14 @@ const localBusinessJsonLd = {
   description: site.description,
   vatID: business.vatNumber,
   taxID: business.siret,
+  makesOffer: services.map((service) => ({
+    "@type": "Offer",
+    itemOffered: {
+      "@type": "Service",
+      name: service.title,
+      description: service.summary,
+    },
+  })),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

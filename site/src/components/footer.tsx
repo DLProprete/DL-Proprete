@@ -34,6 +34,9 @@ export function Footer() {
             <Link href="/mentions-legales" className="hover:text-brand">
               Mentions légales
             </Link>
+            <Link href="/politique-confidentialite" className="hover:text-brand">
+              Politique de confidentialité
+            </Link>
           </nav>
         </div>
 
