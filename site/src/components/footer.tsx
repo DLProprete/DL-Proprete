@@ -56,6 +56,7 @@ export function Footer() {
                 {business.phone}
               </a>
             )}
+            <span className="text-foreground/50">{business.hours.label}</span>
           </address>
         </div>
       </Container>

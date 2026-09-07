@@ -20,6 +20,12 @@ export const business = {
   email: "contact@dlproprete.fr",
   // TODO: numéro à renseigner — utilisé dans le footer, la page contact et les données structurées.
   phone: null as string | null,
+  hours: {
+    label: "Lundi – vendredi, 8h – 18h",
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    opens: "08:00",
+    closes: "18:00",
+  },
   address: {
     street: "3 rue de Verdun",
     postalCode: "14460",
