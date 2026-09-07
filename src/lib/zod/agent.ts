@@ -15,13 +15,11 @@ export const agentProfileSchema = z.object({
   homeAddress: z.string().optional(),
   homeCity: z.string().optional(),
   homePostalCode: z.string().optional(),
-  // z.literal("") doit être tenté avant la coercion numérique : Number("")
-  // vaut 0, donc un champ vide matcherait silencieusement la branche nombre
-  // si elle passait en premier (union teste dans l'ordre, s'arrête au 1er
-  // succès).
-  homeLat: z.union([z.literal(""), z.coerce.number().min(-90).max(90)]).optional(),
-  homeLng: z.union([z.literal(""), z.coerce.number().min(-180).max(180)]).optional(),
   hasDrivingLicense: z.coerce.boolean().default(false),
+  // "" = option "Non renseigné" du select — un enum seul rejetterait cette
+  // chaîne vide (même piège que homeLat/homeLng plus haut, avant leur
+  // suppression : ici c'est le select qui soumet "" au lieu de rien).
+  experienceLevel: z.union([z.literal(""), z.enum(["JUNIOR", "CONFIRMED", "SENIOR"])]).optional(),
   maxEndTime: optionalTime,
   minStartTime: optionalTime,
   noWorkWeekdays: z.array(z.coerce.number().int().min(1).max(7)).optional().default([]),

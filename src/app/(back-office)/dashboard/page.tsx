@@ -18,6 +18,26 @@ function formatDate(date: Date) {
   return new Intl.DateTimeFormat("fr-FR").format(date);
 }
 
+const EXPERIENCE_LABELS: Record<string, string> = {
+  JUNIOR: "débutant",
+  CONFIRMED: "confirmé",
+  SENIOR: "expérimenté",
+};
+
+function describeSuggestion(agent: {
+  firstName: string;
+  lastName: string;
+  experienceLevel: string | null;
+  distanceKm: number | null;
+}) {
+  const details = [
+    agent.experienceLevel ? EXPERIENCE_LABELS[agent.experienceLevel] : null,
+    agent.distanceKm != null ? `${Math.round(agent.distanceKm)} km` : null,
+  ].filter(Boolean);
+  const name = `${agent.firstName} ${agent.lastName}`;
+  return details.length > 0 ? `${name} (${details.join(", ")})` : name;
+}
+
 // Le tableau de bord est une liste de choses à faire, pas un tableau de
 // scores : chaque section se lit de haut en bas dans l'ordre d'urgence, et
 // tout ce qui peut être traité ici l'est ici. La première version envoyait
@@ -223,9 +243,7 @@ export default async function DashboardPage({
                 </p>
                 <p className="mt-0.5 text-xs text-zinc-600">
                   {suggestions.length > 0
-                    ? `Disponibles : ${suggestions
-                        .map((agent) => `${agent.firstName} ${agent.lastName}`)
-                        .join(", ")}`
+                    ? `Disponibles : ${suggestions.map(describeSuggestion).join(", ")}`
                     : "Aucun agent disponible sur ce créneau."}
                 </p>
               </div>

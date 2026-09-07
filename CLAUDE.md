@@ -62,6 +62,17 @@ SUPABASE_URL="https://xxxx.supabase.co"
 SUPABASE_SERVICE_ROLE_KEY="..."  # clé service_role, jamais la clé anon
 ```
 
+Optionnel (géocodage des adresses — sites et domicile des agents,
+`src/lib/geocoding.ts`) : sans cette variable, l'adresse est enregistrée
+sans coordonnées (`lat`/`lng` restent `null`), aucune erreur ; les
+suggestions de remplacement retombent sur l'ordre alphabétique. Clé
+Google Maps Platform (API Geocoding) à créer et facturer côté Google
+Cloud — hors du périmètre de ce dépôt.
+
+```
+GOOGLE_MAPS_API_KEY="..."
+```
+
 La migration initiale (`prisma/migrations/*_init/`) avait été générée hors
 ligne (pas de Postgres en Session 1) puis appliquée et complétée une fois la
 base disponible. Une deuxième migration (`*_add_account_issuer`) ajoute

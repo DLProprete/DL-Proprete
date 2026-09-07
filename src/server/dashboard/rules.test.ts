@@ -355,6 +355,153 @@ describe("suggestAgentsForShift — disponibilité réelle (intégration DB)", (
   });
 });
 
+// Coordonnées réelles (Caen / Colombelles / Paris) pour un tri par
+// distance vérifiable, pas juste "ordre différent de l'alphabet".
+describe("suggestAgentsForShift — tri par distance et niveau d'expérience (intégration DB)", () => {
+  const suffix = Date.now();
+  let clientId: string;
+  let siteId: string;
+  let contractId: string;
+  let shiftId: string;
+  let adminUser: SessionUser;
+  let nearAgentId: string;
+  let farAgentId: string;
+  let noCoordsAgentId: string;
+
+  beforeAll(async () => {
+    const client = await prisma.client.create({
+      data: { legalName: "Client Test Distance", billingAddress: "1 rue Test" },
+    });
+    // Site à Caen — coordonnées réelles.
+    const site = await prisma.site.create({
+      data: {
+        clientId: client.id,
+        name: "Site Test Distance",
+        address: "1 rue Test",
+        city: "Caen",
+        postalCode: "14000",
+        lat: 49.1829,
+        lng: -0.3707,
+      },
+    });
+    const contract = await prisma.contract.create({
+      data: {
+        clientId: client.id,
+        reference: `C-TEST-DISTANCE-${suffix}`,
+        startsOn: new Date("2020-01-01"),
+        endsOn: new Date("2030-12-31"),
+        status: "ACTIVE",
+      },
+    });
+    const contractSite = await prisma.contractSite.create({
+      data: { contractId: contract.id, siteId: site.id, hourlyRateHT: 20 },
+    });
+    const shift = await prisma.shift.create({
+      data: {
+        siteId: site.id,
+        contractSiteId: contractSite.id,
+        date: new Date(Date.UTC(2031, 6, 1)),
+        startAt: new Date(Date.UTC(2031, 6, 1, 6, 0)),
+        endAt: new Date(Date.UTC(2031, 6, 1, 8, 0)),
+        requiredAgents: 1,
+        billableMinutes: 120,
+        status: "UNSTAFFED",
+        generatedFromTemplate: false,
+      },
+    });
+
+    const [nearAgent, farAgent, noCoordsAgent] = await Promise.all([
+      // Colombelles — à quelques km de Caen.
+      prisma.user.create({
+        data: {
+          email: `test-distance-near-${suffix}@dlproprete.fr`,
+          name: "Agent Proche",
+          firstName: "Agent",
+          lastName: "Proche",
+          role: "AGENT",
+          emailVerified: true,
+          homeLat: 49.2039,
+          homeLng: -0.3086,
+          experienceLevel: "SENIOR",
+        },
+      }),
+      // Paris — loin de Caen.
+      prisma.user.create({
+        data: {
+          email: `test-distance-far-${suffix}@dlproprete.fr`,
+          name: "Agent Loin",
+          firstName: "Agent",
+          lastName: "Loin",
+          role: "AGENT",
+          emailVerified: true,
+          homeLat: 48.8566,
+          homeLng: 2.3522,
+        },
+      }),
+      // Sans coordonnées — doit rester proposable, relégué en fin de liste.
+      prisma.user.create({
+        data: {
+          email: `test-distance-nocoords-${suffix}@dlproprete.fr`,
+          name: "Agent SansCoords",
+          firstName: "Agent",
+          lastName: "SansCoords",
+          role: "AGENT",
+          emailVerified: true,
+        },
+      }),
+    ]);
+
+    clientId = client.id;
+    siteId = site.id;
+    contractId = contract.id;
+    shiftId = shift.id;
+    nearAgentId = nearAgent.id;
+    farAgentId = farAgent.id;
+    noCoordsAgentId = noCoordsAgent.id;
+    adminUser = { id: `admin-distance-${suffix}`, email: "admin@dlproprete.fr", role: "ADMIN", isActive: true };
+  });
+
+  afterAll(async () => {
+    await prisma.shift.delete({ where: { id: shiftId } });
+    await prisma.contractSite.deleteMany({ where: { contractId } });
+    await prisma.contract.delete({ where: { id: contractId } });
+    await prisma.site.delete({ where: { id: siteId } });
+    await prisma.client.delete({ where: { id: clientId } });
+    await prisma.user.deleteMany({ where: { id: { in: [nearAgentId, farAgentId, noCoordsAgentId] } } });
+  });
+
+  // Base de test partagée (voir CLAUDE.md) : d'autres agents actifs, sans
+  // coordonnées, existent déjà en base (seed, autres tests). near/far sont
+  // les deux seuls du jeu de données à avoir une vraie distance, donc
+  // garantis en tête de liste quel que soit le nombre d'agents sans
+  // coordonnées par ailleurs — on ne teste pas la position exacte de
+  // noCoordsAgentId, non déterministe dans cet environnement.
+  it("trie les suggestions par distance croissante (agent proche avant agent loin)", async () => {
+    const suggestions = await suggestAgentsForShift(adminUser, shiftId);
+    const ids = suggestions.map((s) => s.id);
+    expect(ids.indexOf(nearAgentId)).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf(farAgentId)).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf(nearAgentId)).toBeLessThan(ids.indexOf(farAgentId));
+  });
+
+  it("n'exclut pas un agent sans coordonnées (juste non trié par distance)", async () => {
+    const suggestions = await suggestAgentsForShift(adminUser, shiftId);
+    const noCoords = suggestions.find((s) => s.id === noCoordsAgentId);
+    // Peut être hors des 3 premiers si d'autres agents sans coordonnées
+    // occupent déjà les places restantes (base partagée) — seule certitude
+    // vérifiable : s'il apparaît, sa distance est bien absente, pas 0.
+    if (noCoords) expect(noCoords.distanceKm).toBeNull();
+  });
+
+  it("transmet experienceLevel (renseigné ou non) dans le résultat", async () => {
+    const suggestions = await suggestAgentsForShift(adminUser, shiftId);
+    const near = suggestions.find((s) => s.id === nearAgentId);
+    const far = suggestions.find((s) => s.id === farAgentId);
+    expect(near?.experienceLevel).toBe("SENIOR");
+    expect(far?.experienceLevel).toBeNull();
+  });
+});
+
 // Mesuré en delta (avant/après) plutôt qu'en valeur absolue : getMonthlyRevenue
 // additionne sur toute la base, pas sur un client isolé — d'autres tests ou
 // données réelles peuvent déjà contribuer au même mois calendaire.

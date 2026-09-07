@@ -9,6 +9,7 @@ import {
 } from "@/lib/zod/agent";
 import { timeStringToDate } from "@/lib/dates";
 import { logAudit } from "@/server/audit/log";
+import { geocodeAddress } from "@/lib/geocoding";
 
 const MANAGE_ROLES = ["ADMIN"] as const;
 // Rôles gérés depuis /team (Mo6) — pas ADMIN, dont la création n'est pas
@@ -19,7 +20,33 @@ const MANAGED_MEMBER_ROLES = ["AGENT", "PLANNER"] as const;
 // (Better Auth utilise (issuer, accountId) pour retrouver le compte).
 const CREDENTIAL_ISSUER = "local:credential";
 
-function toProfileData(data: AgentProfileInput) {
+// Géocode l'adresse du domicile uniquement si elle a changé depuis la
+// valeur actuelle — même souci qu'updateSite (src/server/sites/actions.ts) :
+// ne pas payer un appel Google Maps à chaque sauvegarde du profil quand
+// seule une autre info (notes, horaires...) a changé.
+async function resolveHomeCoordinates(
+  data: AgentProfileInput,
+  current: { homeAddress: string | null; homeCity: string | null; homePostalCode: string | null } | null,
+) {
+  const homeAddress = data.homeAddress || null;
+  const homeCity = data.homeCity || null;
+  const homePostalCode = data.homePostalCode || null;
+  if (!homeAddress) return { homeLat: null, homeLng: null };
+
+  const unchanged =
+    current?.homeAddress === homeAddress &&
+    current?.homeCity === homeCity &&
+    current?.homePostalCode === homePostalCode;
+  if (unchanged) return {};
+
+  const coordinates = await geocodeAddress(`${homeAddress}, ${homePostalCode ?? ""} ${homeCity ?? ""}`);
+  return { homeLat: coordinates?.lat ?? null, homeLng: coordinates?.lng ?? null };
+}
+
+async function toProfileData(
+  data: AgentProfileInput,
+  current: { homeAddress: string | null; homeCity: string | null; homePostalCode: string | null } | null = null,
+) {
   return {
     firstName: data.firstName,
     lastName: data.lastName,
@@ -34,9 +61,9 @@ function toProfileData(data: AgentProfileInput) {
     homeAddress: data.homeAddress || null,
     homeCity: data.homeCity || null,
     homePostalCode: data.homePostalCode || null,
-    homeLat: data.homeLat === "" || data.homeLat === undefined ? null : data.homeLat,
-    homeLng: data.homeLng === "" || data.homeLng === undefined ? null : data.homeLng,
+    ...(await resolveHomeCoordinates(data, current)),
     hasDrivingLicense: data.hasDrivingLicense,
+    experienceLevel: data.experienceLevel || null,
     maxEndTime: data.maxEndTime ? timeStringToDate(data.maxEndTime) : null,
     minStartTime: data.minStartTime ? timeStringToDate(data.minStartTime) : null,
     noWorkWeekdays: data.noWorkWeekdays,
@@ -49,7 +76,7 @@ export async function createAgent(user: SessionUser, input: unknown) {
   const data = createAgentInputSchema.parse(input);
 
   const agent = await prisma.user.create({
-    data: { email: data.email, role: data.role, emailVerified: true, ...toProfileData(data) },
+    data: { email: data.email, role: data.role, emailVerified: true, ...(await toProfileData(data)) },
   });
 
   const password = await hashPassword(data.password);
@@ -77,9 +104,13 @@ export async function createAgent(user: SessionUser, input: unknown) {
 export async function updateAgentProfile(user: SessionUser, id: string, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
   const data = agentProfileSchema.parse(input);
+  const current = await prisma.user.findUnique({
+    where: { id },
+    select: { homeAddress: true, homeCity: true, homePostalCode: true },
+  });
   return prisma.user.update({
     where: { id, role: { in: [...MANAGED_MEMBER_ROLES] } },
-    data: toProfileData(data),
+    data: await toProfileData(data, current),
   });
 }
 

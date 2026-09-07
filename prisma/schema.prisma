@@ -133,6 +133,12 @@ enum SiteLogType {
   OTHER
 }
 
+enum ExperienceLevel {
+  JUNIOR
+  CONFIRMED
+  SENIOR
+}
+
 model User {
   id                  String    @id @default(cuid())
   email               String    @unique
@@ -155,6 +161,7 @@ model User {
   homeLat             Float?
   homeLng             Float?
   hasDrivingLicense   Boolean   @default(false)
+  experienceLevel     ExperienceLevel?
   maxEndTime          DateTime? @db.Time
   minStartTime        DateTime? @db.Time
   noWorkWeekdays      Int[]     @default([])
@@ -282,6 +289,8 @@ model Site {
   onSiteContactName  String?
   onSiteContactPhone String?
   surfaceM2          Decimal? @db.Decimal(8, 2)
+  lat                Float?
+  lng                Float?
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
