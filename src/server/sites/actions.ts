@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ForbiddenError, requireRole, type SessionUser } from "@/server/auth/session";
 import { siteInputSchema } from "@/lib/zod/site";
+import { sendEmail } from "@/lib/email";
 import { agentHasWorkedAtSite } from "./access";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
@@ -42,7 +43,7 @@ export async function createSiteLog(
     throw new ForbiddenError("Vous n'intervenez pas sur ce site.");
   }
   if (!input.comment.trim()) throw new Error("Un commentaire est requis.");
-  return prisma.siteLog.create({
+  const log = await prisma.siteLog.create({
     data: {
       siteId: input.siteId,
       userId: user.id,
@@ -50,5 +51,33 @@ export async function createSiteLog(
       comment: input.comment.trim(),
       photoPath: input.photoPath || null,
     },
+    include: { site: { include: { client: true } } },
   });
+
+  // Notification "un rapport est disponible" — jamais de lien de connexion
+  // ici : le lien magique du portail (createPortalToken) expire en 15 min,
+  // inadapté à un e-mail que le client peut ouvrir des heures plus tard.
+  // Un échec d'envoi ne doit jamais faire échouer la saisie de l'agent.
+  if (log.visibleToClient && log.site.client.email) {
+    try {
+      await sendEmail({
+        to: log.site.client.email,
+        subject: `Nouveau rapport de visite — ${log.site.name}`,
+        text: `Bonjour,\n\nUn nouveau rapport de visite pour ${log.site.name} est disponible dans votre espace client DL Propreté.\n\nCordialement,\nDL Propreté`,
+      });
+    } catch (error) {
+      console.error("[site-log] échec de la notification client :", error);
+    }
+  }
+
+  return log;
+}
+
+export async function setSiteLogVisibility(
+  user: SessionUser,
+  logId: string,
+  visibleToClient: boolean,
+) {
+  requireRole(user, [...MANAGE_ROLES]);
+  return prisma.siteLog.update({ where: { id: logId }, data: { visibleToClient } });
 }

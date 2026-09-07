@@ -1,6 +1,12 @@
+import Link from "next/link";
 import { requireClientSession } from "@/server/client-portal/session";
 import { logoutPortalAction } from "./actions";
 import { Logo } from "@/components/logo";
+
+const NAV_LINKS = [
+  { href: "/portal", label: "Factures" },
+  { href: "/portal/rapports", label: "Rapports de visite" },
+];
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const session = await requireClientSession().catch(() => null);
@@ -31,6 +37,13 @@ export default async function PortalLayout({ children }: { children: React.React
           </button>
         </form>
       </header>
+      <nav className="flex gap-4 border-b border-zinc-200 bg-white px-6 text-sm">
+        {NAV_LINKS.map((link) => (
+          <Link key={link.href} href={link.href} className="py-3 text-zinc-600 hover:text-zinc-900">
+            {link.label}
+          </Link>
+        ))}
+      </nav>
       <main className="flex-1 px-6 py-6">{children}</main>
     </div>
   );

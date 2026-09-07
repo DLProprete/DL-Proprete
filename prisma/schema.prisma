@@ -569,13 +569,14 @@ model QuoteLine {
 }
 
 model SiteLog {
-  id        String      @id @default(cuid())
-  siteId    String
-  userId    String
-  type      SiteLogType @default(ANOMALY)
-  comment   String
-  photoPath String?
-  createdAt DateTime    @default(now())
+  id              String      @id @default(cuid())
+  siteId          String
+  userId          String
+  type            SiteLogType @default(ANOMALY)
+  comment         String
+  photoPath       String?
+  visibleToClient Boolean     @default(true)
+  createdAt       DateTime    @default(now())
   site Site @relation(fields: [siteId], references: [id])
   user User @relation(fields: [userId], references: [id])
   @@index([siteId, createdAt])

@@ -9,3 +9,14 @@ export async function listMyInvoices(clientId: string) {
     orderBy: { issuedOn: "desc" },
   });
 }
+
+// visibleToClient: false reste une frontière ADMIN/PLANNER — un client ne
+// doit jamais la voir, même sur ses propres sites.
+export async function listMySiteReports(clientId: string) {
+  return prisma.siteLog.findMany({
+    where: { visibleToClient: true, site: { clientId } },
+    include: { site: { select: { name: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+}
