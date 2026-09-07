@@ -57,13 +57,13 @@ export default function PolitiqueConfidentialitePage() {
         <p className="mt-3 leading-relaxed text-foreground/70">
           Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès, de rectification,
           d&apos;effacement et d&apos;opposition sur vos données. Pour l&apos;exercer, écrivez à{" "}
-          <a href={`mailto:${business.email}`} className="text-accent hover:text-accent-dark">
+          <a href={`mailto:${business.email}`} className="text-accent-dark hover:text-accent-darker">
             {business.email}
           </a>
           . Vous pouvez aussi introduire une réclamation auprès de la CNIL (
           <a
             href="https://www.cnil.fr"
-            className="text-accent hover:text-accent-dark"
+            className="text-accent-dark hover:text-accent-darker"
             target="_blank"
             rel="noopener noreferrer"
           >

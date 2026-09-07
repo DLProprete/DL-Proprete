@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business, services } from "@/lib/business";
@@ -80,7 +79,7 @@ const WHY_US = [
     text: "Plus de 15 ans d'activité dans le Calvados : une équipe qui connaît le terrain et ses contraintes.",
   },
   {
-    title: "Un interlocuteur unique",
+    title: "Le même contact du début à la fin",
     text: "Du devis à l'intervention, vous suivez votre prestation avec le même contact — pas de standard anonyme.",
   },
   {
@@ -106,33 +105,15 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <section className="relative overflow-hidden bg-white">
-        <div
-          className="pointer-events-none absolute -left-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-accent/15 blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -right-24 top-40 h-80 w-80 rounded-full bg-brand/10 blur-3xl"
-          aria-hidden
-        />
-        <svg
-          className="pointer-events-none absolute inset-0 h-full w-full text-brand/[0.05]"
-          aria-hidden
-        >
-          <pattern id="grid-dots" width="26" height="26" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.4" fill="currentColor" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#grid-dots)" />
-        </svg>
-
-        <Container className="relative grid gap-10 py-20 md:grid-cols-2 md:items-center md:py-28">
-          <div className="animate-fade-up space-y-6">
+      <section className="border-b border-black/5 bg-surface-muted">
+        <Container className="py-20 md:py-28">
+          <div className="animate-fade-up max-w-2xl space-y-6">
             <p className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-semibold text-accent-dark">
               <SparkleIcon className="h-4 w-4" />
               Nettoyage professionnel · {business.serviceArea.join(" & ")}
             </p>
             <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-brand sm:text-5xl">
-              On s&apos;occupe de vos locaux, vous vous occupez du reste.
+              Nettoyage professionnel pour entreprises et copropriétés du Calvados.
             </h1>
             <p className="max-w-lg text-foreground/60">
               Nettoyage industriel et tertiaire, produits d&apos;entretien,
@@ -142,7 +123,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 href="/contact"
-                className="rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/25 transition-all hover:-translate-y-0.5 hover:bg-accent-darker hover:shadow-xl hover:shadow-accent/30"
+                className="rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-darker"
               >
                 Demander un devis
               </Link>
@@ -155,29 +136,25 @@ export default function HomePage() {
             </div>
           </div>
 
-          <dl className="animate-fade-up grid grid-cols-2 gap-3 [animation-delay:150ms]">
+          <dl className="animate-fade-up mt-14 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-black/10 pt-8 sm:grid-cols-4 [animation-delay:150ms]">
             {STATS.map((stat) => {
               const content = (
                 <>
-                  <dt className="text-sm text-foreground/50">{stat.label}</dt>
-                  <dd className="mt-1 text-2xl font-bold text-brand">{stat.value}</dd>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-foreground/45">
+                    {stat.label}
+                  </dt>
+                  <dd className="mt-1 text-xl font-bold text-brand">{stat.value}</dd>
                 </>
               );
-              const cardClass =
-                "rounded-2xl border border-black/5 bg-white p-6 shadow-sm shadow-black/[0.02] transition-all";
               return stat.href ? (
-                <Link
-                  key={stat.label}
-                  href={stat.href}
-                  className={`${cardClass} group hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md`}
-                >
+                <Link key={stat.label} href={stat.href} className="group">
                   {content}
-                  <ArrowRightIcon className="mt-2 h-3.5 w-3.5 text-accent opacity-0 transition-opacity group-hover:opacity-100" />
+                  <span className="mt-1 block text-xs font-medium text-accent-dark opacity-0 transition-opacity group-hover:opacity-100">
+                    Voir →
+                  </span>
                 </Link>
               ) : (
-                <div key={stat.label} className={cardClass}>
-                  {content}
-                </div>
+                <div key={stat.label}>{content}</div>
               );
             })}
           </dl>
@@ -201,9 +178,9 @@ export default function HomePage() {
               return (
                 <div
                   key={service.slug}
-                  className="group rounded-2xl border border-black/5 bg-surface-mint p-7 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg hover:shadow-black/5"
+                  className="rounded-2xl border border-black/5 bg-surface-mint p-7"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white transition-colors group-hover:bg-accent">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white">
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="mt-4 text-lg font-semibold text-brand">
@@ -223,35 +200,6 @@ export default function HomePage() {
             Voir le détail de nos services
             <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
           </Link>
-        </Container>
-      </section>
-
-      <section className="pb-4">
-        <Container className="grid gap-6 sm:grid-cols-2">
-          <figure className="group relative overflow-hidden rounded-2xl">
-            <Image
-              src="/images/office-building.jpg"
-              alt="Bâtiment tertiaire moderne"
-              width={800}
-              height={534}
-              className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-brand-dark/80 to-transparent p-5 text-sm font-semibold text-white">
-              Bureaux &amp; locaux tertiaires
-            </figcaption>
-          </figure>
-          <figure className="group relative overflow-hidden rounded-2xl">
-            <Image
-              src="/images/industrial-interior.jpg"
-              alt="Site industriel aux sols propres"
-              width={800}
-              height={534}
-              className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-brand-dark/80 to-transparent p-5 text-sm font-semibold text-white">
-              Sites industriels &amp; entrepôts
-            </figcaption>
-          </figure>
         </Container>
       </section>
 
@@ -322,23 +270,19 @@ export default function HomePage() {
       </section>
 
       <section className="pb-20">
-        <Container className="relative flex flex-col items-start justify-between gap-8 overflow-hidden rounded-2xl border border-accent/15 bg-surface-mint px-10 py-14 md:flex-row md:items-center">
-          <div
-            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl"
-            aria-hidden
-          />
-          <div className="relative">
+        <Container className="flex flex-col items-start justify-between gap-8 rounded-2xl border border-accent/15 bg-surface-mint px-10 py-14 md:flex-row md:items-center">
+          <div>
             <h2 className="text-2xl font-bold tracking-tight text-brand">
               Discutons de votre projet
             </h2>
             <p className="mt-2 max-w-md text-foreground/60">
-              Décrivez-nous vos locaux, on vous répond avec une proposition
-              claire — sans jargon, sans engagement.
+              Décrivez-nous vos locaux : type de site, surface, fréquence souhaitée. On revient
+              vers vous sous 24 h ouvrées avec une proposition adaptée.
             </p>
           </div>
           <Link
             href="/contact"
-            className="relative shrink-0 rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
+            className="shrink-0 rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-darker"
           >
             Nous contacter
           </Link>

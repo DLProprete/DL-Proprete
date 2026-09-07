@@ -7,6 +7,9 @@ import { submitDevisRequest, type DevisFormState } from "@/server/contact-action
 const TYPES_LOCAL = ["Bureaux", "Copropriété", "Industriel / entrepôt", "Commerce", "Autre"];
 const FREQUENCES = ["Ponctuel", "Hebdomadaire", "Plusieurs fois par semaine", "Mensuel", "Autre"];
 
+const FIELD_CLASS =
+  "mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40";
+
 const initialState: DevisFormState = { status: "idle" };
 
 export function DevisForm({ defaultCommune }: { defaultCommune?: string }) {
@@ -48,7 +51,7 @@ export function DevisForm({ defaultCommune }: { defaultCommune?: string }) {
           name="message"
           rows={4}
           placeholder="Contraintes d'accès, horaires souhaités, particularités du site..."
-          className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-foreground focus:border-accent focus:outline-none"
+          className={FIELD_CLASS}
         />
       </div>
 
@@ -109,7 +112,7 @@ function Field({
         required={required}
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-foreground focus:border-accent focus:outline-none"
+        className={FIELD_CLASS}
       />
     </div>
   );
@@ -133,7 +136,7 @@ function SelectField({
         id={name}
         name={name}
         defaultValue=""
-        className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-foreground focus:border-accent focus:outline-none"
+        className={FIELD_CLASS}
       >
         <option value="">—</option>
         {options.map((option) => (
