@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "geocode:backfill": "tsx scripts/backfill-geocoding.ts"
   },
   "dependencies": {
     "@prisma/client": "^6",
