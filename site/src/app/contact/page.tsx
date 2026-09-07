@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/container";
 import { DevisForm } from "@/components/devis-form";
 import { business } from "@/lib/business";
-import { MailIcon, PhoneIcon, PinIcon, SparkleIcon } from "@/components/icons";
+import { ClockIcon, MailIcon, PhoneIcon, PinIcon, SparkleIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -83,6 +83,10 @@ export default async function ContactPage({
             ) : (
               <p>Pas encore de ligne directe : passez par le formulaire, on répond sous 24 h ouvrées.</p>
             )}
+          </InfoRow>
+
+          <InfoRow icon={ClockIcon} label="Horaires">
+            <p>{business.hours.label}</p>
           </InfoRow>
 
           <div className="border-t border-black/5 pt-6">

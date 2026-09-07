@@ -57,6 +57,12 @@ const localBusinessJsonLd = {
   },
   areaServed: business.serviceArea,
   foundingDate: `${business.foundedYear}-04`,
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: business.hours.days,
+    opens: business.hours.opens,
+    closes: business.hours.closes,
+  },
   description: site.description,
   vatID: business.vatNumber,
   taxID: business.siret,
