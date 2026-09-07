@@ -52,6 +52,23 @@ aucune table ni cookie partagé, séparation garantie par construction.
 - surfaceM2 (optionnel)
 - isActive
 
+### SiteLog (main courante)
+Événement remonté depuis le terrain par un agent (ou saisi par un
+ADMIN/PLANNER) sur un site : anomalie, matériel manquant, ou autre
+commentaire, avec une photo optionnelle.
+- id, siteId, userId (auteur)
+- type: ANOMALY | EQUIPMENT | OTHER (défaut ANOMALY)
+- comment (obligatoire), photoPath (optionnel — stocké via Supabase
+  Storage ou disque local, voir `src/lib/uploads.ts`)
+- `visibleToClient` (défaut `true`, ajouté le 07/09/2026, extension
+  approuvée — voir `docs/SPEC.md`) : visible par défaut dans l'espace
+  client (`/portal/rapports`, ses propres sites uniquement), un
+  ADMIN/PLANNER peut le masquer au cas par cas depuis la fiche site.
+  Une notification e-mail (sans lien de connexion — voir
+  `ClientPortalToken` ci-dessus pour pourquoi) est envoyée au client si
+  son e-mail est renseigné et l'entrée reste visible.
+- createdAt
+
 ### Contract (contrat-cadre)
 *Restructuré le 02/09/2026, extension approuvée — chaque client a plusieurs
 sites, donc un contrat couvre désormais un ou plusieurs sites du même

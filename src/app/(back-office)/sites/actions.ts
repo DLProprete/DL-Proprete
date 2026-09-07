@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { createSite, setSiteActive, updateSite } from "@/server/sites/actions";
+import { createSite, setSiteActive, setSiteLogVisibility, updateSite } from "@/server/sites/actions";
 
 export async function createSiteAction(formData: FormData) {
   const user = await requireSession();
@@ -24,4 +24,14 @@ export async function setSiteActiveAction(id: string, isActive: boolean) {
   await setSiteActive(user, id, isActive);
   revalidatePath("/sites");
   revalidatePath(`/sites/${id}`);
+}
+
+export async function setSiteLogVisibilityAction(
+  siteId: string,
+  logId: string,
+  visibleToClient: boolean,
+) {
+  const user = await requireSession();
+  await setSiteLogVisibility(user, logId, visibleToClient);
+  revalidatePath(`/sites/${siteId}`);
 }

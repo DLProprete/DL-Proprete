@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { ForbiddenError, type SessionUser } from "@/server/auth/session";
-import { createSite, createSiteLog, setSiteActive } from "./actions";
+import { createSite, createSiteLog, setSiteActive, setSiteLogVisibility } from "./actions";
 import { listSites, getSite } from "./queries";
 
 const agent: SessionUser = { id: "u-agent", email: "agent@dlproprete.fr", role: "AGENT", isActive: true };
@@ -29,6 +29,10 @@ describe("droits Site — un AGENT reçoit un refus (403)", () => {
 
   it("setSiteActive rejette un AGENT", async () => {
     await expect(setSiteActive(agent, "any-id", false)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("setSiteLogVisibility rejette un AGENT", async () => {
+    await expect(setSiteLogVisibility(agent, "any-id", false)).rejects.toBeInstanceOf(ForbiddenError);
   });
 });
 
@@ -125,5 +129,19 @@ describe("createSiteLog — un AGENT ne logue que sur ses propres sites (intégr
     const log = await createSiteLog(agentUser, { siteId: siteWorkedId, type: "OTHER", comment: "Test" });
     createdLogId = log.id;
     expect(log.siteId).toBe(siteWorkedId);
+  });
+
+  it("visibleToClient vaut true par défaut, et se désactive/réactive via setSiteLogVisibility", async () => {
+    const admin: SessionUser = { id: "u-admin", email: "admin@dlproprete.fr", role: "ADMIN", isActive: true };
+    const log = await createSiteLog(agentUser, { siteId: siteWorkedId, type: "OTHER", comment: "Test visibilité" });
+    expect(log.visibleToClient).toBe(true);
+
+    const hidden = await setSiteLogVisibility(admin, log.id, false);
+    expect(hidden.visibleToClient).toBe(false);
+
+    const shown = await setSiteLogVisibility(admin, log.id, true);
+    expect(shown.visibleToClient).toBe(true);
+
+    await prisma.siteLog.delete({ where: { id: log.id } });
   });
 });

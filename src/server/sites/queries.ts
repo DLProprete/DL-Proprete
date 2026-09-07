@@ -27,6 +27,8 @@ export async function getSite(user: SessionUser, id: string) {
         orderBy: { createdAt: "desc" },
         take: 40,
         include: { user: { select: { firstName: true, lastName: true } } },
+        // visibleToClient inclus par défaut (pas de select) — nécessaire au
+        // bouton masquer/afficher de la fiche site.
       },
     },
   });

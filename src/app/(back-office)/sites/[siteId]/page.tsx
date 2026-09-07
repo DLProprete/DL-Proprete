@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getSite } from "@/server/sites/queries";
-import { setSiteActiveAction, updateSiteAction } from "../actions";
+import { setSiteActiveAction, setSiteLogVisibilityAction, updateSiteAction } from "../actions";
 
 const LOG_TYPES: Record<string, string> = {
   ANOMALY: "Anomalie",
@@ -102,14 +102,24 @@ export default async function SiteDetailPage({
         <ul className="mt-2 space-y-3 text-sm">
           {site.logs.map((log) => (
             <li key={log.id} className="rounded-md border border-zinc-200 p-3">
-              <p className="text-xs text-zinc-500">
-                {LOG_TYPES[log.type] ?? log.type} — {log.user.firstName} {log.user.lastName} —{" "}
-                {new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short" }).format(log.createdAt)}
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs text-zinc-500">
+                  {LOG_TYPES[log.type] ?? log.type} — {log.user.firstName} {log.user.lastName} —{" "}
+                  {new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short" }).format(log.createdAt)}
+                </p>
+                <form action={setSiteLogVisibilityAction.bind(null, site.id, log.id, !log.visibleToClient)}>
+                  <button type="submit" className="shrink-0 text-xs text-zinc-500 underline">
+                    {log.visibleToClient ? "Masquer au client" : "Rendre visible"}
+                  </button>
+                </form>
+              </div>
               <p className="mt-1">{log.comment}</p>
               {log.photoPath && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={`/api/site-logs/${log.id}/photo`} alt="" className="mt-2 max-h-48 rounded" />
+              )}
+              {!log.visibleToClient && (
+                <p className="mt-1 text-xs text-amber-700">Masqué au client</p>
               )}
             </li>
           ))}
