@@ -59,4 +59,36 @@ describe("agentConstraintViolation", () => {
       "Agent Un : jour non travaillé (mercredi)",
     );
   });
+
+  it("refuse une vacation postérieure à la fin d'un contrat CDD", () => {
+    const agent = { ...baseAgent, contractType: "CDD" as const, contractEndDate: dateOnlyUTC(2026, 6, 10) };
+    const shift = {
+      date: monday, // 2026-06-15, après la fin de contrat
+      startAt: parisWallTimeToUTC(2026, 6, 15, 8, 0),
+      endAt: parisWallTimeToUTC(2026, 6, 15, 12, 0),
+    };
+    expect(agentConstraintViolation(agent, shift)).toBe(
+      "Agent Un : contrat CDD terminé le 2026-06-10",
+    );
+  });
+
+  it("n'objecte pas si le CDD est encore en cours à la date de la vacation", () => {
+    const agent = { ...baseAgent, contractType: "CDD" as const, contractEndDate: dateOnlyUTC(2026, 6, 20) };
+    const shift = {
+      date: monday,
+      startAt: parisWallTimeToUTC(2026, 6, 15, 8, 0),
+      endAt: parisWallTimeToUTC(2026, 6, 15, 12, 0),
+    };
+    expect(agentConstraintViolation(agent, shift)).toBeNull();
+  });
+
+  it("n'objecte jamais pour un CDI ou un type de contrat non renseigné", () => {
+    const shift = {
+      date: monday,
+      startAt: parisWallTimeToUTC(2026, 6, 15, 8, 0),
+      endAt: parisWallTimeToUTC(2026, 6, 15, 12, 0),
+    };
+    expect(agentConstraintViolation({ ...baseAgent, contractType: "CDI" }, shift)).toBeNull();
+    expect(agentConstraintViolation(baseAgent, shift)).toBeNull();
+  });
 });

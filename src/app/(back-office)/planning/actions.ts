@@ -49,6 +49,46 @@ export async function assignAgentAction(shiftId: string, returnTo: string, formD
   redirect(returnTo);
 }
 
+const ASSIGN_KEY_PREFIX = "assign:";
+
+// Valide un lot de propositions issues de /planning/generate. Chaque ligne
+// route par assignAgent (aucune logique dupliquée) : la vérification finale
+// se fait à cet instant précis, pas au moment où le brouillon a été calculé
+// — une absence approuvée ou un agent affecté ailleurs entre-temps fait
+// juste échouer cette ligne, sans bloquer les autres.
+export async function confirmDraftAssignmentsAction(formData: FormData) {
+  const user = await requireSession();
+  let confirmed = 0;
+  let failed = 0;
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith(ASSIGN_KEY_PREFIX)) continue;
+    const agentUserId = String(value);
+    if (!agentUserId) continue; // "Ne pas affecter"
+    const shiftId = key.slice(ASSIGN_KEY_PREFIX.length).split(":")[0];
+
+    try {
+      await assignAgent(user, shiftId, agentUserId);
+      confirmed++;
+    } catch (error) {
+      if (
+        error instanceof AssignmentConflictError ||
+        error instanceof InvalidAssigneeError ||
+        error instanceof AgentConstraintViolationError
+      ) {
+        failed++;
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  revalidatePath("/planning");
+  revalidatePath("/planning/day");
+  revalidatePath("/dashboard");
+  redirect(`/planning?confirmed=${confirmed}&failed=${failed}`);
+}
+
 export async function cancelAssignmentAction(assignmentId: string, returnTo: string) {
   const user = await requireSession();
   await cancelAssignment(user, assignmentId);

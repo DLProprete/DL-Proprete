@@ -139,6 +139,11 @@ enum ExperienceLevel {
   SENIOR
 }
 
+enum ContractType {
+  CDI
+  CDD
+}
+
 model User {
   id                  String    @id @default(cuid())
   email               String    @unique
@@ -162,6 +167,8 @@ model User {
   homeLng             Float?
   hasDrivingLicense   Boolean   @default(false)
   experienceLevel     ExperienceLevel?
+  contractType        ContractType?
+  contractEndDate     DateTime?
   maxEndTime          DateTime? @db.Time
   minStartTime        DateTime? @db.Time
   noWorkWeekdays      Int[]     @default([])

@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const timeRegex = /^\d{2}:\d{2}$/;
 const optionalTime = z.union([z.string().regex(timeRegex, "Heure invalide"), z.literal("")]).optional();
+const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+const optionalDate = z.union([z.string().regex(dateRegex, "Date invalide"), z.literal("")]).optional();
 
 export const agentProfileSchema = z.object({
   firstName: z.string().min(1, "Prénom requis"),
@@ -20,6 +22,12 @@ export const agentProfileSchema = z.object({
   // chaîne vide (même piège que homeLat/homeLng plus haut, avant leur
   // suppression : ici c'est le select qui soumet "" au lieu de rien).
   experienceLevel: z.union([z.literal(""), z.enum(["JUNIOR", "CONFIRMED", "SENIOR"])]).optional(),
+  // "" = option "Non renseigné" du select, même piège qu'experienceLevel.
+  contractType: z.union([z.literal(""), z.enum(["CDI", "CDD"])]).optional(),
+  // Pertinent seulement si contractType === "CDD" — non validé de façon
+  // croisée ici (frontière), la cohérence CDD+date se lit au moment de
+  // l'usage (agentConstraintViolation), pas à la saisie.
+  contractEndDate: optionalDate,
   maxEndTime: optionalTime,
   minStartTime: optionalTime,
   noWorkWeekdays: z.array(z.coerce.number().int().min(1).max(7)).optional().default([]),

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Prisma } from "@prisma/client";
-import { formatTime } from "@/lib/dates";
+import { formatDateOnly, formatTime } from "@/lib/dates";
 
 const DAYS = [
   { value: 1, label: "Lun" },
@@ -15,6 +15,7 @@ const DAYS = [
 ];
 
 type Role = "AGENT" | "PLANNER";
+type ContractType = "" | "CDI" | "CDD";
 
 type AgentProfileValues = {
   firstName?: string;
@@ -29,6 +30,8 @@ type AgentProfileValues = {
   homeLng?: number | null;
   hasDrivingLicense?: boolean;
   experienceLevel?: "JUNIOR" | "CONFIRMED" | "SENIOR" | null;
+  contractType?: "CDI" | "CDD" | null;
+  contractEndDate?: Date | null;
   maxEndTime?: Date | null;
   minStartTime?: Date | null;
   noWorkWeekdays?: number[];
@@ -53,6 +56,7 @@ export function AgentProfileFields({
   const v = defaultValues;
   const [role, setRole] = useState<Role>(initialRole);
   const isFieldAgent = role === "AGENT";
+  const [contractType, setContractType] = useState<ContractType>(v.contractType ?? "");
 
   return (
     <>
@@ -143,6 +147,41 @@ export function AgentProfileFields({
         <p className="mt-1 text-xs text-zinc-500">
           Saisi à la main (ex. depuis le logiciel de paie) — non calculé ici.
         </p>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="contractType" className="block text-sm text-zinc-700">
+            Type de contrat
+          </label>
+          <select
+            id="contractType"
+            name="contractType"
+            value={contractType}
+            onChange={(event) => setContractType(event.target.value as ContractType)}
+            className="mt-1 w-full field"
+          >
+            <option value="">Non renseigné</option>
+            <option value="CDI">CDI</option>
+            <option value="CDD">CDD</option>
+          </select>
+        </div>
+        {contractType === "CDD" && (
+          <div>
+            <label htmlFor="contractEndDate" className="block text-sm text-zinc-700">
+              Fin de contrat
+            </label>
+            <input
+              id="contractEndDate"
+              name="contractEndDate"
+              type="date"
+              defaultValue={v.contractEndDate ? formatDateOnly(v.contractEndDate) : ""}
+              className="mt-1 w-full field"
+            />
+            <p className="mt-1 text-xs text-zinc-500">
+              Passé cette date, l&apos;agent n&apos;est plus proposé pour une vacation.
+            </p>
+          </div>
+        )}
       </div>
       {isFieldAgent && (
         <>

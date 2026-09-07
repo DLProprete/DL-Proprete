@@ -23,6 +23,14 @@ Cible Prisma / PostgreSQL. Les noms d’entités restent en anglais dans le code
   expérimenté/débutant sur une vacation à plusieurs agents ; surfacé sur
   `/team` et dans les suggestions de remplacement
   (`suggestAgentsForShift`), jamais utilisé pour un choix automatique.
+- `contractType: ContractType?` (CDI | CDD) et `contractEndDate: DateTime?`
+  (ajoutés le 07/09/2026, extension approuvée — génération assistée du
+  planning, voir `docs/SPEC.md` §5.1) — un agent en CDD dont
+  `contractEndDate` est passée n'est plus proposé pour une vacation
+  postérieure (`agentConstraintViolation`,
+  `src/server/planning/agent-constraints.ts`). Sans lien avec le
+  `Contract` client (raison sociale distincte : ici, le contrat de
+  travail de l'agent).
 
 ### Prospect
 *Ajouté le 02/09/2026, extension approuvée du périmètre MVP — pipeline

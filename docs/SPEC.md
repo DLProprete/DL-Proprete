@@ -120,7 +120,13 @@ En deux temps :
 - consignes / cahier des charges (texte).
 
 Le système génère automatiquement les occurrences de planning sur la période
-du contrat, pour chaque site. ADMIN affecte ensuite les agents. La
+du contrat, pour chaque site. ADMIN affecte ensuite les agents — à la main
+vacation par vacation (`/planning`), ou en s'aidant de la génération
+assistée (`/planning/generate`, ajoutée le 07/09/2026) : pour une période
+donnée, l'outil propose un agent par créneau manquant (contraintes,
+contrat de travail, distance domicile-site, niveau d'expérience) et
+ADMIN/PLANNER valide ou modifie chaque proposition avant qu'elle devienne
+une affectation réelle — jamais d'affectation automatique silencieuse. La
 facturation reste aussi granulaire qu'avant : une facture par site et par
 mois (voir 5.4).
 
