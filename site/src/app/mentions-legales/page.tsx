@@ -40,7 +40,7 @@ export default function MentionsLegalesPage() {
         <h2 className="mt-8 text-lg font-semibold text-brand">Hébergement</h2>
         <p className="mt-3 leading-relaxed text-foreground/70">
           Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis —{" "}
-          <a href="https://vercel.com" className="text-accent hover:text-accent-dark">
+          <a href="https://vercel.com" className="text-accent-dark hover:text-accent-darker">
             vercel.com
           </a>
         </p>
@@ -62,7 +62,7 @@ export default function MentionsLegalesPage() {
           utilisées exclusivement pour répondre à votre demande de contact ou de
           devis et ne sont ni cédées ni exploitées à d&apos;autres fins. Détail
           complet (durée de conservation, droits, destinataires) dans notre{" "}
-          <Link href="/politique-confidentialite" className="text-accent hover:text-accent-dark">
+          <Link href="/politique-confidentialite" className="text-accent-dark hover:text-accent-darker">
             politique de confidentialité
           </Link>
           .
