@@ -63,11 +63,15 @@ SUPABASE_SERVICE_ROLE_KEY="..."  # clé service_role, jamais la clé anon
 ```
 
 Optionnel (géocodage des adresses — sites et domicile des agents,
-`src/lib/geocoding.ts`) : sans cette variable, l'adresse est enregistrée
-sans coordonnées (`lat`/`lng` restent `null`), aucune erreur ; les
-suggestions de remplacement retombent sur l'ordre alphabétique. Clé
-Google Maps Platform (API Geocoding) à créer et facturer côté Google
-Cloud — hors du périmètre de ce dépôt.
+`src/lib/geocoding.ts` — et autocomplétion d'adresse à la création d'un
+site, `src/lib/places.ts`) : sans cette variable, l'adresse est
+enregistrée sans coordonnées (`lat`/`lng` restent `null`), aucune erreur ;
+les suggestions de remplacement retombent sur l'ordre alphabétique, et le
+champ adresse de `/sites/new` reste un simple champ texte sans
+suggestion. Clé Google Maps Platform à créer et facturer côté Google
+Cloud — hors du périmètre de ce dépôt. Deux API à activer sur la **même**
+clé (appelée uniquement depuis le serveur, jamais exposée au
+navigateur) : Geocoding API et Places API (New).
 
 ```
 GOOGLE_MAPS_API_KEY="..."

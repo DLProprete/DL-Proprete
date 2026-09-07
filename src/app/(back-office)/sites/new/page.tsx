@@ -1,6 +1,7 @@
 import { requireSession } from "@/server/auth/session";
 import { listClients } from "@/server/clients/queries";
 import { createSiteAction } from "../actions";
+import { AddressAutocomplete } from "../AddressAutocomplete";
 
 export default async function NewSitePage({
   searchParams,
@@ -47,41 +48,7 @@ export default async function NewSitePage({
             className="mt-1 w-full field"
           />
         </div>
-        <div>
-          <label htmlFor="address" className="block text-sm text-zinc-700">
-            Adresse
-          </label>
-          <input
-            id="address"
-            name="address"
-            required
-            className="mt-1 w-full field"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="postalCode" className="block text-sm text-zinc-700">
-              Code postal
-            </label>
-            <input
-              id="postalCode"
-              name="postalCode"
-              required
-              className="mt-1 w-full field"
-            />
-          </div>
-          <div>
-            <label htmlFor="city" className="block text-sm text-zinc-700">
-              Ville
-            </label>
-            <input
-              id="city"
-              name="city"
-              required
-              className="mt-1 w-full field"
-            />
-          </div>
-        </div>
+        <AddressAutocomplete />
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="onSiteContactName" className="block text-sm text-zinc-700">
