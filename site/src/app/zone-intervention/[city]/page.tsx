@@ -99,9 +99,7 @@ export default async function CityPage({
             </h2>
             <p className="mt-3 text-foreground/60">{city.focus}</p>
             <Link
-              href={`mailto:${business.email}?subject=${encodeURIComponent(
-                `Demande de devis — ${city.name}`,
-              )}`}
+              href={`/contact?commune=${encodeURIComponent(city.name)}`}
               className="mt-6 inline-block rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
             >
               Demander un devis à {city.name}

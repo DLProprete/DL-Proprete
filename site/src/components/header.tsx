@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { Container } from "./container";
 import { Logo } from "./logo";
-import { business } from "@/lib/business";
 
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
@@ -13,7 +12,7 @@ const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
-const DEVIS_HREF = `mailto:${business.email}?subject=${encodeURIComponent("Demande de devis — DL Propreté")}`;
+const DEVIS_HREF = "/contact";
 
 export function Header() {
   const [open, setOpen] = useState(false);

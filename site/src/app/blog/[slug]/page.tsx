@@ -90,7 +90,7 @@ export default async function BlogPostPage({
             Décrivez-nous votre situation, on vous répond avec une réponse claire.
           </p>
           <Link
-            href={`mailto:${business.email}`}
+            href="/contact"
             className="mt-4 inline-block rounded-full bg-accent-dark px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
           >
             Nous écrire
