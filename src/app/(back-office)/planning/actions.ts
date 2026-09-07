@@ -13,17 +13,24 @@ import {
 } from "@/server/planning/assignments";
 import { importHolidays } from "@/server/holidays/actions";
 
-function withError(returnTo: string, error: string): string {
+function withParam(returnTo: string, key: string, value: string): string {
   const separator = returnTo.includes("?") ? "&" : "?";
-  return `${returnTo}${separator}error=${encodeURIComponent(error)}`;
+  return `${returnTo}${separator}${key}=${encodeURIComponent(value)}`;
 }
 
+function withError(returnTo: string, error: string): string {
+  return withParam(returnTo, "error", error);
+}
+
+// generateShifts est idempotent (occurrences déjà générées ignorées) : sans
+// retour visible, un deuxième clic qui ne crée rien de nouveau ressemble à
+// un bouton cassé plutôt qu'à un succès silencieux.
 export async function generateShiftsAction(returnTo: string) {
   const user = await requireSession();
-  await generateShifts(user);
+  const { created } = await generateShifts(user);
   revalidatePath("/planning");
   revalidatePath("/planning/day");
-  redirect(returnTo);
+  redirect(withParam(returnTo, "generated", String(created)));
 }
 
 export async function assignAgentAction(shiftId: string, returnTo: string, formData: FormData) {

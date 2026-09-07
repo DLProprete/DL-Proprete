@@ -32,9 +32,9 @@ function formatDay(date: Date) {
 export default async function PlanningWeekPage({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string; error?: string }>;
+  searchParams: Promise<{ week?: string; error?: string; generated?: string }>;
 }) {
-  const { week, error } = await searchParams;
+  const { week, error, generated } = await searchParams;
   const user = await requireSession();
 
   const today = parisToday();
@@ -93,6 +93,13 @@ export default async function PlanningWeekPage({
         </div>
       </div>
 
+      {generated !== undefined && (
+        <p className="alert alert-info">
+          {generated === "0"
+            ? "Aucune nouvelle vacation à générer — déjà à jour sur les 8 prochaines semaines."
+            : `${generated} vacation${generated !== "1" ? "s" : ""} générée${generated !== "1" ? "s" : ""}.`}
+        </p>
+      )}
       {error === "conflict" && (
         <p className="alert alert-danger">
           Affectation refusée : conflit d&apos;horaire avec une autre vacation, ou agent invalide.
