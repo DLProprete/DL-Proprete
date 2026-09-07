@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Prisma } from "@prisma/client";
-import { formatDateOnly, formatTime } from "@/lib/dates";
+import { formatDateOnly } from "@/lib/dates";
 
 const DAYS = [
   { value: 1, label: "Lun" },
@@ -32,11 +32,11 @@ type AgentProfileValues = {
   experienceLevel?: "JUNIOR" | "CONFIRMED" | "SENIOR" | null;
   contractType?: "CDI" | "CDD" | null;
   contractEndDate?: Date | null;
-  maxEndTime?: Date | null;
-  minStartTime?: Date | null;
-  noWorkWeekdays?: number[];
+  scheduleExceptions?: unknown;
   notes?: string | null;
 };
+
+type ScheduleException = { weekdays: number[]; notBefore?: string; notAfter?: string };
 
 // Champs de profil partagés entre /team/new et /team/[agentId]. Le bloc
 // "terrain" (adresse/GPS/permis/contraintes horaires/jours non travaillés)
@@ -57,6 +57,34 @@ export function AgentProfileFields({
   const [role, setRole] = useState<Role>(initialRole);
   const isFieldAgent = role === "AGENT";
   const [contractType, setContractType] = useState<ContractType>(v.contractType ?? "");
+  const [exceptions, setExceptions] = useState<ScheduleException[]>(
+    Array.isArray(v.scheduleExceptions) ? (v.scheduleExceptions as ScheduleException[]) : [],
+  );
+
+  function addException() {
+    setExceptions([...exceptions, { weekdays: [] }]);
+  }
+  function removeException(index: number) {
+    setExceptions(exceptions.filter((_, i) => i !== index));
+  }
+  function toggleExceptionWeekday(index: number, day: number) {
+    setExceptions(
+      exceptions.map((exception, i) => {
+        if (i !== index) return exception;
+        const weekdays = exception.weekdays.includes(day)
+          ? exception.weekdays.filter((d) => d !== day)
+          : [...exception.weekdays, day];
+        return { ...exception, weekdays };
+      }),
+    );
+  }
+  function updateExceptionTime(index: number, key: "notBefore" | "notAfter", value: string) {
+    setExceptions(
+      exceptions.map((exception, i) =>
+        i === index ? { ...exception, [key]: value || undefined } : exception,
+      ),
+    );
+  }
 
   return (
     <>
@@ -248,51 +276,66 @@ export function AgentProfileFields({
               Aide à composer de bons binômes sur les vacations à plusieurs agents.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="minStartTime" className="block text-sm text-zinc-700">
-                Ne pas travailler avant (facultatif)
-              </label>
-              <input
-                id="minStartTime"
-                name="minStartTime"
-                type="time"
-                defaultValue={v.minStartTime ? formatTime(v.minStartTime) : ""}
-                className="mt-1 w-full field"
-              />
-            </div>
-            <div>
-              <label htmlFor="maxEndTime" className="block text-sm text-zinc-700">
-                Ne pas travailler après (facultatif)
-              </label>
-              <input
-                id="maxEndTime"
-                name="maxEndTime"
-                type="time"
-                defaultValue={v.maxEndTime ? formatTime(v.maxEndTime) : ""}
-                className="mt-1 w-full field"
-              />
-            </div>
-          </div>
           <fieldset>
-            <legend className="block text-sm text-zinc-700">Jours non travaillés</legend>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {DAYS.map((day) => (
-                <label
-                  key={day.value}
-                  className="chip"
-                >
-                  <input
-                    type="checkbox"
-                    name="noWorkWeekdays"
-                    value={day.value}
-                    defaultChecked={v.noWorkWeekdays?.includes(day.value) ?? false}
-                    className="sr-only"
-                  />
-                  {day.label}
-                </label>
+            <legend className="block text-sm text-zinc-700">Indisponibilités récurrentes</legend>
+            <p className="mt-1 text-xs text-zinc-500">
+              Un jour entier (aucune heure) ou une plage horaire, ex. « mercredi, pas après 14h ».
+              Autant d&apos;exclusions que nécessaire, chacune sur ses propres jours.
+            </p>
+            <div className="mt-2 space-y-3">
+              {exceptions.map((exception, index) => (
+                <div key={index} className="rounded-lg border border-zinc-200 p-3">
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS.map((day) => (
+                      <label key={day.value} className="chip">
+                        <input
+                          type="checkbox"
+                          checked={exception.weekdays.includes(day.value)}
+                          onChange={() => toggleExceptionWeekday(index, day.value)}
+                          className="sr-only"
+                        />
+                        {day.label}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-zinc-600">Pas avant (facultatif)</label>
+                      <input
+                        type="time"
+                        value={exception.notBefore ?? ""}
+                        onChange={(event) => updateExceptionTime(index, "notBefore", event.target.value)}
+                        className="mt-1 w-full field field-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-zinc-600">Pas après (facultatif)</label>
+                      <input
+                        type="time"
+                        value={exception.notAfter ?? ""}
+                        onChange={(event) => updateExceptionTime(index, "notAfter", event.target.value)}
+                        className="mt-1 w-full field field-sm"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeException(index)}
+                    className="mt-2 text-xs text-red-700 underline"
+                  >
+                    Supprimer cette exclusion
+                  </button>
+                </div>
               ))}
             </div>
+            <button type="button" onClick={addException} className="btn btn-secondary btn-sm mt-2">
+              Ajouter une exclusion
+            </button>
+            <input
+              type="hidden"
+              name="scheduleExceptionsJson"
+              value={JSON.stringify(exceptions.filter((exception) => exception.weekdays.length > 0))}
+            />
           </fieldset>
         </>
       )}

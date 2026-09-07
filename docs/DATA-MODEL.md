@@ -31,6 +31,17 @@ Cible Prisma / PostgreSQL. Les noms d’entités restent en anglais dans le code
   `src/server/planning/agent-constraints.ts`). Sans lien avec le
   `Contract` client (raison sociale distincte : ici, le contrat de
   travail de l'agent).
+- `scheduleExceptions: Json` (défaut `[]`, ajouté le 07/09/2026) —
+  contraintes horaires récurrentes de l'agent :
+  `Array<{ weekdays: number[]; notBefore?: "HH:mm"; notAfter?: "HH:mm" }>`
+  (1=lundi..7=dimanche). Une exclusion sans heure bloque le jour entier ;
+  plusieurs exclusions se combinent (ex. « mercredi, pas après 14h » +
+  « lundi et jeudi, pas après 16h »). Remplace les anciens champs
+  `minStartTime`/`maxEndTime` (une seule plage, tous les jours) et
+  `noWorkWeekdays` (jour entier uniquement), incapables d'exprimer deux
+  règles différentes sur des jours différents. Lu par
+  `agentConstraintViolation`, jamais validé en base (déjà validé par zod
+  à la saisie, `src/lib/zod/agent.ts`).
 
 ### Prospect
 *Ajouté le 02/09/2026, extension approuvée du périmètre MVP — pipeline
