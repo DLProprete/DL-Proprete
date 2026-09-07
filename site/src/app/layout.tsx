@@ -57,6 +57,7 @@ const localBusinessJsonLd = {
   },
   areaServed: business.serviceArea,
   foundingDate: `${business.foundedYear}-04`,
+  founder: { "@type": "Person", name: business.founder },
   openingHoursSpecification: {
     "@type": "OpeningHoursSpecification",
     dayOfWeek: business.hours.days,

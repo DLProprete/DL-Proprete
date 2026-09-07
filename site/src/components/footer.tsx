@@ -25,6 +25,9 @@ export function Footer() {
             <Link href="/zone-intervention" className="hover:text-brand">
               Zone d&apos;intervention
             </Link>
+            <Link href="/a-propos" className="hover:text-brand">
+              À propos
+            </Link>
             <Link href="/blog" className="hover:text-brand">
               Blog
             </Link>

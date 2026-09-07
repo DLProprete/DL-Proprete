@@ -17,6 +17,9 @@ export const business = {
   shareCapital: "7 000,00 €",
   rcs: "531 739 241 R.C.S. Caen",
   publicationDirector: "Cassandre Lemière",
+  founder: "Dominique Lemière",
+  leader: "Cassandre Lemière",
+  teamSize: 16,
   email: "contact@dlproprete.fr",
   // TODO: numéro à renseigner — utilisé dans le footer, la page contact et les données structurées.
   phone: null as string | null,
