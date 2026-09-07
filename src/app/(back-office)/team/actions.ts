@@ -29,9 +29,10 @@ function profileFields(formData: FormData) {
     homeLat: field(formData, "homeLat"),
     homeLng: field(formData, "homeLng"),
     hasDrivingLicense: field(formData, "hasDrivingLicense"),
-    maxEndTime: field(formData, "maxEndTime"),
-    minStartTime: field(formData, "minStartTime"),
-    noWorkWeekdays: formData.getAll("noWorkWeekdays"),
+    experienceLevel: field(formData, "experienceLevel"),
+    contractType: field(formData, "contractType"),
+    contractEndDate: field(formData, "contractEndDate"),
+    scheduleExceptions: field(formData, "scheduleExceptionsJson"),
     notes: field(formData, "notes"),
   };
 }

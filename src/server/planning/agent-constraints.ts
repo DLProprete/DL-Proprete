@@ -1,13 +1,13 @@
-import { formatDateOnly, formatTime, formatTimeInParis } from "@/lib/dates";
+import { formatDateOnly, formatTimeInParis } from "@/lib/dates";
 
 const WEEKDAY_NAMES = ["", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+export type ScheduleException = { weekdays: number[]; notBefore?: string; notAfter?: string };
 
 type ConstrainedAgent = {
   firstName: string;
   lastName: string;
-  maxEndTime: Date | null;
-  minStartTime: Date | null;
-  noWorkWeekdays: number[];
+  scheduleExceptions?: unknown;
   contractType?: "CDI" | "CDD" | null;
   contractEndDate?: Date | null;
 };
@@ -34,23 +34,31 @@ export function agentConstraintViolation(
     return `${name} : contrat CDD terminé le ${formatDateOnly(agent.contractEndDate)}`;
   }
 
-  if (agent.noWorkWeekdays.includes(dayOfWeek)) {
-    return `${name} : jour non travaillé (${WEEKDAY_NAMES[dayOfWeek]})`;
-  }
+  // scheduleExceptions n'est écrit que via le formulaire agent, déjà validé
+  // par zod à la frontière (src/lib/zod/agent.ts) — pas une donnée externe
+  // à revalider ici, simple cast (contrairement à parseGeocodingResponse,
+  // qui interprète une réponse Google non maîtrisée).
+  const exceptions = (agent.scheduleExceptions as ScheduleException[] | null) ?? [];
 
-  if (agent.minStartTime) {
-    const start = formatTimeInParis(shift.startAt);
-    const limit = formatTime(agent.minStartTime);
-    if (start < limit) {
-      return `${name} : début de vacation ${start} < limite ${limit}`;
+  for (const exception of exceptions) {
+    if (!exception.weekdays.includes(dayOfWeek)) continue;
+
+    if (!exception.notBefore && !exception.notAfter) {
+      return `${name} : jour non travaillé (${WEEKDAY_NAMES[dayOfWeek]})`;
     }
-  }
 
-  if (agent.maxEndTime) {
-    const end = formatTimeInParis(shift.endAt);
-    const limit = formatTime(agent.maxEndTime);
-    if (end > limit) {
-      return `${name} : fin de vacation ${end} > limite ${limit}`;
+    if (exception.notBefore) {
+      const start = formatTimeInParis(shift.startAt);
+      if (start < exception.notBefore) {
+        return `${name} : début de vacation ${start} < limite ${exception.notBefore} (${WEEKDAY_NAMES[dayOfWeek]})`;
+      }
+    }
+
+    if (exception.notAfter) {
+      const end = formatTimeInParis(shift.endAt);
+      if (end > exception.notAfter) {
+        return `${name} : fin de vacation ${end} > limite ${exception.notAfter} (${WEEKDAY_NAMES[dayOfWeek]})`;
+      }
     }
   }
 

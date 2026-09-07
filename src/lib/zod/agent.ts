@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const timeRegex = /^\d{2}:\d{2}$/;
-const optionalTime = z.union([z.string().regex(timeRegex, "Heure invalide"), z.literal("")]).optional();
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const optionalDate = z.union([z.string().regex(dateRegex, "Date invalide"), z.literal("")]).optional();
 
@@ -28,9 +27,24 @@ export const agentProfileSchema = z.object({
   // croisée ici (frontière), la cohérence CDD+date se lit au moment de
   // l'usage (agentConstraintViolation), pas à la saisie.
   contractEndDate: optionalDate,
-  maxEndTime: optionalTime,
-  minStartTime: optionalTime,
-  noWorkWeekdays: z.array(z.coerce.number().int().min(1).max(7)).optional().default([]),
+  // Arrive du formulaire comme une chaîne JSON unique (un hidden input,
+  // voir AgentProfileFields.tsx) — plus simple que reconstruire un tableau
+  // d'objets depuis des clés FormData indexées. z.preprocess parse cette
+  // chaîne ; JSON invalide ou absente → tableau vide, jamais une exception.
+  scheduleExceptions: z.preprocess((value) => {
+    if (typeof value !== "string" || !value.trim()) return [];
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }, z.array(
+    z.object({
+      weekdays: z.array(z.coerce.number().int().min(1).max(7)).min(1),
+      notBefore: z.string().regex(timeRegex, "Heure invalide").optional(),
+      notAfter: z.string().regex(timeRegex, "Heure invalide").optional(),
+    }),
+  )),
   notes: z.string().optional(),
 });
 

@@ -169,9 +169,12 @@ model User {
   experienceLevel     ExperienceLevel?
   contractType        ContractType?
   contractEndDate     DateTime?
-  maxEndTime          DateTime? @db.Time
-  minStartTime        DateTime? @db.Time
-  noWorkWeekdays      Int[]     @default([])
+  // Array<{ weekdays: number[]; notBefore?: "HH:mm"; notAfter?: "HH:mm" }>
+  // (1=lundi..7=dimanche) — remplace les anciens minStartTime/maxEndTime
+  // (une seule plage, tous les jours) et noWorkWeekdays (jour entier
+  // seulement) : plusieurs règles combinables, chacune sur ses propres
+  // jours. Voir src/server/planning/agent-constraints.ts.
+  scheduleExceptions  Json      @default("[]")
   notes               String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt

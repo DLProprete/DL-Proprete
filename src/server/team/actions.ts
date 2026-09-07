@@ -7,7 +7,7 @@ import {
   resetPasswordSchema,
   type AgentProfileInput,
 } from "@/lib/zod/agent";
-import { parseDateOnly, timeStringToDate } from "@/lib/dates";
+import { parseDateOnly } from "@/lib/dates";
 import { logAudit } from "@/server/audit/log";
 import { geocodeAddress } from "@/lib/geocoding";
 
@@ -66,9 +66,7 @@ async function toProfileData(
     experienceLevel: data.experienceLevel || null,
     contractType: data.contractType || null,
     contractEndDate: data.contractEndDate ? parseDateOnly(data.contractEndDate) : null,
-    maxEndTime: data.maxEndTime ? timeStringToDate(data.maxEndTime) : null,
-    minStartTime: data.minStartTime ? timeStringToDate(data.minStartTime) : null,
-    noWorkWeekdays: data.noWorkWeekdays,
+    scheduleExceptions: data.scheduleExceptions,
     notes: data.notes || null,
   };
 }
