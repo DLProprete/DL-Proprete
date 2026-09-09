@@ -113,7 +113,7 @@ export default async function CityPage({
                 return (
                   <li key={service.slug}>
                     <Link
-                      href={`/services#${service.slug}`}
+                      href={`/zone-intervention/${city.slug}/${service.slug}`}
                       className="group/link flex items-center gap-3 rounded-xl border border-black/5 bg-surface-mint p-4 transition-colors hover:border-accent/30"
                     >
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
