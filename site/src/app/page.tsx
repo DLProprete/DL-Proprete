@@ -10,9 +10,9 @@ import {
   CheckIcon,
   FactoryIcon,
   MessageIcon,
-  PinIcon,
   SparkleIcon,
   ToolboxIcon,
+  ZoneIcon,
 } from "@/components/icons";
 
 const mapQuery = encodeURIComponent(
@@ -186,7 +186,7 @@ export default function HomePage() {
                   key={service.slug}
                   className="rounded-2xl border border-black/5 bg-surface-mint p-7"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-black/5 bg-white text-brand">
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="mt-4 text-lg font-semibold text-brand">
@@ -235,7 +235,7 @@ export default function HomePage() {
                     href={`/zone-intervention/${city.slug}`}
                     className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-brand transition-colors hover:border-accent/30"
                   >
-                    <PinIcon className="h-3.5 w-3.5 text-accent-dark" />
+                    <ZoneIcon className="h-3.5 w-3.5 text-brand" />
                     {city.name}
                   </Link>
                 </li>
