@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { site } from "@/lib/business";
+import { site, services } from "@/lib/business";
 import { cities } from "@/lib/cities";
 import { posts } from "@/lib/blog";
 
@@ -9,6 +9,9 @@ const routes = [
   "/zone-intervention",
   "/a-propos",
   ...cities.map((city) => `/zone-intervention/${city.slug}`),
+  ...cities.flatMap((city) =>
+    services.map((service) => `/zone-intervention/${city.slug}/${service.slug}`),
+  ),
   "/blog",
   ...posts.map((post) => `/blog/${post.slug}`),
   "/contact",
