@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business, services } from "@/lib/business";
+import { cities } from "@/lib/cities";
 import {
   ArrowRightIcon,
   BottleIcon,
@@ -9,9 +10,14 @@ import {
   CheckIcon,
   FactoryIcon,
   MessageIcon,
+  PinIcon,
   SparkleIcon,
   ToolboxIcon,
 } from "@/components/icons";
+
+const mapQuery = encodeURIComponent(
+  `${business.address.street}, ${business.address.postalCode} ${business.address.city}`,
+);
 
 const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "nettoyage-industriel": FactoryIcon,
@@ -204,6 +210,49 @@ export default function HomePage() {
       </section>
 
       <section className="border-y border-black/5 bg-surface-muted py-20">
+        <Container className="grid gap-10 md:grid-cols-2 md:items-center">
+          <div className="overflow-hidden rounded-2xl border border-black/5">
+            <iframe
+              title="Zone d'intervention de DL Propreté autour de Colombelles"
+              src={`https://maps.google.com/maps?q=${mapQuery}&output=embed`}
+              className="h-72 w-full md:h-80"
+              loading="lazy"
+            />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight text-brand">
+              Notre zone d&apos;intervention
+            </h2>
+            <p className="mt-3 text-foreground/60">
+              Basés à Colombelles, nous intervenons dans toute
+              l&apos;agglomération de Caen et l&apos;ensemble du{" "}
+              {business.serviceArea[0]}.
+            </p>
+            <ul className="mt-6 flex flex-wrap gap-3">
+              {cities.map((city) => (
+                <li key={city.slug}>
+                  <Link
+                    href={`/zone-intervention/${city.slug}`}
+                    className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-brand transition-colors hover:border-accent/30"
+                  >
+                    <PinIcon className="h-3.5 w-3.5 text-accent-dark" />
+                    {city.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/zone-intervention"
+              className="group/link mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-dark transition-colors hover:text-accent"
+            >
+              Voir toute notre zone d&apos;intervention
+              <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
+            </Link>
+          </div>
+        </Container>
+      </section>
+
+      <section className="border-b border-black/5 py-20">
         <Container>
           <h2 className="text-3xl font-bold tracking-tight text-brand">
             Comment ça se passe
