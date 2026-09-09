@@ -47,7 +47,7 @@ export default function ServicesPage() {
                 id={service.slug}
                 className="grid gap-6 border-b border-black/5 pb-10 last:border-0 md:grid-cols-[auto_1fr] md:gap-10"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-black/5 bg-surface-mint text-brand">
                   <Icon className="h-6 w-6" />
                 </div>
                 <div>

@@ -1,5 +1,7 @@
 type IconProps = { className?: string };
 
+const ACCENT = "#3E6B8C";
+
 const base = {
   viewBox: "0 0 24 24",
   fill: "none",
@@ -12,8 +14,10 @@ const base = {
 export function FactoryIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <path d="M3 21V10l6 4v-4l6 4V6l6 4v11H3Z" />
-      <path d="M7 21v-4M12 21v-4M17 21v-4" />
+      <path d="M3 19v-7l4 3.2V12l4 3.2V12l4 3.2V12l4 3.2V19" />
+      <line x1="2" y1="19" x2="22" y2="19" />
+      <line x1="6" y1="12" x2="6" y2="6" />
+      <rect x="9.5" y="15.5" width="5" height="3.5" fill={ACCENT} stroke="none" />
     </svg>
   );
 }
@@ -21,9 +25,11 @@ export function FactoryIcon({ className }: IconProps) {
 export function BuildingIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <rect x="5" y="3" width="14" height="18" rx="1" />
-      <path d="M9 8h1M14 8h1M9 12h1M14 12h1M9 16h1M14 16h1" />
-      <path d="M10 21v-4h4v4" />
+      <rect x="4" y="3" width="16" height="18" />
+      <line x1="12" y1="3" x2="12" y2="21" />
+      <line x1="4" y1="9" x2="20" y2="9" />
+      <line x1="4" y1="15" x2="20" y2="15" />
+      <rect x="13" y="10" width="6" height="4" fill={ACCENT} stroke="none" />
     </svg>
   );
 }
@@ -31,8 +37,8 @@ export function BuildingIcon({ className }: IconProps) {
 export function BottleIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <path d="M10 2h4v3.2c0 .5.2 1 .6 1.3l.8.8c.4.4.6.9.6 1.4V21a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V8.7c0-.5.2-1 .6-1.4l.8-.8c.4-.4.6-.8.6-1.3V2Z" />
-      <path d="M9 13h6M10 2h4" />
+      <path d="M10 3h4v3l3 3v12H7V9l3-3z" />
+      <rect x="10" y="13" width="4" height="3" fill={ACCENT} stroke="none" />
     </svg>
   );
 }
@@ -40,9 +46,11 @@ export function BottleIcon({ className }: IconProps) {
 export function ToolboxIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <rect x="3" y="9" width="18" height="11" rx="1.5" />
-      <path d="M8 9V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3" />
-      <path d="M3 13h18M10 13v2M14 13v2" />
+      <path d="M20 3v14H6" />
+      <rect x="8" y="7" width="9" height="7" />
+      <line x1="8" y1="10.5" x2="17" y2="10.5" stroke={ACCENT} />
+      <circle cx="7" cy="20" r="1.7" />
+      <circle cx="18" cy="20" r="1.7" />
     </svg>
   );
 }
@@ -68,6 +76,19 @@ export function PinIcon({ className }: IconProps) {
     <svg {...base} className={className} aria-hidden>
       <path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21Z" />
       <circle cx="12" cy="9.5" r="2.3" />
+    </svg>
+  );
+}
+
+export function ZoneIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden>
+      <circle cx="12" cy="12" r="7" />
+      <line x1="12" y1="1.5" x2="12" y2="5" />
+      <line x1="12" y1="19" x2="12" y2="22.5" />
+      <line x1="1.5" y1="12" x2="5" y2="12" />
+      <line x1="19" y1="12" x2="22.5" y2="12" />
+      <circle cx="12" cy="12" r="2.4" fill={ACCENT} stroke="none" />
     </svg>
   );
 }

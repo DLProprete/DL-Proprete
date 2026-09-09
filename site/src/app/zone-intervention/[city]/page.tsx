@@ -116,7 +116,7 @@ export default async function CityPage({
                       href={`/zone-intervention/${city.slug}/${service.slug}`}
                       className="group/link flex items-center gap-3 rounded-xl border border-black/5 bg-surface-mint p-4 transition-colors hover:border-accent/30"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-black/5 bg-white text-brand">
                         <Icon className="h-4 w-4" />
                       </span>
                       <span className="text-sm font-medium text-brand">{service.title}</span>
