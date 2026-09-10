@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { site } from "@/lib/business";
+import { business, site } from "@/lib/business";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -49,10 +49,13 @@ export default function OpengraphImage() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", fontSize: 64, fontWeight: 700, color: "#ffffff" }}>
-            {site.name}
+            {business.name}
           </div>
-          <div style={{ display: "flex", fontSize: 32, color: "#a9c6e6" }}>
-            Nettoyage professionnel · Calvados &amp; Normandie
+          <div style={{ display: "flex", fontSize: 30, color: "#12a37a" }}>
+            {`Nettoyage professionnel en ${business.serviceArea[0]} · depuis ${business.foundedYear}`}
+          </div>
+          <div style={{ display: "flex", fontSize: 22, color: "rgba(255,255,255,0.65)" }}>
+            {site.url.replace("https://", "")}
           </div>
         </div>
       </div>
