@@ -65,14 +65,28 @@ l'outil), testé sur un vrai document (bon de commande OVHcloud PDF) :
 - **Gratuit/local d'abord** (OCR Tesseract), IA payante seulement pour les
   cas que l'OCR ne résout pas.
 
-## Questions encore ouvertes (voir le questionnaire vendredi/samedi)
+## Réponses reçues (10/09, questions 33-38)
 
-Ce chantier ne peut pas être cadré sérieusement avant les réponses aux
-questions 33 à 38 du document remis à l'utilisateur : types de documents
-précis, volume, période couverte, présence de documents sensibles
-(RH/santé), mode de scan (scanner vs photo téléphone), qui fera la
-validation au quotidien. Et surtout : voir de vrais documents samedi, pour
-juger de la variété réelle de mise en page et de qualité.
+- **Scanner, pas photo téléphone** (Q37) — bonne nouvelle : un scan produit
+  une image bien plus régulière (éclairage, angle) qu'une photo, ce qui
+  devrait améliorer sensiblement la qualité de l'OCR par rapport au test
+  du spike.
+- **Documents sensibles confirmés** (Q36, RH/santé) — à isoler du flux
+  comptable général dès la conception, pas une hypothèse à vérifier.
+- **Validation par une seule personne** (Q38, Cassandre elle-même) —
+  simplifie l'accès : pas besoin de gérer plusieurs relecteurs pour une v1.
+- **Volume et types précis toujours inconnus** (Q33-35) — la question sur
+  les types de documents n'était pas claire pour Cassandre ("je ne
+  comprends pas la question") ; à reformuler avec des exemples concrets
+  plutôt que des catégories abstraites la prochaine fois. Le volume/la
+  période restent à connaître "au retour de vacances".
+
+## Questions encore ouvertes
+
+Le volume réel, la période couverte, et la variété exacte de mise en page
+restent inconnus tant qu'on n'a pas vu de vrais documents samedi — la
+seule chose qui permettra de juger sérieusement de la faisabilité à
+l'échelle.
 
 ## Direction d'architecture envisagée (à discuter, pas figée)
 
