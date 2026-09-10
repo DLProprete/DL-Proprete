@@ -28,7 +28,7 @@ const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
 const STATS = [
   { label: "Activité", value: "15+ ans" },
-  { label: "Zone couverte", value: "Calvados", href: "/zone-intervention" },
+  { label: "Zone couverte", value: "Caen et alentours", href: "/zone-intervention" },
   { label: "Basée à", value: "Colombelles", href: "/contact" },
   { label: "Domaines", value: "4 métiers", href: "/services" },
 ];
@@ -55,7 +55,7 @@ const FAQS = [
   {
     question: "Dans quelles zones intervenez-vous ?",
     answer:
-      "En priorité l'agglomération de Caen et l'ensemble du Calvados. Pour un site ailleurs en Normandie, contactez-nous : on étudie chaque demande au cas par cas.",
+      "En priorité Caen et son agglomération. Pour un site plus éloigné, contactez-nous : on étudie chaque demande au cas par cas.",
   },
   {
     question: "Peut-on ajuster la fréquence en cours de contrat ?",
@@ -75,14 +75,14 @@ const FAQS = [
   {
     question: "Comment obtenir un devis ?",
     answer:
-      "Remplissez le formulaire de contact (type de site, surface approximative, fréquence souhaitée) : on revient vers vous sous 24 h ouvrées avec une proposition adaptée, sans engagement.",
+      "Remplissez le formulaire de contact (type de site, surface approximative, fréquence souhaitée) : on revient vers vous sous 72 h ouvrées avec une proposition adaptée, sans engagement.",
   },
 ];
 
 const WHY_US = [
   {
     title: "Entreprise locale, depuis 2011",
-    text: "Plus de 15 ans d'activité dans le Calvados : une équipe qui connaît le terrain et ses contraintes.",
+    text: "Plus de 15 ans d'activité à Caen et ses alentours : une équipe qui connaît le terrain et ses contraintes.",
   },
   {
     title: "Le même contact du début à la fin",
@@ -119,12 +119,12 @@ export default function HomePage() {
               Nettoyage professionnel · {business.serviceArea.join(" & ")}
             </p>
             <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-brand sm:text-5xl">
-              Nettoyage professionnel pour entreprises et copropriétés du Calvados.
+              Nettoyage professionnel pour entreprises et copropriétés de Caen et ses alentours.
             </h1>
             <p className="max-w-lg text-foreground/60">
               Nettoyage industriel et tertiaire, produits d&apos;entretien,
               manutention et petits dépannages : une seule entreprise pour
-              tout gérer, dans le Calvados depuis 2011.
+              tout gérer, à Caen et ses alentours depuis 2011.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
@@ -224,9 +224,8 @@ export default function HomePage() {
               Notre zone d&apos;intervention
             </h2>
             <p className="mt-3 text-foreground/60">
-              Basés à Colombelles, nous intervenons dans toute
-              l&apos;agglomération de Caen et l&apos;ensemble du{" "}
-              {business.serviceArea[0]}.
+              Basés à Colombelles, nous intervenons à Caen et dans ses
+              alentours.
             </p>
             <ul className="mt-6 flex flex-wrap gap-3">
               {cities.map((city) => (
@@ -326,7 +325,7 @@ export default function HomePage() {
             </h2>
             <p className="mt-2 max-w-md text-foreground/60">
               Décrivez-nous vos locaux : type de site, surface, fréquence souhaitée. On revient
-              vers vous sous 24 h ouvrées avec une proposition adaptée.
+              vers vous sous 72 h ouvrées avec une proposition adaptée.
             </p>
           </div>
           <Link

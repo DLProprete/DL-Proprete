@@ -14,7 +14,7 @@ const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Nettoyage industriel, nettoyage des bâtiments, négoce de produits d'entretien, manutention et petits dépannages de maintenance dans le Calvados.",
+    "Nettoyage industriel, nettoyage des bâtiments, négoce de produits d'entretien, manutention et petits dépannages de maintenance à Caen et ses alentours.",
   alternates: { canonical: "/services" },
 };
 
@@ -32,7 +32,7 @@ export default function ServicesPage() {
           <p className="mt-4 max-w-2xl text-foreground/60">
             DL Propreté intervient sur quatre grands domaines, du nettoyage
             quotidien à l&apos;appui ponctuel en maintenance, pour les
-            professionnels du {business.serviceArea.join(" et de la ")}.
+            professionnels de {business.serviceArea[0]}.
           </p>
         </Container>
       </section>

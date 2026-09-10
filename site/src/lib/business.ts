@@ -2,7 +2,7 @@ export const site = {
   name: "DL Propreté",
   url: "https://www.dlproprete.fr",
   description:
-    "Nettoyage industriel et tertiaire, négoce de produits d'entretien, manutention et petits dépannages de maintenance pour les entreprises et copropriétés du Calvados.",
+    "Nettoyage industriel et tertiaire, négoce de produits d'entretien, manutention et petits dépannages de maintenance pour les entreprises et copropriétés de Caen et ses alentours.",
 } as const;
 
 export const business = {
@@ -33,7 +33,7 @@ export const business = {
     postalCode: "14460",
     city: "Colombelles",
   },
-  serviceArea: ["Calvados", "Normandie"],
+  serviceArea: ["Caen et ses alentours"],
 } as const;
 
 export const services = [

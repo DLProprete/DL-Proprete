@@ -174,7 +174,7 @@ export default async function CityServicePage({
             ))}
           </div>
           <p className="mt-6 text-foreground/60">
-            Un site hors de {city.name} ? On intervient dans tout le{" "}
+            Un site hors de {city.name} ? On intervient à{" "}
             {business.serviceArea[0]} —{" "}
             <Link href="/zone-intervention" className="font-medium text-brand hover:underline">
               voir l&apos;ensemble de notre zone
