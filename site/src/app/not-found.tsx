@@ -18,13 +18,13 @@ export default function NotFound() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/"
-            className="rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
+            className="rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
           >
             Retour à l&apos;accueil
           </Link>
           <Link
             href="/contact"
-            className="rounded-full border border-brand/15 px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand/5"
+            className="rounded-lg border border-brand/15 px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand/5"
           >
             Nous contacter
           </Link>

@@ -58,7 +58,7 @@ export default function ZoneInterventionPage() {
                 className="group/link flex items-center justify-between rounded-xl border border-black/5 bg-surface-mint p-5 transition-colors hover:border-accent/30"
               >
                 <span className="font-semibold text-brand">{city.name}</span>
-                <ArrowRightIcon className="h-4 w-4 text-accent-dark transition-transform group-hover/link:translate-x-1" />
+                <ArrowRightIcon className="h-4 w-4 text-accent-dark" />
               </Link>
             ))}
           </div>
@@ -102,7 +102,7 @@ export default function ZoneInterventionPage() {
             </div>
             <Link
               href="/contact"
-              className="inline-block rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
+              className="inline-block rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
             >
               Vérifier si nous intervenons chez vous
             </Link>

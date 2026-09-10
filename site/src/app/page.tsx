@@ -114,7 +114,7 @@ export default function HomePage() {
       <section className="border-b border-black/5 bg-surface-muted">
         <Container className="py-20 md:py-28">
           <div className="animate-fade-up max-w-2xl space-y-6">
-            <p className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-semibold text-accent-dark">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-accent-dark">
               <SparkleIcon className="h-4 w-4" />
               Nettoyage professionnel · {business.serviceArea.join(" & ")}
             </p>
@@ -129,13 +129,13 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 href="/contact"
-                className="rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-darker"
+                className="rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-darker"
               >
                 Demander un devis
               </Link>
               <Link
                 href="/services"
-                className="rounded-full border border-brand/15 px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand/5"
+                className="rounded-lg border border-brand/15 px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand/5"
               >
                 Découvrir nos services
               </Link>
@@ -204,7 +204,7 @@ export default function HomePage() {
             className="group/link mt-8 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-dark transition-colors hover:text-accent"
           >
             Voir le détail de nos services
-            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
+            <ArrowRightIcon className="h-4 w-4" />
           </Link>
         </Container>
       </section>
@@ -246,7 +246,7 @@ export default function HomePage() {
               className="group/link mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-dark transition-colors hover:text-accent"
             >
               Voir toute notre zone d&apos;intervention
-              <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
+              <ArrowRightIcon className="h-4 w-4" />
             </Link>
           </div>
         </Container>
@@ -331,7 +331,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/contact"
-            className="shrink-0 rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-darker"
+            className="shrink-0 rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-darker"
           >
             Nous contacter
           </Link>

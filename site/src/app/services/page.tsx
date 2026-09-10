@@ -77,7 +77,7 @@ export default function ServicesPage() {
           </div>
           <Link
             href="/contact"
-            className="shrink-0 rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
+            className="shrink-0 rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
           >
             Demander un devis
           </Link>
