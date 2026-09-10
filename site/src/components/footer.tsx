@@ -11,8 +11,8 @@ export function Footer() {
           <Logo />
           <p className="max-w-xs text-sm text-foreground/60">
             Nettoyage industriel et tertiaire, négoce de produits d&apos;entretien,
-            manutention et petits dépannages pour les professionnels du{" "}
-            {business.serviceArea.join(" et de la ")}.
+            manutention et petits dépannages pour les professionnels de{" "}
+            {business.serviceArea[0]}.
           </p>
         </div>
 

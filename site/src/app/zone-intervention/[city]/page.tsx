@@ -137,7 +137,7 @@ export default async function CityPage({
               Un site hors de {city.name} ?
             </h2>
             <p className="mt-2 text-foreground/60">
-              On intervient dans tout le {business.serviceArea[0]} — voir l&apos;ensemble
+              On intervient à {business.serviceArea[0]} — voir l&apos;ensemble
               de notre zone.
             </p>
           </div>

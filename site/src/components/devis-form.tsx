@@ -19,7 +19,7 @@ export function DevisForm({ defaultCommune }: { defaultCommune?: string }) {
     return (
       <div className="rounded-2xl border border-accent/20 bg-surface-mint p-6 text-sm">
         <p className="font-semibold text-brand">Merci, votre demande est bien envoyée.</p>
-        <p className="mt-1 text-foreground/60">Nous revenons vers vous sous 24 h ouvrées.</p>
+        <p className="mt-1 text-foreground/60">Nous revenons vers vous sous 72 h ouvrées.</p>
       </div>
     );
   }

@@ -8,7 +8,7 @@ import { ArrowRightIcon, PinIcon } from "@/components/icons";
 export const metadata: Metadata = {
   title: "Zone d'intervention",
   description:
-    "DL Propreté intervient dans tout le Calvados, autour de Colombelles et de l'agglomération de Caen, ainsi que sur le reste de la Normandie.",
+    "DL Propreté intervient à Caen et ses alentours, autour de Colombelles.",
   alternates: { canonical: "/zone-intervention" },
 };
 
@@ -36,13 +36,12 @@ export default function ZoneInterventionPage() {
             Zone d&apos;intervention
           </p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
-            Basée à Colombelles, active dans tout le Calvados
+            Basée à Colombelles, active à Caen et ses alentours
           </h1>
           <p className="mt-4 max-w-2xl text-foreground/60">
-            Depuis notre siège de Colombelles, nous intervenons dans
-            l&apos;agglomération de Caen et sur l&apos;ensemble du{" "}
-            {business.serviceArea.join(" et de la ")}. Pour un site hors de
-            cette zone, contactez-nous : nous étudions chaque demande.
+            Depuis notre siège de Colombelles, nous intervenons à Caen et
+            dans son agglomération. Pour un site hors de cette zone,
+            contactez-nous : nous étudions chaque demande.
           </p>
         </Container>
       </section>

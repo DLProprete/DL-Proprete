@@ -52,7 +52,7 @@ export default function OpengraphImage() {
             {business.name}
           </div>
           <div style={{ display: "flex", fontSize: 30, color: "#12a37a" }}>
-            {`Nettoyage professionnel en ${business.serviceArea[0]} · depuis ${business.foundedYear}`}
+            {`Nettoyage professionnel à ${business.serviceArea[0]} · depuis ${business.foundedYear}`}
           </div>
           <div style={{ display: "flex", fontSize: 22, color: "rgba(255,255,255,0.65)" }}>
             {site.url.replace("https://", "")}

@@ -21,7 +21,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} — Nettoyage professionnel en Calvados`,
+    default: `${site.name} — Nettoyage professionnel à Caen`,
     template: `%s — ${site.name}`,
   },
   description: site.description,
@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     siteName: site.name,
-    title: `${site.name} — Nettoyage professionnel en Calvados`,
+    title: `${site.name} — Nettoyage professionnel à Caen`,
     description: site.description,
     url: site.url,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — Nettoyage professionnel en Calvados`,
+    title: `${site.name} — Nettoyage professionnel à Caen`,
     description: site.description,
   },
 };

@@ -7,7 +7,7 @@ import { ClockIcon, MailIcon, PhoneIcon, PinIcon, SparkleIcon } from "@/componen
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Contactez DL Propreté pour une demande de devis de nettoyage professionnel dans le Calvados.",
+    "Contactez DL Propreté pour une demande de devis de nettoyage professionnel à Caen et ses alentours.",
   alternates: { canonical: "/contact" },
 };
 
@@ -52,7 +52,7 @@ export default async function ContactPage({
             Parlons de votre projet
           </h1>
           <p className="mt-4 max-w-md text-foreground/60">
-            Décrivez-nous votre local et vos besoins, nous revenons vers vous sous 24 h ouvrées
+            Décrivez-nous votre local et vos besoins, nous revenons vers vous sous 72 h ouvrées
             avec une proposition adaptée.
           </p>
           <div className="mt-8">
@@ -81,7 +81,7 @@ export default async function ContactPage({
                 {business.phone}
               </a>
             ) : (
-              <p>Pas encore de ligne directe : passez par le formulaire, on répond sous 24 h ouvrées.</p>
+              <p>Pas encore de ligne directe : passez par le formulaire, on répond sous 72 h ouvrées.</p>
             )}
           </InfoRow>
 
