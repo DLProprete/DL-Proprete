@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { business, site } from "@/lib/business";
+import { site } from "@/lib/business";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -14,35 +14,46 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "80px",
+          gap: 40,
+          padding: 96,
           background: "#0f2a43",
-          color: "#ffffff",
         }}
       >
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 72,
-            height: 72,
-            borderRadius: 14,
-            background: "#ffffff",
-            color: "#0f2a43",
-            fontSize: 28,
-            fontWeight: 700,
+            flexDirection: "column",
+            width: 120,
+            height: 120,
+            borderRadius: 10,
+            overflow: "hidden",
           }}
         >
-          DL
+          <div
+            style={{
+              display: "flex",
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#0f2a43",
+              border: "2px solid #3e6b8c",
+              borderBottom: "none",
+              color: "#ffffff",
+              fontSize: 56,
+              fontWeight: 700,
+            }}
+          >
+            DL
+          </div>
+          <div style={{ display: "flex", height: 20, background: "#3e6b8c" }} />
         </div>
-        <div style={{ marginTop: 40, fontSize: 56, fontWeight: 700, lineHeight: 1.15 }}>
-          {business.name}
-        </div>
-        <div style={{ marginTop: 16, fontSize: 28, color: "#12a37a" }}>
-          {`Nettoyage professionnel en ${business.serviceArea[0]} · depuis ${business.foundedYear}`}
-        </div>
-        <div style={{ marginTop: 24, fontSize: 22, color: "rgba(255,255,255,0.7)" }}>
-          {site.url.replace("https://", "")}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", fontSize: 64, fontWeight: 700, color: "#ffffff" }}>
+            {site.name}
+          </div>
+          <div style={{ display: "flex", fontSize: 32, color: "#a9c6e6" }}>
+            Nettoyage professionnel · Calvados &amp; Normandie
+          </div>
         </div>
       </div>
     ),
