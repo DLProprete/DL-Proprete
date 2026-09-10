@@ -1,8 +1,9 @@
 # Numérisation des documents papier — document de travail
 
-**Document 3/3** — à sortir au point 3 du déroulé de samedi, une fois les
+**Document 3/4** — à sortir au point 3 du déroulé de samedi, une fois les
 vrais documents étalés (voir le fichier "Questions Vendredi / Samedi —
-Cassandre", document 1/3).
+Cassandre", document 1/4). Version illustrée avec schéma : artefact
+"Pipeline de numérisation" (document 4/4).
 
 **Statut : brouillon.** Chantier distinct de l'outil actuel, pas encore dans
 le périmètre validé (`docs/SPEC.md` ne le couvre pas — à ne pas construire
