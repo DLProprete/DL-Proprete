@@ -1,5 +1,9 @@
 # Numérisation des documents papier — document de travail
 
+**Document 3/3** — à sortir au point 3 du déroulé de samedi, une fois les
+vrais documents étalés (voir le fichier "Questions Vendredi / Samedi —
+Cassandre", document 1/3).
+
 **Statut : brouillon.** Chantier distinct de l'outil actuel, pas encore dans
 le périmètre validé (`docs/SPEC.md` ne le couvre pas — à ne pas construire
 en dur tant que ce document n'est pas confirmé après la rencontre avec
