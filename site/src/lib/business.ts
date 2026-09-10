@@ -21,8 +21,7 @@ export const business = {
   leader: "Cassandre Lemière",
   teamSize: 16,
   email: "contact@dlproprete.fr",
-  // TODO: numéro à renseigner — utilisé dans le footer, la page contact et les données structurées.
-  phone: null as string | null,
+  phone: "06 33 58 18 34",
   hours: {
     label: "Lundi – vendredi, 8h – 18h",
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
