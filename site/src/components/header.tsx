@@ -38,7 +38,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <Link
             href={DEVIS_HREF}
-            className="hidden rounded-full bg-accent-dark px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker hover:shadow-md hover:shadow-accent/25 sm:inline-block"
+            className="hidden rounded-lg bg-accent-dark px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-darker sm:inline-block"
           >
             Demander un devis
           </Link>
@@ -83,7 +83,7 @@ export function Header() {
             <Link
               href={DEVIS_HREF}
               onClick={() => setOpen(false)}
-              className="mt-2 rounded-full bg-accent-dark px-5 py-2.5 text-center text-sm font-semibold text-white sm:hidden"
+              className="mt-2 rounded-lg bg-accent-dark px-5 py-2.5 text-center text-sm font-semibold text-white sm:hidden"
             >
               Demander un devis
             </Link>

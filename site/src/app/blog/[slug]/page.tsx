@@ -91,7 +91,7 @@ export default async function BlogPostPage({
           </p>
           <Link
             href="/contact"
-            className="mt-4 inline-block rounded-full bg-accent-dark px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
+            className="mt-4 inline-block rounded-lg bg-accent-dark px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
           >
             Nous écrire
           </Link>

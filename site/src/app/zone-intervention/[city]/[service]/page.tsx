@@ -121,7 +121,7 @@ export default async function CityServicePage({
             <p className="mt-3 text-foreground/60">{city.focus}</p>
             <Link
               href={`/contact?commune=${encodeURIComponent(city.name)}`}
-              className="mt-6 inline-block rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
+              className="mt-6 inline-block rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
             >
               Demander un devis à {city.name}
             </Link>
@@ -169,7 +169,7 @@ export default async function CityServicePage({
                 className="group/link flex items-center justify-between rounded-xl border border-black/5 bg-surface-mint p-5 transition-colors hover:border-accent/30"
               >
                 <span className="font-semibold text-brand">{c.name}</span>
-                <ArrowRightIcon className="h-4 w-4 text-accent-dark transition-transform group-hover/link:translate-x-1" />
+                <ArrowRightIcon className="h-4 w-4 text-accent-dark" />
               </Link>
             ))}
           </div>

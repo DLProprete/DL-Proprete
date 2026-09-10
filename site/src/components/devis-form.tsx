@@ -76,7 +76,7 @@ export function DevisForm({ defaultCommune }: { defaultCommune?: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker disabled:pointer-events-none disabled:opacity-60"
+        className="rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker disabled:pointer-events-none disabled:opacity-60"
       >
         {pending ? "Envoi..." : "Envoyer la demande"}
       </button>

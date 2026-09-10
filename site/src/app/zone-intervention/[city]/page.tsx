@@ -100,7 +100,7 @@ export default async function CityPage({
             <p className="mt-3 text-foreground/60">{city.focus}</p>
             <Link
               href={`/contact?commune=${encodeURIComponent(city.name)}`}
-              className="mt-6 inline-block rounded-full bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition-all hover:-translate-y-0.5 hover:bg-accent-darker"
+              className="mt-6 inline-block rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-darker"
             >
               Demander un devis à {city.name}
             </Link>
@@ -143,7 +143,7 @@ export default async function CityPage({
           </div>
           <Link
             href="/zone-intervention"
-            className="shrink-0 rounded-full border border-brand/15 px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand/5"
+            className="shrink-0 rounded-lg border border-brand/15 px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand/5"
           >
             Voir toute la zone d&apos;intervention
           </Link>

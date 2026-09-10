@@ -34,7 +34,7 @@ export default function BlogIndexPage() {
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="group/link block rounded-2xl border border-black/5 bg-surface-mint p-7 transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg hover:shadow-black/5"
+              className="group/link block rounded-2xl border border-black/5 bg-surface-mint p-7 transition-colors hover:border-accent/30"
             >
               <time className="text-xs font-medium uppercase tracking-wide text-foreground/40">
                 {formatDate(post.date)}
@@ -43,7 +43,7 @@ export default function BlogIndexPage() {
               <p className="mt-2 text-sm text-foreground/60">{post.description}</p>
               <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-dark">
                 Lire l&apos;article
-                <ArrowRightIcon className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
+                <ArrowRightIcon className="h-4 w-4" />
               </span>
             </Link>
           ))}
