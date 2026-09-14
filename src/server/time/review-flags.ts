@@ -1,38 +1,31 @@
-import { SCHEDULE_TOLERANCE_MINUTES } from "./agent-schedule";
-
 type ReviewEntry = {
   clockInAt: Date;
   clockOutAt: Date | null;
-  shift: { startAt: Date } | null;
+  shift: { startAt: Date; endAt: Date } | null;
 };
 
 export type ReviewFlags = {
+  /** Durée planifiée de la vacation si liée à un shift (décision du
+   *  12/09 : la paie retient le prévu, pas le mesuré) ; sinon durée
+   *  réellement mesurée, seule donnée disponible hors planning. */
   durationMinutes: number | null;
-  /** Écart signé (minutes) entre le pointage réel et le début prévu. Null si pas de vacation liée. */
-  startDeviationMinutes: number | null;
-  /** Hors planning (pas de vacation liée) ou écart > SCHEDULE_TOLERANCE_MINUTES. */
+  /** Hors planning (pas de vacation liée) — seul signal d'anomalie
+   *  encore pertinent : un pointage lié à un shift ne peut plus dévier
+   *  d'une heure d'arrivée qui n'existe plus. */
   isAnomaly: boolean;
 };
 
-// Fonctions pures, sans base : c'est ce qui decide quelles lignes remonter
+// Fonction pure, sans base : c'est ce qui decide quelles lignes remonter
 // en evidence sur /time-entries, doit rester testable independamment de
-// Prisma. La "duree nulle" citee par l'audit est deja impossible en base
-// depuis la contrainte TimeEntry_min_duration (M2) — pas recalculee ici.
+// Prisma.
 export function reviewFlags(entry: ReviewEntry): ReviewFlags {
-  const durationMinutes = entry.clockOutAt
-    ? (entry.clockOutAt.getTime() - entry.clockInAt.getTime()) / 60_000
-    : null;
-
   if (!entry.shift) {
-    return { durationMinutes, startDeviationMinutes: null, isAnomaly: true };
+    const durationMinutes = entry.clockOutAt
+      ? (entry.clockOutAt.getTime() - entry.clockInAt.getTime()) / 60_000
+      : null;
+    return { durationMinutes, isAnomaly: true };
   }
 
-  const startDeviationMinutes =
-    (entry.clockInAt.getTime() - entry.shift.startAt.getTime()) / 60_000;
-
-  return {
-    durationMinutes,
-    startDeviationMinutes,
-    isAnomaly: Math.abs(startDeviationMinutes) > SCHEDULE_TOLERANCE_MINUTES,
-  };
+  const durationMinutes = (entry.shift.endAt.getTime() - entry.shift.startAt.getTime()) / 60_000;
+  return { durationMinutes, isAnomaly: false };
 }

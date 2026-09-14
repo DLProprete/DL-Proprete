@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/server/auth/session";
 import { dateOnlyUTC, monthRange, parisToday } from "@/lib/dates";
 import {
-  getLongOpenTimeEntries,
   getContractsEndingSoon,
   getMonthlyRevenue,
   getUnstaffedShiftsTodayTomorrow,
@@ -19,9 +18,6 @@ describe("règles Dashboard (intégration DB)", () => {
   let longContractId: string; // finit dans 90j, notice 60j -> ne doit pas apparaître
   let siteForShiftId: string;
   let adminUser: SessionUser;
-  let agentIds: string[];
-  let recentEntryId: string;
-  let staleEntryId: string;
   let todayShiftId: string;
   let farShiftId: string;
 
@@ -71,45 +67,6 @@ describe("règles Dashboard (intégration DB)", () => {
       data: { contractId: longContract.id, siteId: site.id, hourlyRateHT: 20 },
     });
 
-    // Deux agents distincts : la contrainte "un seul TimeEntry OPEN par
-    // agent" (Session 5) interdit deux OPEN pour le même agent.
-    const agentRecent = await prisma.user.create({
-      data: {
-        email: `test-dashboard-agent-recent-${suffix}@dlproprete.fr`,
-        name: "Agent Dashboard Recent",
-        firstName: "Agent",
-        lastName: "Recent",
-        role: "AGENT",
-        emailVerified: true,
-      },
-    });
-    const agentStale = await prisma.user.create({
-      data: {
-        email: `test-dashboard-agent-stale-${suffix}@dlproprete.fr`,
-        name: "Agent Dashboard Stale",
-        firstName: "Agent",
-        lastName: "Stale",
-        role: "AGENT",
-        emailVerified: true,
-      },
-    });
-    const recentEntry = await prisma.timeEntry.create({
-      data: {
-        userId: agentRecent.id,
-        siteId: site.id,
-        clockInAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        status: "OPEN",
-      },
-    });
-    const staleEntry = await prisma.timeEntry.create({
-      data: {
-        userId: agentStale.id,
-        siteId: site.id,
-        clockInAt: new Date(Date.now() - 14 * 60 * 60 * 1000),
-        status: "OPEN",
-      },
-    });
-
     const todayShift = await prisma.shift.create({
       data: {
         siteId: site.id,
@@ -152,16 +109,12 @@ describe("règles Dashboard (intégration DB)", () => {
     siteForShiftId = site.id;
     shortContractId = shortContract.id;
     longContractId = longContract.id;
-    agentIds = [agentRecent.id, agentStale.id];
-    recentEntryId = recentEntry.id;
-    staleEntryId = staleEntry.id;
     todayShiftId = todayShift.id;
     farShiftId = farShift.id;
     adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
   });
 
   afterAll(async () => {
-    await prisma.timeEntry.deleteMany({ where: { id: { in: [recentEntryId, staleEntryId] } } });
     await prisma.shift.deleteMany({ where: { id: { in: [todayShiftId, farShiftId] } } });
     await prisma.contractSite.deleteMany({
       where: { contractId: { in: [shortContractId, longContractId] } },
@@ -169,14 +122,7 @@ describe("règles Dashboard (intégration DB)", () => {
     await prisma.contract.deleteMany({ where: { id: { in: [shortContractId, longContractId] } } });
     await prisma.site.delete({ where: { id: siteForShiftId } });
     await prisma.client.delete({ where: { id: clientId } });
-    await prisma.user.deleteMany({ where: { id: { in: [...agentIds, adminUser.id] } } });
-  });
-
-  it("ne remonte que les pointages OPEN de plus de 12h", async () => {
-    const entries = await getLongOpenTimeEntries(adminUser);
-    const ids = entries.map((e) => e.id);
-    expect(ids).toContain(staleEntryId);
-    expect(ids).not.toContain(recentEntryId);
+    await prisma.user.deleteMany({ where: { id: adminUser.id } });
   });
 
   it("ne remonte que les contrats qui finissent sous leur délai de préavis", async () => {

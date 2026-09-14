@@ -69,19 +69,22 @@ export async function getAgentMonthlyHours(user: SessionUser, year: number, mont
         userId: user.id,
         status: "VALIDATED",
         clockInAt: { gte: start, lt: end },
-        clockOutAt: { not: null },
       },
-      include: { site: { select: { name: true } } },
+      include: { site: { select: { name: true } }, shift: { select: { startAt: true, endAt: true } } },
       orderBy: { clockInAt: "asc" },
     }),
     prisma.timeEntry.count({
       where: { userId: user.id, status: "SUBMITTED", clockInAt: { gte: start, lt: end } },
     }),
   ]);
-  const totalMinutes = validatedEntries.reduce(
-    (sum, entry) => sum + (entry.clockOutAt!.getTime() - entry.clockInAt.getTime()) / 60_000,
-    0,
-  );
+  // Décision du 12/09 : un pointage lié à une vacation compte pour sa durée
+  // PLANIFIÉE, pas mesurée (clockInAt n'est plus une heure d'arrivée
+  // réelle) — seul un pointage hors planning retombe sur clockOutAt -
+  // clockInAt, faute d'alternative.
+  const totalMinutes = validatedEntries.reduce((sum, entry) => {
+    if (entry.shift) return sum + (entry.shift.endAt.getTime() - entry.shift.startAt.getTime()) / 60_000;
+    return sum + (entry.clockOutAt ? (entry.clockOutAt.getTime() - entry.clockInAt.getTime()) / 60_000 : 0);
+  }, 0);
   return { totalHours: totalMinutes / 60, entries: validatedEntries, pendingCount };
 }
 

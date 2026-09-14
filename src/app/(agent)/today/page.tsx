@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listTodayShiftsForAgent, getAgentGreetingName } from "@/server/time/queries";
-import { shiftState, scheduleWarning } from "@/server/time/agent-schedule";
+import { shiftState } from "@/server/time/agent-schedule";
 import { formatTimeInParis } from "@/lib/dates";
-import { LiveTimer } from "@/components/live-timer";
 import { ClockButton } from "@/components/clock-button";
 import { createSiteLogAction } from "../actions";
 
-const START_BUTTON_CLASS = "btn btn-primary btn-field";
 const END_BUTTON_CLASS = "btn btn-stop btn-field";
 
 function ShortAddress({ address, city }: { address: string; city: string }) {
@@ -61,18 +59,12 @@ export default async function TodayPage({
     getAgentGreetingName(user),
   ]);
 
-  const now = new Date();
-  const openShift = shifts.find((s) => shiftState(s) === "open") ?? null;
-  const activeShift = openShift ?? shifts.find((s) => shiftState(s) === "upcoming") ?? null;
+  const activeShift = shifts.find((s) => shiftState(s) === "upcoming") ?? null;
   const activeIndex = activeShift ? shifts.indexOf(activeShift) : -1;
   const upcomingAfterActive =
     activeIndex >= 0 ? shifts.slice(activeIndex + 1).filter((s) => shiftState(s) === "upcoming") : [];
-  const openEntry = openShift?.timeEntries.find((entry) => entry.status === "OPEN") ?? null;
   const justEndedShift = justEnded
     ? (shifts.find((s) => s.id === justEnded && shiftState(s) === "done") ?? null)
-    : null;
-  const warning = activeShift
-    ? scheduleWarning(openEntry ? openEntry.clockInAt : now, activeShift.startAt, activeShift)
     : null;
 
   return (
@@ -87,14 +79,12 @@ export default async function TodayPage({
         <Link href="/today/week" className="pt-1 text-sm text-brand-700 underline">Voir la semaine →</Link>
       </div>
 
-      {error === "already-open" && <p className="alert alert-danger">Un pointage est déjà en cours.</p>}
-      {error === "too-short" && <p className="alert alert-danger">Pointage trop court (moins de 5 min).</p>}
+      {error === "already-done" && <p className="alert alert-danger">Cette vacation a déjà été pointée.</p>}
       {error === "log" && <p className="alert alert-danger">Indiquez un commentaire pour la main courante.</p>}
-      {error && !["already-open", "too-short", "log"].includes(error) && (
+      {error && !["already-done", "log"].includes(error) && (
         <p className="alert alert-danger">{error}</p>
       )}
       {logged && <p className="alert alert-info">Main courante enregistrée.</p>}
-      {warning && <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">{warning}</p>}
 
       {justEndedShift && (
         <div className="card text-sm">
@@ -108,25 +98,11 @@ export default async function TodayPage({
       {activeShift ? (
         <>
           <div className="card">
-            {openEntry ? (
-              <>
-                <p className="text-sm font-medium text-zinc-600">Pointage en cours</p>
-                <p className="mt-1 text-xl font-semibold text-zinc-900">{activeShift.site.name}</p>
-                <ShortAddress address={activeShift.site.address} city={activeShift.site.city} />
-                <p className="mt-2 text-sm text-zinc-600">Débuté à {formatTimeInParis(openEntry.clockInAt)}</p>
-                <p className="mt-3 text-4xl font-bold tabular-nums tracking-tight text-zinc-900">
-                  <LiveTimer since={openEntry.clockInAt.toISOString()} />
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-xl font-semibold text-zinc-900">{activeShift.site.name}</p>
-                <ShortAddress address={activeShift.site.address} city={activeShift.site.city} />
-                <p className="mt-3 text-4xl font-bold tracking-tight text-zinc-900">
-                  {formatTimeInParis(activeShift.startAt)}-{formatTimeInParis(activeShift.endAt)}
-                </p>
-              </>
-            )}
+            <p className="text-xl font-semibold text-zinc-900">{activeShift.site.name}</p>
+            <ShortAddress address={activeShift.site.address} city={activeShift.site.city} />
+            <p className="mt-3 text-4xl font-bold tracking-tight text-zinc-900">
+              {formatTimeInParis(activeShift.startAt)}-{formatTimeInParis(activeShift.endAt)}
+            </p>
             <Consignes
               instructions={activeShift.serviceTemplate?.instructions}
               accessNotes={activeShift.site.accessNotes}
@@ -138,11 +114,7 @@ export default async function TodayPage({
             />
           </div>
 
-          {openEntry ? (
-            <ClockButton mode="end" targetId={openEntry.id} label="Terminer" className={END_BUTTON_CLASS} />
-          ) : (
-            <ClockButton mode="start" targetId={activeShift.id} label="Démarrer" className={START_BUTTON_CLASS} />
-          )}
+          <ClockButton targetId={activeShift.id} className={END_BUTTON_CLASS} />
 
           <form action={createSiteLogAction} className="card space-y-2">
             <input type="hidden" name="siteId" value={activeShift.site.id} />

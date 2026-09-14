@@ -13,6 +13,7 @@ describe("planning de la semaine et heures du mois (intégration DB)", () => {
   let siteId: string;
   let contractId: string;
   let shiftId: string;
+  let plannedShiftId: string;
   let agentAId: string;
   let agentBId: string;
   let agentA: SessionUser;
@@ -115,20 +116,49 @@ describe("planning de la semaine et heures du mois (intégration DB)", () => {
       },
     });
 
+    // Pointage VALIDATED lié à une vacation de 2h, "terminé" 3 min après son
+    // début : décision du 12/09, la durée retenue est celle PLANIFIÉE du
+    // shift, pas celle mesurée entre clockInAt et clockOutAt.
+    const plannedShift = await prisma.shift.create({
+      data: {
+        siteId: site.id,
+        contractSiteId: contractSite.id,
+        date: dateOnlyUTC(today.year, today.month, 2),
+        startAt: inMonth,
+        endAt: new Date(inMonth.getTime() + 2 * 3_600_000),
+        requiredAgents: 1,
+        billableMinutes: 120,
+        status: "PLANNED",
+        generatedFromTemplate: false,
+      },
+    });
+    const plannedEntry = await prisma.timeEntry.create({
+      data: {
+        userId: agentARow.id,
+        siteId: site.id,
+        shiftId: plannedShift.id,
+        clockInAt: plannedShift.startAt,
+        clockOutAt: new Date(plannedShift.startAt.getTime() + 3 * 60_000),
+        status: "VALIDATED",
+      },
+    });
+
     clientId = client.id;
     siteId = site.id;
     contractId = contract.id;
     shiftId = shift.id;
+    plannedShiftId = plannedShift.id;
     agentAId = agentARow.id;
     agentBId = agentBRow.id;
     agentA = { id: agentARow.id, email: agentARow.email, role: "AGENT", isActive: true };
-    entryIds = [validated.id, submitted.id, otherAgentEntry.id];
+    entryIds = [validated.id, submitted.id, otherAgentEntry.id, plannedEntry.id];
   });
 
   afterAll(async () => {
     await prisma.timeEntry.deleteMany({ where: { id: { in: entryIds } } });
     await prisma.assignment.deleteMany({ where: { shiftId } });
     await prisma.shift.delete({ where: { id: shiftId } });
+    await prisma.shift.delete({ where: { id: plannedShiftId } });
     await prisma.contractSite.deleteMany({ where: { contractId } });
     await prisma.contract.delete({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
@@ -149,8 +179,10 @@ describe("planning de la semaine et heures du mois (intégration DB)", () => {
   it("getAgentMonthlyHours ne compte que les heures VALIDATED de l'agent courant", async () => {
     const today = parisToday();
     const result = await getAgentMonthlyHours(agentA, today.year, today.month);
-    expect(result.totalHours).toBe(2); // seule l'entrée VALIDATED de 2h d'agentA
+    // 2h hors planning (mesurées) + 2h liées à un shift (planifiées, même si
+    // le pointage a été terminé 3 min après son début — voir plannedEntry).
+    expect(result.totalHours).toBe(4);
     expect(result.pendingCount).toBe(1); // l'entrée SUBMITTED
-    expect(result.entries).toHaveLength(1);
+    expect(result.entries).toHaveLength(2);
   });
 });

@@ -46,14 +46,17 @@ export async function getValidatedHoursForContractMonth(
       siteId,
       status: "VALIDATED",
       clockInAt: { gte: start, lt: end },
-      clockOutAt: { not: null },
     },
+    include: { shift: { select: { startAt: true, endAt: true } } },
   });
 
-  const totalMinutes = entries.reduce(
-    (sum, entry) => sum + (entry.clockOutAt!.getTime() - entry.clockInAt.getTime()) / 60_000,
-    0,
-  );
+  // Décision du 12/09 : durée planifiée de la vacation pour un pointage
+  // lié, mesurée seulement pour un hors planning — voir
+  // src/server/time/queries.ts:getAgentMonthlyHours, même règle.
+  const totalMinutes = entries.reduce((sum, entry) => {
+    if (entry.shift) return sum + (entry.shift.endAt.getTime() - entry.shift.startAt.getTime()) / 60_000;
+    return sum + (entry.clockOutAt ? (entry.clockOutAt.getTime() - entry.clockInAt.getTime()) / 60_000 : 0);
+  }, 0);
 
   return { entryCount: entries.length, totalHours: totalMinutes / 60 };
 }

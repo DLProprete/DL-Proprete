@@ -27,23 +27,23 @@ describe("clock-queue", () => {
   });
 
   it("écrit puis relit une action", () => {
-    writePending({ kind: "start", targetId: "shift-1", queuedAt: "2026-08-31T06:00:00Z" });
+    writePending({ targetId: "shift-1", note: "", queuedAt: "2026-08-31T06:00:00Z" });
     expect(readPending()).toEqual({
-      kind: "start",
       targetId: "shift-1",
+      note: "",
       queuedAt: "2026-08-31T06:00:00Z",
     });
   });
 
   it("clearPending vide la file", () => {
-    writePending({ kind: "end", targetId: "entry-1", queuedAt: "2026-08-31T08:00:00Z" });
+    writePending({ targetId: "shift-1", note: "RAS", queuedAt: "2026-08-31T08:00:00Z" });
     clearPending();
     expect(readPending()).toBeNull();
   });
 
   it("une nouvelle action remplace la précédente (capacité 1)", () => {
-    writePending({ kind: "start", targetId: "shift-1", queuedAt: "2026-08-31T06:00:00Z" });
-    writePending({ kind: "start", targetId: "shift-2", queuedAt: "2026-08-31T06:05:00Z" });
+    writePending({ targetId: "shift-1", note: "", queuedAt: "2026-08-31T06:00:00Z" });
+    writePending({ targetId: "shift-2", note: "", queuedAt: "2026-08-31T06:05:00Z" });
     expect(readPending()?.targetId).toBe("shift-2");
   });
 });
