@@ -8,13 +8,11 @@ import { Badge, type BadgeTone } from "@/components/badge";
 const DAY_LABEL = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", timeZone: "UTC" });
 
 const STATE_LABEL: Record<ReturnType<typeof shiftState>, string> = {
-  open: "En cours",
   done: "Terminé",
   upcoming: "À venir",
 };
 
 const STATE_TONE: Record<ReturnType<typeof shiftState>, BadgeTone> = {
-  open: "warning",
   done: "success",
   upcoming: "neutral",
 };

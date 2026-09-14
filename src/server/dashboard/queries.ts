@@ -99,20 +99,6 @@ export async function suggestAgentsForShift(user: SessionUser, shiftId: string) 
   return suggestions.slice(0, MAX_SUGGESTIONS);
 }
 
-// Pointages en cours depuis plus de 12h — a priori un oubli de "Terminer".
-export async function getLongOpenTimeEntries(user: SessionUser) {
-  requireRole(user, [...MANAGE_ROLES]);
-  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-  return prisma.timeEntry.findMany({
-    where: { status: "OPEN", clockInAt: { lt: twelveHoursAgo } },
-    include: {
-      user: { select: { firstName: true, lastName: true } },
-      site: { select: { name: true } },
-    },
-    orderBy: { clockInAt: "asc" },
-  });
-}
-
 // Factures émises et pas encore payées (statut ISSUED précisément : dès le
 // premier règlement, notre machine à états passe en PARTIALLY_PAID/PAID).
 export async function getUnpaidIssuedInvoices(user: SessionUser) {

@@ -176,13 +176,31 @@ unique dont l'id est repris de l'ancien `Contract.id`.
 
 ### TimeEntry
 - id, userId, siteId, shiftId (nullable si hors planning)
-- clockInAt, clockOutAt
-- status: OPEN | SUBMITTED | VALIDATED | REJECTED
+- clockInAt : recopié de `shift.startAt` à la création — un placeholder,
+  jamais une heure d'arrivée réelle observée (décision du 12/09/2026 :
+  l'entreprise ne veut plus suivre l'heure d'arrivée d'un agent, pour ne
+  pas donner un sentiment de flicage). Pour un pointage hors planning
+  (`shiftId` nul), reste l'heure réelle de création, faute de vacation de
+  référence.
+- clockOutAt : seul instant réellement observé — l'heure à laquelle
+  l'agent appuie sur « Terminer ». Conservé comme trace interne de fin de
+  prestation, jamais recalculé.
+- status: OPEN | SUBMITTED | VALIDATED | REJECTED — `OPEN` n'est plus
+  jamais produit par le flux agent (un seul geste « Terminer » crée
+  directement en `SUBMITTED`) ; conservé dans l'énumération pour ne pas
+  invalider l'historique déjà en base.
 - source: MOBILE | ADMIN
-- note (court, opérationnel)
+- note (court, opérationnel — saisi par l'agent au moment de « Terminer »,
+  facultatif)
 - validatedById, validatedAt
 - payrollExportable (Boolean, défaut true)
-- Le pointage n’est pas la source de la facture client.
+- Le pointage n'est pas la source de la facture client.
+- Heures réalisées (paie / contrôle) : pour un pointage `VALIDATED`
+  rattaché à une vacation, la durée retenue est celle **planifiée** de la
+  vacation (`shift.endAt - shift.startAt`), jamais `clockOutAt -
+  clockInAt` (devenu sans rapport avec une durée réelle depuis que
+  `clockInAt` n'est plus une heure d'arrivée observée). Seul un pointage
+  hors planning retombe sur `clockOutAt - clockInAt`, faute d'alternative.
 
 ### Absence
 - id, userId
@@ -222,7 +240,9 @@ unique dont l'id est repris de l'ancien `Contract.id`.
 
 - Unique (userId, shiftId) sur Assignment actifs.
 - Invoice.number unique.
-- TimeEntry.clockOutAt > clockInAt quand renseigné.
+- TimeEntry.clockOutAt renseigné dès la création (jamais nul) : pas de
+  contrainte d'ordre avec clockInAt, qui n'est plus une heure d'arrivée
+  réelle depuis le 12/09/2026 (voir ci-dessus).
 - Absence SICK : documentPath non vide avant passage APPROVED
   (ou au plus tard à la validation ADMIN).
 - Soft-delete interdit sur Invoice émise ; statut CANCELLED + avoir.

@@ -62,7 +62,10 @@ Trois notions d’heures, jamais fusionnées dans un seul champ :
 
 1. **Heures contractualisées** : volume indicatif au cahier des charges.
 2. **Heures planifiées** : créneaux du mois — **seules à entrer dans la facture**.
-3. **Heures réalisées** : pointages validés — paie / contrôle uniquement.
+3. **Heures réalisées** : la durée **planifiée** de chaque vacation dont
+   le pointage a été validé — pas une mesure d'heure d'arrivée/départ
+   réelle, volontairement abandonnée le 12/09/2026 pour ne pas suivre les
+   agents sur le terrain — paie / contrôle uniquement.
 
 ## 4. Périmètre MVP
 
@@ -142,8 +145,11 @@ une fois l'envoi puis la signature effectués côté Yousign.
 
 ### 5.2 Semaine type d’un agent
 
-L’agent ouvre l’application le matin, voit ses sites du jour, démarre le
-pointage à l’arrivée, le termine à la sortie. Si plusieurs sites dans la
+L’agent ouvre l’application le matin, voit ses sites du jour. Une seule
+action par vacation : « Terminer », avec une remarque libre optionnelle,
+dès que la prestation prévue est faite — peu importe l’heure exacte,
+seule la confirmation que le chantier a été fait compte (décision du
+12/09/2026 : plus de suivi d’heure d’arrivée). Si plusieurs sites dans la
 journée : un pointage par vacation / site.
 
 ### 5.3 Arrêt maladie
@@ -199,6 +205,8 @@ ADHOC, ajoutable à la facture du mois ou facturée isolément.
 - Un pointage doit être rattaché à une vacation planifiée du jour, ou créé
   comme « hors planning » (visible pour ADMIN).
 - Un pointage validé n’est plus modifiable par l’agent.
+- Un agent ne peut soumettre qu’un seul pointage par vacation (un double
+  clic sur « Terminer » est rejeté, pas créé deux fois).
 - Numérotation des factures : préfixe + année + séquence, sans trou une fois
   le statut « émise ». Avoir pour corriger.
 - Données d’absence maladie : type, dates, fichier, statut. Jamais de

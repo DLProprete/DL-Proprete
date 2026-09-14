@@ -13,13 +13,6 @@ function formatDate(date: Date) {
   );
 }
 
-function formatDeviation(minutes: number | null) {
-  if (minutes === null) return "hors planning";
-  if (Math.abs(minutes) < 1) return "à l'heure";
-  const sign = minutes > 0 ? "+" : "";
-  return `${sign}${Math.round(minutes)} min`;
-}
-
 export default async function TimeEntriesReviewPage({
   searchParams,
 }: {
@@ -153,8 +146,7 @@ export default async function TimeEntriesReviewPage({
               <th className="font-medium">Date</th>
               <th className="font-medium">Début</th>
               <th className="font-medium">Fin</th>
-              <th className="font-medium">Durée</th>
-              <th className="font-medium">Écart</th>
+              <th className="font-medium">Durée (planifiée)</th>
               <th className="font-medium">Actions</th>
             </tr>
           </thead>
@@ -170,7 +162,12 @@ export default async function TimeEntriesReviewPage({
                 <td>
                   {entry.user.firstName} {entry.user.lastName}
                 </td>
-                <td className="text-zinc-600">{entry.site.name}</td>
+                <td className="text-zinc-600">
+                  {entry.site.name}
+                  {flags.isAnomaly && (
+                    <span className="ml-2 text-xs font-medium text-amber-800">hors planning</span>
+                  )}
+                </td>
                 <td className="text-zinc-600">{formatDate(entry.clockInAt)}</td>
                 <td className="text-zinc-600">{formatTimeInParis(entry.clockInAt)}</td>
                 <td className="text-zinc-600">
@@ -178,9 +175,6 @@ export default async function TimeEntriesReviewPage({
                 </td>
                 <td className="text-zinc-600">
                   {flags.durationMinutes !== null ? `${Math.round(flags.durationMinutes)} min` : "—"}
-                </td>
-                <td className={flags.isAnomaly ? "font-medium text-amber-800" : "text-zinc-600"}>
-                  {formatDeviation(flags.startDeviationMinutes)}
                 </td>
                 <td>
                   {/* formAction (pas un <form> imbriqué : invalide en HTML,
@@ -207,7 +201,7 @@ export default async function TimeEntriesReviewPage({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="py-4 text-zinc-500">
+                <td colSpan={8} className="py-4 text-zinc-500">
                   Aucun pointage à valider pour ces filtres.{" "}
                   <Link href="/planning" className="underline">
                     Ouvrir le planning

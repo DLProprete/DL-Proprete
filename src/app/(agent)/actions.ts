@@ -3,38 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import {
-  startTimeEntry,
-  endTimeEntry,
-  TimeEntryAlreadyOpenError,
-  TimeEntryTooShortError,
-} from "@/server/time/actions";
+import { completeTimeEntry, TimeEntryAlreadyExistsError } from "@/server/time/actions";
 import { createSiteLog } from "@/server/sites/actions";
 import { saveUpload, InvalidUploadError } from "@/lib/uploads";
 
-export async function startTimeEntryAction(shiftId: string) {
-  const user = await requireSession();
-  try {
-    await startTimeEntry(user, shiftId);
-  } catch (error) {
-    if (error instanceof TimeEntryAlreadyOpenError) redirect("/today?error=already-open");
-    throw error;
-  }
-  revalidatePath("/today");
-  redirect("/today");
-}
-
-export async function endTimeEntryAction(timeEntryId: string) {
+export async function completeTimeEntryAction(shiftId: string, note: string) {
   const user = await requireSession();
   let entry;
   try {
-    entry = await endTimeEntry(user, timeEntryId);
+    entry = await completeTimeEntry(user, shiftId, note);
   } catch (error) {
-    if (error instanceof TimeEntryTooShortError) redirect("/today?error=too-short");
+    if (error instanceof TimeEntryAlreadyExistsError) redirect("/today?error=already-done");
     throw error;
   }
   revalidatePath("/today");
-  redirect(entry.shiftId ? `/today?justEnded=${entry.shiftId}` : "/today");
+  redirect(`/today?justEnded=${entry.shiftId}`);
 }
 
 export async function createSiteLogAction(formData: FormData) {

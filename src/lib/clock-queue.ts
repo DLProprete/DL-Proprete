@@ -1,12 +1,12 @@
-// File d'attente locale (1 action max) pour Démarrer/Terminer quand le
-// réseau manque au moment du clic. Capacité à 1 volontaire : le flux
-// n'offre jamais Démarrer et Terminer en même temps (src/app/(agent)/today),
-// donc une seconde action en attente ne peut être qu'un remplacement de la
-// première (ex. l'agent retape), jamais une vraie file FIFO à gérer.
+// File d'attente locale (1 action max) pour "Terminer" quand le réseau
+// manque au moment du clic. Capacité à 1 volontaire : l'agent termine une
+// vacation à la fois, donc une seconde action en attente ne peut être
+// qu'un remplacement de la première (ex. l'agent retape), jamais une
+// vraie file FIFO à gérer.
 
 export type PendingClockAction = {
-  kind: "start" | "end";
   targetId: string;
+  note: string;
   queuedAt: string;
 };
 

@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { UserX, TimerOff, ReceiptEuro, FileClock, Wallet } from "lucide-react";
+import { UserX, ReceiptEuro, FileClock, Wallet } from "lucide-react";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import {
   getUnstaffedShiftsTodayTomorrow,
-  getLongOpenTimeEntries,
   getUnpaidIssuedInvoices,
   getContractsEndingSoon,
   getMonthlyRevenue,
@@ -78,10 +77,9 @@ export default async function DashboardPage({
     redirect("/clients");
   }
 
-  const [unstaffedShifts, longOpenEntries, unpaidInvoices, endingContracts, revenue, agents] =
+  const [unstaffedShifts, unpaidInvoices, endingContracts, revenue, agents] =
     await Promise.all([
       getUnstaffedShiftsTodayTomorrow(user),
-      getLongOpenTimeEntries(user),
       getUnpaidIssuedInvoices(user),
       getContractsEndingSoon(user),
       getMonthlyRevenue(user),
@@ -110,14 +108,6 @@ export default async function DashboardPage({
       value: String(unstaffedShifts.length),
       label: "Vacations non pourvues (J / J+1)",
       alert: unstaffedShifts.length > 0,
-    },
-    {
-      href: "/time-entries",
-      icon: TimerOff,
-      badge: "stat-badge-violet",
-      value: String(longOpenEntries.length),
-      label: "Pointages ouverts > 12 h",
-      alert: longOpenEntries.length > 0,
     },
     {
       href: "/invoices",
@@ -311,20 +301,6 @@ export default async function DashboardPage({
             </li>
           );
         })}
-      </Section>
-
-      <Section title="Pointages ouverts depuis plus de 12 h" count={longOpenEntries.length}>
-        {longOpenEntries.map((entry) => (
-          <li key={entry.id} className="px-4 py-2.5 text-sm">
-            <span className="font-medium text-zinc-900">
-              {entry.user.firstName} {entry.user.lastName}
-            </span>{" "}
-            <span className="num text-zinc-600">
-              {entry.site.name} · débuté à {formatTimeInParis(entry.clockInAt)} le{" "}
-              {formatDate(entry.clockInAt)}
-            </span>
-          </li>
-        ))}
       </Section>
 
       <Section title="Contrats qui expirent bientôt" count={endingContracts.length}>
