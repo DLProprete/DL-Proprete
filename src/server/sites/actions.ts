@@ -3,6 +3,7 @@ import { ForbiddenError, requireRole, type SessionUser } from "@/server/auth/ses
 import { siteInputSchema } from "@/lib/zod/site";
 import { sendEmail } from "@/lib/email";
 import { geocodeAddress } from "@/lib/geocoding";
+import { parseDateOnly } from "@/lib/dates";
 import { agentHasWorkedAtSite } from "./access";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
@@ -24,17 +25,22 @@ async function geocodeSiteCoordinates(address: string, postalCode: string, city:
 
 export async function createSite(user: SessionUser, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
-  const data = emptyToNull(siteInputSchema.parse(input));
+  const parsed = siteInputSchema.parse(input);
+  const data = emptyToNull(parsed);
+  const activeSince = parsed.activeSince ? parseDateOnly(parsed.activeSince) : null;
   const coordinates = await geocodeSiteCoordinates(data.address, data.postalCode, data.city);
-  return prisma.site.create({ data: { ...data, ...coordinates } });
+  return prisma.site.create({ data: { ...data, activeSince, ...coordinates } });
 }
 
 export async function updateSite(user: SessionUser, id: string, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
-  const parsed = emptyToNull(siteInputSchema.parse(input));
+  const inputParsed = siteInputSchema.parse(input);
+  const activeSince = inputParsed.activeSince ? parseDateOnly(inputParsed.activeSince) : null;
+  const parsed = emptyToNull(inputParsed);
   // clientId volontairement exclu : un site ne change pas de client via ce formulaire.
-  const { clientId: _clientId, ...data } = parsed;
+  const { clientId: _clientId, activeSince: _activeSince, ...data } = parsed;
   void _clientId;
+  void _activeSince;
 
   // Ce formulaire est aussi soumis pour enregistrer les seules consignes
   // (accès, alarme...), adresse inchangée à chaque fois (champs cachés) —
@@ -52,7 +58,7 @@ export async function updateSite(user: SessionUser, id: string, input: unknown) 
     ? await geocodeSiteCoordinates(data.address, data.postalCode, data.city)
     : {};
 
-  return prisma.site.update({ where: { id }, data: { ...data, ...coordinates } });
+  return prisma.site.update({ where: { id }, data: { ...data, activeSince, ...coordinates } });
 }
 
 export async function setSiteActive(user: SessionUser, id: string, isActive: boolean) {

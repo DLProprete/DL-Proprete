@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { clientInputSchema } from "@/lib/zod/client";
+import { parseDateOnly } from "@/lib/dates";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
@@ -8,7 +9,11 @@ export async function createClient(user: SessionUser, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
   const data = clientInputSchema.parse(input);
   return prisma.client.create({
-    data: { ...data, email: data.email || null },
+    data: {
+      ...data,
+      email: data.email || null,
+      clientSince: data.clientSince ? parseDateOnly(data.clientSince) : null,
+    },
   });
 }
 
@@ -25,6 +30,7 @@ export async function updateClient(user: SessionUser, id: string, input: unknown
       vatNumber: data.vatNumber || null,
       phone: data.phone || null,
       notes: data.notes || null,
+      clientSince: data.clientSince ? parseDateOnly(data.clientSince) : null,
     },
   });
 }

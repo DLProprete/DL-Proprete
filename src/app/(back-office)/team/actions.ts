@@ -32,6 +32,7 @@ function profileFields(formData: FormData) {
     experienceLevel: field(formData, "experienceLevel"),
     contractType: field(formData, "contractType"),
     contractEndDate: field(formData, "contractEndDate"),
+    hiredAt: field(formData, "hiredAt"),
     scheduleExceptions: field(formData, "scheduleExceptionsJson"),
     notes: field(formData, "notes"),
   };

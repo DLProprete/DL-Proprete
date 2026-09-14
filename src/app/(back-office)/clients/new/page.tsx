@@ -82,18 +82,31 @@ export default function NewClientPage() {
             />
           </div>
         </div>
-        <div>
-          <label htmlFor="paymentTermDays" className="block text-sm text-zinc-700">
-            Délai de paiement (jours)
-          </label>
-          <input
-            id="paymentTermDays"
-            name="paymentTermDays"
-            type="number"
-            min={0}
-            defaultValue={30}
-            className="mt-1 w-full field"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="paymentTermDays" className="block text-sm text-zinc-700">
+              Délai de paiement (jours)
+            </label>
+            <input
+              id="paymentTermDays"
+              name="paymentTermDays"
+              type="number"
+              min={0}
+              defaultValue={30}
+              className="mt-1 w-full field"
+            />
+          </div>
+          <div>
+            <label htmlFor="clientSince" className="block text-sm text-zinc-700">
+              Client depuis
+            </label>
+            <input
+              id="clientSince"
+              name="clientSince"
+              type="date"
+              className="mt-1 w-full field"
+            />
+          </div>
         </div>
         <div>
           <label htmlFor="notes" className="block text-sm text-zinc-700">

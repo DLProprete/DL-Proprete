@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getSite } from "@/server/sites/queries";
 import { setSiteActiveAction, setSiteLogVisibilityAction, updateSiteAction } from "../actions";
+import { formatDateOnly } from "@/lib/dates";
 
 const LOG_TYPES: Record<string, string> = {
   ANOMALY: "Anomalie",
@@ -45,6 +46,7 @@ export default async function SiteDetailPage({
         Client :{" "}
         <Link href={`/clients/${site.client.id}`} className="underline">{site.client.legalName}</Link>
         {" — "}{site.address}, {site.postalCode} {site.city}
+        {" — "}Actif depuis {site.activeSince ? formatDateOnly(site.activeSince) : "—"}
       </p>
 
       <form action={updateSiteAction.bind(null, site.id)} className="card space-y-3">
@@ -62,6 +64,16 @@ export default async function SiteDetailPage({
             <label className="block text-sm text-zinc-700" htmlFor="onSiteContactPhone">Téléphone</label>
             <input id="onSiteContactPhone" name="onSiteContactPhone" defaultValue={site.onSiteContactPhone ?? ""} className="mt-1 w-full field" />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm text-zinc-700" htmlFor="activeSince">Actif depuis</label>
+          <input
+            id="activeSince"
+            name="activeSince"
+            type="date"
+            defaultValue={site.activeSince ? formatDateOnly(site.activeSince) : ""}
+            className="mt-1 w-40 field"
+          />
         </div>
         <div>
           <label className="block text-sm text-zinc-700" htmlFor="accessNotes">Accès</label>

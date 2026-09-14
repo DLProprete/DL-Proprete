@@ -32,6 +32,7 @@ type AgentProfileValues = {
   experienceLevel?: "JUNIOR" | "CONFIRMED" | "SENIOR" | null;
   contractType?: "CDI" | "CDD" | null;
   contractEndDate?: Date | null;
+  hiredAt?: Date | null;
   scheduleExceptions?: unknown;
   notes?: string | null;
 };
@@ -158,6 +159,18 @@ export function AgentProfileFields({
           />
           <p className="mt-1 text-xs text-zinc-500">Nécessaire pour l&apos;alerte dépassement 35 h.</p>
         </div>
+      </div>
+      <div>
+        <label htmlFor="hiredAt" className="block text-sm text-zinc-700">
+          Date d&apos;embauche
+        </label>
+        <input
+          id="hiredAt"
+          name="hiredAt"
+          type="date"
+          defaultValue={v.hiredAt ? formatDateOnly(v.hiredAt) : ""}
+          className="mt-1 w-40 field"
+        />
       </div>
       <div>
         <label htmlFor="paidLeaveBalance" className="block text-sm text-zinc-700">
