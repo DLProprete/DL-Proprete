@@ -51,6 +51,21 @@ export async function listPendingAbsences(user: SessionUser) {
   });
 }
 
+// Historique complet (passé + futur, tous statuts) pour l'écran admin
+// /absence-review — listPendingAbsences ci-dessus ne couvre que la file
+// d'attente, insuffisant pour retrouver une demande déjà traitée.
+export async function listAllAbsences(
+  user: SessionUser,
+  status?: "PENDING" | "APPROVED" | "REJECTED",
+) {
+  requireRole(user, ["ADMIN"]);
+  return prisma.absence.findMany({
+    where: status ? { status } : {},
+    include: { user: { select: { firstName: true, lastName: true } } },
+    orderBy: { startsOn: "desc" },
+  });
+}
+
 // Shifts (à venir) touchés par une absence approuvée et pas encore
 // repourvus.
 export async function listShiftsNeedingReplacement(user: SessionUser) {

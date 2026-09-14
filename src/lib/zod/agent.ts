@@ -27,6 +27,7 @@ export const agentProfileSchema = z.object({
   // croisée ici (frontière), la cohérence CDD+date se lit au moment de
   // l'usage (agentConstraintViolation), pas à la saisie.
   contractEndDate: optionalDate,
+  hiredAt: optionalDate,
   // Arrive du formulaire comme une chaîne JSON unique (un hidden input,
   // voir AgentProfileFields.tsx) — plus simple que reconstruire un tableau
   // d'objets depuis des clés FormData indexées. z.preprocess parse cette

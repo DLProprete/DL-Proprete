@@ -4,6 +4,7 @@ import { requireSession } from "@/server/auth/session";
 import { getClient } from "@/server/clients/queries";
 import { setClientActiveAction, sendPortalLinkAction, updateClientAction } from "../actions";
 import { SendPortalLinkButton } from "./SendPortalLinkButton";
+import { formatDateOnly } from "@/lib/dates";
 
 const PORTAL_ERROR_MESSAGES: Record<string, string> = {
   "no-email": "Ce client n'a pas d'adresse e-mail renseignée — à compléter avant d'envoyer un lien.",
@@ -155,18 +156,32 @@ export default async function ClientDetailPage({
                 />
               </div>
             </div>
-            <div>
-              <label htmlFor="paymentTermDays" className="block text-sm text-zinc-700">
-                Délai de paiement (jours)
-              </label>
-              <input
-                id="paymentTermDays"
-                name="paymentTermDays"
-                type="number"
-                min={0}
-                defaultValue={client.paymentTermDays}
-                className="mt-1 w-full field"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="paymentTermDays" className="block text-sm text-zinc-700">
+                  Délai de paiement (jours)
+                </label>
+                <input
+                  id="paymentTermDays"
+                  name="paymentTermDays"
+                  type="number"
+                  min={0}
+                  defaultValue={client.paymentTermDays}
+                  className="mt-1 w-full field"
+                />
+              </div>
+              <div>
+                <label htmlFor="clientSince" className="block text-sm text-zinc-700">
+                  Client depuis
+                </label>
+                <input
+                  id="clientSince"
+                  name="clientSince"
+                  type="date"
+                  defaultValue={client.clientSince ? formatDateOnly(client.clientSince) : ""}
+                  className="mt-1 w-full field"
+                />
+              </div>
             </div>
             <div>
               <label htmlFor="notes" className="block text-sm text-zinc-700">
@@ -209,6 +224,8 @@ export default async function ClientDetailPage({
             <dd>{display(client.phone)}</dd>
             <dt className="text-zinc-600">Délai de paiement</dt>
             <dd>{client.paymentTermDays} jours</dd>
+            <dt className="text-zinc-600">Client depuis</dt>
+            <dd>{client.clientSince ? formatDateOnly(client.clientSince) : "—"}</dd>
             <dt className="text-zinc-600">Notes</dt>
             <dd>{display(client.notes)}</dd>
           </dl>

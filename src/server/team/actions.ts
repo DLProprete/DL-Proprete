@@ -66,6 +66,7 @@ async function toProfileData(
     experienceLevel: data.experienceLevel || null,
     contractType: data.contractType || null,
     contractEndDate: data.contractEndDate ? parseDateOnly(data.contractEndDate) : null,
+    hiredAt: data.hiredAt ? parseDateOnly(data.hiredAt) : null,
     scheduleExceptions: data.scheduleExceptions,
     notes: data.notes || null,
   };

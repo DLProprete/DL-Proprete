@@ -49,6 +49,17 @@ export default async function NewSitePage({
           />
         </div>
         <AddressAutocomplete />
+        <div>
+          <label htmlFor="activeSince" className="block text-sm text-zinc-700">
+            Actif depuis
+          </label>
+          <input
+            id="activeSince"
+            name="activeSince"
+            type="date"
+            className="mt-1 w-40 field"
+          />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="onSiteContactName" className="block text-sm text-zinc-700">
