@@ -3,6 +3,7 @@ import { requireRole, type SessionUser } from "@/server/auth/session";
 
 export class TimeEntryAlreadyExistsError extends Error {}
 export class TimeEntryNotModifiableError extends Error {}
+export class NotAssignedError extends Error {}
 
 // Un seul geste agent par vacation : "Terminer" crée ET clôt le pointage
 // dans le même appel — décision du 12/09, l'entreprise ne veut plus
@@ -14,6 +15,18 @@ export class TimeEntryNotModifiableError extends Error {}
 // empêcher un doublon, voir l'idempotence ci-dessous.
 export async function completeTimeEntry(user: SessionUser, shiftId: string, note?: string) {
   requireRole(user, ["AGENT"]);
+
+  // Le shiftId vient du client (Server Action) : sans cette vérification,
+  // un agent pourrait pointer — et être payé — sur la vacation d'un
+  // collègue en fournissant simplement un autre ID (trouvé en audit de
+  // sécurité du 15/09, jamais signalé comme anomalie à la relecture
+  // puisque l'entrée reste liée à un vrai Shift).
+  const assignment = await prisma.assignment.findFirst({
+    where: { userId: user.id, shiftId, status: "ASSIGNED" },
+  });
+  if (!assignment) {
+    throw new NotAssignedError("Vous n'êtes pas affecté à cette vacation.");
+  }
 
   const existing = await prisma.timeEntry.findFirst({
     where: { userId: user.id, shiftId },

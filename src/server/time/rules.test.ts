@@ -1,7 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/server/auth/session";
-import { completeTimeEntry, TimeEntryAlreadyExistsError, TimeEntryNotModifiableError } from "./actions";
+import {
+  completeTimeEntry,
+  TimeEntryAlreadyExistsError,
+  TimeEntryNotModifiableError,
+  NotAssignedError,
+} from "./actions";
 import { validateTimeEntry, rejectTimeEntry } from "./review";
 
 // Test d'intégration : les transitions SUBMITTED/VALIDATED sont un vrai
@@ -12,6 +17,7 @@ describe("règles de pointage — un seul geste 'Terminer' (intégration DB)", (
   let siteId: string;
   let contractId: string;
   let shiftId: string;
+  let unassignedShiftId: string;
   let shiftStartAt: Date;
   let agentUser: SessionUser;
   let adminUser: SessionUser;
@@ -56,6 +62,21 @@ describe("règles de pointage — un seul geste 'Terminer' (intégration DB)", (
         generatedFromTemplate: false,
       },
     });
+    // Deuxième vacation, sans affectation pour l'agent de test — sert à
+    // vérifier qu'un pointage y est refusé (correction du 15/09).
+    const unassignedShift = await prisma.shift.create({
+      data: {
+        siteId: site.id,
+        contractSiteId: contractSite.id,
+        date: new Date(),
+        startAt,
+        endAt: new Date(startAt.getTime() + 3_600_000),
+        requiredAgents: 1,
+        billableMinutes: 120,
+        status: "PLANNED",
+        generatedFromTemplate: false,
+      },
+    });
     const agentRow = await prisma.user.create({
       data: {
         email: `test-agent-pointage-${suffix}@dlproprete.fr`,
@@ -77,10 +98,15 @@ describe("règles de pointage — un seul geste 'Terminer' (intégration DB)", (
       },
     });
 
+    await prisma.assignment.create({
+      data: { shiftId: shift.id, userId: agentRow.id, status: "ASSIGNED" },
+    });
+
     clientId = client.id;
     siteId = site.id;
     contractId = contract.id;
     shiftId = shift.id;
+    unassignedShiftId = unassignedShift.id;
     shiftStartAt = startAt;
     agentUser = { id: agentRow.id, email: agentRow.email, role: "AGENT", isActive: true };
     adminUser = { id: adminRow.id, email: adminRow.email, role: "ADMIN", isActive: true };
@@ -89,13 +115,21 @@ describe("règles de pointage — un seul geste 'Terminer' (intégration DB)", (
   afterAll(async () => {
     await prisma.auditLog.deleteMany({ where: { actorUserId: adminUser.id } });
     await prisma.timeEntry.deleteMany({ where: { userId: agentUser.id } });
+    await prisma.assignment.deleteMany({ where: { userId: agentUser.id } });
     await prisma.shift.delete({ where: { id: shiftId } });
+    await prisma.shift.delete({ where: { id: unassignedShiftId } });
     await prisma.contractSite.deleteMany({ where: { contractId } });
     await prisma.contract.deleteMany({ where: { id: contractId } });
     await prisma.site.delete({ where: { id: siteId } });
     await prisma.client.delete({ where: { id: clientId } });
     await prisma.user.delete({ where: { id: agentUser.id } });
     await prisma.user.delete({ where: { id: adminUser.id } });
+  });
+
+  it("refuse de pointer une vacation à laquelle l'agent n'est pas affecté", async () => {
+    await expect(completeTimeEntry(agentUser, unassignedShiftId)).rejects.toBeInstanceOf(
+      NotAssignedError,
+    );
   });
 
   it("Terminer crée directement un pointage SUBMITTED, avec la remarque et l'heure prévue du shift", async () => {
