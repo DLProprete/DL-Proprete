@@ -46,7 +46,7 @@ export function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-zinc-200 bg-white transition-transform lg:static lg:z-auto lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-zinc-200 bg-white transition-transform lg:sticky lg:top-0 lg:bottom-auto lg:z-auto lg:h-screen lg:translate-x-0 ${
           open ? "translate-x-0" : ""
         }`}
       >
