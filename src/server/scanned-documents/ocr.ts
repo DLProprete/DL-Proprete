@@ -105,3 +105,14 @@ export function extractDocumentDate(text: string): Date | null {
   const date = dateOnlyUTC(Number(year), Number(month), Number(day));
   return Number.isNaN(date.getTime()) ? null : date;
 }
+
+// "Référence de la facture ... : FR67998419" ou "Facture n°FR67998419" —
+// une référence est recopiée telle quelle (pas un calcul comme le montant),
+// risque d'erreur plus faible, mais toujours motif étroit plutôt qu'un
+// deviné approximatif.
+const REFERENCE_REGEX = /(?:r[ée]f[ée]rence[^:\n]*:|facture\s*n[°ºo]\s*)\s*([A-Z0-9][A-Z0-9\-/]{3,})/i;
+
+export function extractReference(text: string): string | null {
+  const match = text.match(REFERENCE_REGEX);
+  return match ? match[1] : null;
+}

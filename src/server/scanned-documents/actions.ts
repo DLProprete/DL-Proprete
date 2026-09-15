@@ -9,6 +9,7 @@ import {
   matchKnownSupplier,
   extractAmountTtc,
   extractDocumentDate,
+  extractReference,
 } from "./ocr";
 
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
@@ -65,6 +66,7 @@ export async function runOcr(user: SessionUser, id: string) {
   const supplier = ocrText ? await matchKnownSupplier(ocrText) : null;
   const amountTtc = ocrText ? extractAmountTtc(ocrText) : null;
   const documentDate = ocrText ? extractDocumentDate(ocrText) : null;
+  const reference = ocrText ? extractReference(ocrText) : null;
 
   return prisma.scannedDocument.update({
     where: { id },
@@ -74,6 +76,7 @@ export async function runOcr(user: SessionUser, id: string) {
       supplierName: supplier?.name ?? null,
       amountTtc,
       documentDate,
+      reference,
     },
   });
 }
