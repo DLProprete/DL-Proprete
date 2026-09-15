@@ -13,6 +13,7 @@ import {
   ScrollText,
   Settings,
   Mail,
+  ScanText,
   type LucideIcon,
 } from "lucide-react";
 import { requireSession } from "@/server/auth/session";
@@ -49,6 +50,7 @@ const NAV_GROUPS: {
   {
     label: "Pilotage",
     items: [
+      { href: "/documents", label: "Numérisation", icon: ScanText },
       { href: "/mail", label: "Messagerie", icon: Mail, adminOnly: true },
       { href: "/audit", label: "Audit", icon: ScrollText, adminOnly: true },
       { href: "/settings", label: "Paramètres", icon: Settings, adminOnly: true },

@@ -29,6 +29,8 @@
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "tesseract.js": "^7.0.0",
+    "unpdf": "^1.8.1",
     "zod": "^4"
   },
   "devDependencies": {

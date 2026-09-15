@@ -186,6 +186,8 @@ model User {
   validatedTimeEntries TimeEntry[]  @relation("TimeEntryValidatedBy")
   auditLogs            AuditLog[]
   siteLogs             SiteLog[]
+  uploadedScannedDocuments  ScannedDocument[] @relation("ScannedDocumentUploadedBy")
+  validatedScannedDocuments ScannedDocument[] @relation("ScannedDocumentValidatedBy")
   @@index([role])
 }
 
@@ -601,4 +603,52 @@ model SiteLog {
   site Site @relation(fields: [siteId], references: [id])
   user User @relation(fields: [userId], references: [id])
   @@index([siteId, createdAt])
+}
+
+enum ScannedDocumentStatus {
+  PENDING
+  OCR_DONE
+  VALIDATED
+  REJECTED
+}
+
+enum ScannedDocumentCategory {
+  COMPTABLE
+  ACHATS
+  STOCK
+}
+
+// Numérisation des documents papier (docs/NUMERISATION-DOCUMENTS.md) —
+// pipeline assisté : dépôt, OCR local, relecture humaine avant toute
+// donnée actée, jamais de confiance aveugle sur un champ extrait.
+model ScannedDocument {
+  id                String                   @id @default(cuid())
+  filePath          String
+  originalName      String
+  status            ScannedDocumentStatus    @default(PENDING)
+  ocrText           String?
+  supplierName      String?
+  category          ScannedDocumentCategory?
+  amountTtc         Decimal?                 @db.Decimal(10, 2)
+  documentDate      DateTime?                @db.Date
+  reference         String?
+  isSensitive       Boolean                  @default(false)
+  uploadedByUserId  String
+  validatedByUserId String?
+  validatedAt       DateTime?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  uploadedBy  User  @relation("ScannedDocumentUploadedBy", fields: [uploadedByUserId], references: [id])
+  validatedBy User? @relation("ScannedDocumentValidatedBy", fields: [validatedByUserId], references: [id])
+  @@index([status])
+}
+
+// Table de correspondance qui s'enrichit à chaque validation (boucle
+// d'apprentissage validée par le spike du 10/09) : un fournisseur reconnu
+// une fois est proposé automatiquement sur les documents suivants.
+model KnownSupplier {
+  id           String   @id @default(cuid())
+  name         String
+  matchPattern String   @unique
+  createdAt    DateTime @default(now())
 }
