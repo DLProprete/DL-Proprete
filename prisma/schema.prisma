@@ -625,6 +625,9 @@ model ScannedDocument {
   id                String                   @id @default(cuid())
   filePath          String
   originalName      String
+  // SHA-256 du contenu — un fichier déjà déposé (même contenu, quel que
+  // soit son statut) est ignoré silencieusement au dépôt suivant.
+  contentHash       String                   @unique
   status            ScannedDocumentStatus    @default(PENDING)
   ocrText           String?
   supplierName      String?

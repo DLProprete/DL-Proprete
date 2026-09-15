@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/server/auth/session";
-import { validateScannedDocument, rejectScannedDocument } from "./actions";
+import { uploadScannedDocuments, validateScannedDocument, rejectScannedDocument } from "./actions";
 import { matchKnownSupplier } from "./ocr";
 
 // Boucle d'apprentissage fournisseur (docs/NUMERISATION-DOCUMENTS.md, spike
@@ -34,6 +34,7 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
       data: {
         filePath: `scanned-documents/test-${suffix}.pdf`,
         originalName: `bon-de-commande-${suffix}.pdf`,
+        contentHash: `test-hash-${suffix}`,
         status: "OCR_DONE",
         ocrText: `OVHCLOUD SAS\nBon de commande n° ${suffix}\nTotal TTC : 120,00 €`,
         uploadedByUserId: admin.id,
@@ -79,6 +80,7 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
       data: {
         filePath: `scanned-documents/test-reject-${suffix}.pdf`,
         originalName: `doublon-${suffix}.pdf`,
+        contentHash: `test-hash-reject-${suffix}`,
         status: "OCR_DONE",
         uploadedByUserId: adminUser.id,
       },
@@ -87,5 +89,20 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
 
     const rejected = await rejectScannedDocument(adminUser, document.id);
     expect(rejected.status).toBe("REJECTED");
+  });
+
+  it("uploadScannedDocuments ignore silencieusement un fichier déjà déposé (même contenu)", async () => {
+    const content = `contenu unique ${suffix}`;
+    const makeFile = () => new File([content], `scan-${suffix}.pdf`, { type: "application/pdf" });
+
+    const firstBatch = await uploadScannedDocuments(adminUser, [makeFile()]);
+    expect(firstBatch).toHaveLength(1);
+    documentIds.push(firstBatch[0].id);
+
+    const secondBatch = await uploadScannedDocuments(adminUser, [makeFile()]);
+    expect(secondBatch).toHaveLength(0); // même contenu -> ignoré, pas de doublon
+
+    const count = await prisma.scannedDocument.count({ where: { contentHash: firstBatch[0].contentHash } });
+    expect(count).toBe(1);
   });
 });

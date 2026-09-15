@@ -38,6 +38,7 @@ describe("export CSV des documents validés (intégration DB)", () => {
       data: {
         filePath: "scanned-documents/valide.pdf",
         originalName: `valide-${suffix}.pdf`,
+        contentHash: `test-hash-valide-${suffix}`,
         status: "VALIDATED",
         category: "ACHATS",
         supplierName: "OVHcloud",
@@ -53,6 +54,7 @@ describe("export CSV des documents validés (intégration DB)", () => {
       data: {
         filePath: "scanned-documents/sensible.pdf",
         originalName: `sensible-${suffix}.pdf`,
+        contentHash: `test-hash-sensible-${suffix}`,
         status: "VALIDATED",
         category: "ACHATS",
         isSensitive: true,
@@ -66,6 +68,7 @@ describe("export CSV des documents validés (intégration DB)", () => {
       data: {
         filePath: "scanned-documents/pending.pdf",
         originalName: `pending-${suffix}.pdf`,
+        contentHash: `test-hash-pending-${suffix}`,
         status: "OCR_DONE",
         category: "ACHATS",
         uploadedByUserId: admin.id,

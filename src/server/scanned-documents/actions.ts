@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { saveUpload, readUpload, InvalidUploadError } from "@/lib/uploads";
@@ -14,11 +15,20 @@ const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
 export class ScannedDocumentNotPendingError extends Error {}
 
+// Un fichier déjà déposé (même contenu, quel que soit son statut) est
+// ignoré silencieusement — permet de re-sélectionner tout le dossier local
+// à chaque fois sans se soucier de ce qui a déjà été traité.
 export async function uploadScannedDocuments(user: SessionUser, files: File[]) {
   requireRole(user, [...MANAGE_ROLES]);
   const created = [];
   for (const file of files) {
     if (!file || file.size === 0) continue;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const contentHash = createHash("sha256").update(buffer).digest("hex");
+
+    const existing = await prisma.scannedDocument.findUnique({ where: { contentHash } });
+    if (existing) continue;
+
     let filePath: string;
     try {
       filePath = await saveUpload("scanned-documents", file);
@@ -30,6 +40,7 @@ export async function uploadScannedDocuments(user: SessionUser, files: File[]) {
       data: {
         filePath,
         originalName: file.name,
+        contentHash,
         uploadedByUserId: user.id,
       },
     });
