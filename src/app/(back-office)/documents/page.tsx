@@ -4,6 +4,7 @@ import { listScannedDocuments } from "@/server/scanned-documents/queries";
 import { formatDateOnly } from "@/lib/dates";
 import { uploadScannedDocumentsAction } from "./actions";
 import { ProcessQueueButton } from "./ProcessQueueButton";
+import { DocumentUploadField } from "./DocumentUploadField";
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "En attente d'OCR",
@@ -32,26 +33,9 @@ export default async function ScannedDocumentsPage() {
       <h1 className="text-xl font-semibold">Numérisation des documents</h1>
 
       <form action={uploadScannedDocumentsAction} className="card space-y-3">
-        <div>
-          <label htmlFor="files" className="block text-sm text-zinc-700">
-            Déposer un dossier de scans (PDF, JPEG, PNG)
-          </label>
-          <input
-            id="files"
-            name="files"
-            type="file"
-            multiple
-            // @ts-expect-error -- webkitdirectory n'est pas dans le typage React, mais bien supporté par les navigateurs
-            webkitdirectory=""
-            className="mt-1 w-full field"
-          />
-          <p className="mt-1 text-xs text-zinc-500">
-            Sélectionne le dossier contenant les scans — tous les fichiers qu&apos;il contient sont
-            déposés d&apos;un coup, puis traités un par un ci-dessous.
-          </p>
-        </div>
+        <DocumentUploadField />
         <button type="submit" className="btn btn-secondary">
-          Déposer
+          Importer les fichiers
         </button>
       </form>
 
