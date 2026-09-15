@@ -14,5 +14,12 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // Les tests d'intégration partagent une seule base réelle (pas de
+    // schéma/transaction isolé par fichier) : en parallèle, un test qui
+    // mesure un delta (ex. CA du mois) peut lire l'écriture concurrente
+    // d'un autre fichier de test. Exécution séquentielle des fichiers
+    // pour éliminer cette source de flakiness — constaté en conditions
+    // réelles (delta pollué de +170 sur getMonthlyRevenue).
+    fileParallelism: false,
   },
 });
