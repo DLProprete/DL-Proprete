@@ -36,18 +36,17 @@ async function ocrImage(buffer: Buffer): Promise<string> {
 // dépendance native fragile sur un hébergement serverless) : le document
 // reste sans texte OCR, à compléter à la main en relecture. Limitation
 // connue et acceptée pour la v1 (docs/NUMERISATION-DOCUMENTS.md).
+//
+// `unpdf` plutôt que `pdfjs-dist` directement : pdfjs-dist charge son
+// "worker" via un import dynamique que Turbopack réécrit vers un chunk
+// bundlé inexistant (échec systématique en dev comme en prod) — unpdf
+// embarque une build de pdfjs-dist spécifiquement patchée pour tourner
+// dans un seul thread, sans ce mécanisme.
 async function extractPdfText(buffer: Buffer): Promise<string | null> {
-  const pdfjs = await import("pdfjs-dist");
-  const doc = await pdfjs.getDocument({ data: new Uint8Array(buffer) }).promise;
-  const texts: string[] = [];
-  for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber += 1) {
-    const page = await doc.getPage(pageNumber);
-    const content = await page.getTextContent();
-    const pageText = content.items.map((item) => ("str" in item ? item.str : "")).join(" ");
-    if (pageText.trim()) texts.push(pageText);
-  }
-  await doc.destroy();
-  const joined = texts.join("\n").trim();
+  const { getDocumentProxy, extractText } = await import("unpdf");
+  const doc = await getDocumentProxy(new Uint8Array(buffer));
+  const { text } = await extractText(doc, { mergePages: true });
+  const joined = text.trim();
   return joined || null;
 }
 
