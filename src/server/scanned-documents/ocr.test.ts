@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractAmountTtc, extractDocumentDate } from "./ocr";
+import { extractAmountTtc, extractDocumentDate, extractReference } from "./ocr";
 
 describe("extraction de champs par motifs — jamais de valeur inventée", () => {
   it("extrait un montant TTC avec virgule décimale", () => {
@@ -21,5 +21,17 @@ describe("extraction de champs par motifs — jamais de valeur inventée", () =>
 
   it("ne renvoie rien si aucune date reconnaissable n'est trouvée", () => {
     expect(extractDocumentDate("Aucune date ici")).toBeNull();
+  });
+
+  it("extrait une référence après \"Référence de la facture ... :\"", () => {
+    expect(extractReference("Référence de la facture acquittée : FR67998419")).toBe("FR67998419");
+  });
+
+  it("extrait une référence après \"Facture n°\"", () => {
+    expect(extractReference("Facture n°FR67998419 du 21 Décembre 2024")).toBe("FR67998419");
+  });
+
+  it("ne renvoie rien si aucune référence reconnaissable n'est trouvée", () => {
+    expect(extractReference("Aucune référence ici, juste du texte normal.")).toBeNull();
   });
 });
