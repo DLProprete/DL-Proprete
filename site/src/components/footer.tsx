@@ -40,6 +40,9 @@ export function Footer() {
             <Link href="/politique-confidentialite" className="hover:text-brand">
               Politique de confidentialité
             </Link>
+            <Link href="/cgv" className="hover:text-brand">
+              CGV
+            </Link>
           </nav>
         </div>
 
