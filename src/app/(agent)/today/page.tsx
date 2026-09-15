@@ -80,8 +80,9 @@ export default async function TodayPage({
       </div>
 
       {error === "already-done" && <p className="alert alert-danger">Cette vacation a déjà été pointée.</p>}
+      {error === "not-assigned" && <p className="alert alert-danger">Vous n&apos;êtes pas affecté à cette vacation.</p>}
       {error === "log" && <p className="alert alert-danger">Indiquez un commentaire pour la main courante.</p>}
-      {error && !["already-done", "log"].includes(error) && (
+      {error && !["already-done", "not-assigned", "log"].includes(error) && (
         <p className="alert alert-danger">{error}</p>
       )}
       {logged && <p className="alert alert-info">Main courante enregistrée.</p>}

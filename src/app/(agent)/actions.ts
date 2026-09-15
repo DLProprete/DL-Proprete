@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { completeTimeEntry, TimeEntryAlreadyExistsError } from "@/server/time/actions";
+import { completeTimeEntry, TimeEntryAlreadyExistsError, NotAssignedError } from "@/server/time/actions";
 import { createSiteLog } from "@/server/sites/actions";
 import { saveUpload, InvalidUploadError } from "@/lib/uploads";
 
@@ -14,6 +14,7 @@ export async function completeTimeEntryAction(shiftId: string, note: string) {
     entry = await completeTimeEntry(user, shiftId, note);
   } catch (error) {
     if (error instanceof TimeEntryAlreadyExistsError) redirect("/today?error=already-done");
+    if (error instanceof NotAssignedError) redirect("/today?error=not-assigned");
     throw error;
   }
   revalidatePath("/today");
