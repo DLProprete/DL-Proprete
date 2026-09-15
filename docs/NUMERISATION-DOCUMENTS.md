@@ -5,11 +5,12 @@ vrais documents étalés (voir le fichier "Questions Vendredi / Samedi —
 Cassandre", document 1/4). Version illustrée avec schéma : artefact
 "Pipeline de numérisation" (document 4/4).
 
-**Statut : brouillon.** Chantier distinct de l'outil actuel, pas encore dans
-le périmètre validé (`docs/SPEC.md` ne le couvre pas — à ne pas construire
-en dur tant que ce document n'est pas confirmé après la rencontre avec
-Cassandre). Objectif ici : organiser ce qu'on sait déjà, pas figer une
-architecture définitive.
+**Statut : v1 en cours de développement** (branche à part, pas encore
+fusionnée sur `main`). Le volume et la variété réelle des documents restent
+inconnus — le choix a été fait de construire un pipeline volontairement
+générique (catégories et champs éditables par l'humain, jamais figés dans
+le code) plutôt que d'attendre cette confirmation. Voir "Direction
+d'architecture retenue" ci-dessous pour ce qui a été construit.
 
 ## Contexte
 
@@ -88,37 +89,53 @@ restent inconnus tant qu'on n'a pas vu de vrais documents samedi — la
 seule chose qui permettra de juger sérieusement de la faisabilité à
 l'échelle.
 
-## Direction d'architecture envisagée (à discuter, pas figée)
+## Direction d'architecture retenue
 
-**Pipeline pressenti**, dans l'esprit "assisté, jamais automatique" déjà
+**Pipeline construit**, dans l'esprit "assisté, jamais automatique" déjà
 appliqué ailleurs dans l'outil :
-1. Dépôt d'un scan/photo (upload manuel pour commencer — un dossier
-   surveillé automatiquement serait une itération suivante, plus complexe
-   à faire fonctionner correctement).
-2. OCR local (Tesseract) → texte brut.
-3. Reconnaissance par rapprochement avec une liste de fournisseurs/types
-   de documents déjà validés (comme le spike) — s'enrichit à chaque
-   validation.
-4. Extraction de champs par motifs simples quand c'est fiable ; sinon,
-   champ laissé vide plutôt qu'une valeur inventée.
+1. Dépôt d'un dossier entier en un geste (`<input type="file"
+   webkitdirectory multiple>`) — pas de dossier surveillé en continu,
+   écarté explicitement (complexité et risques disproportionnés pour un
+   usage ponctuel).
+2. OCR local (`tesseract.js`, langue française, fichier de langue committé
+   dans `assets/tessdata/` — pas de dépendance réseau à l'exécution) →
+   texte brut. Traitement document par document (un bouton "Traiter les
+   suivants" qui appelle une Server Action par document, jamais une
+   boucle unique côté serveur sur tout le lot) pour rester sous les
+   limites de temps d'une fonction serverless.
+3. Reconnaissance par rapprochement avec la table `KnownSupplier`
+   (sous-chaîne insensible à la casse) — s'enrichit à chaque validation
+   ("mémoriser ce fournisseur").
+4. Extraction de champs par motifs simples (montant TTC, date) quand
+   fiable ; sinon, champ laissé vide plutôt qu'une valeur inventée.
 5. Écran de relecture humaine (ADMIN/PLANNER) : confirme ou corrige avant
-   tout enregistrement définitif — aucune donnée comptable n'est actée
-   sans ce passage.
-6. Export CSV par catégorie (comptable / stock / achats) une fois validé.
+   tout enregistrement définitif (statut `VALIDATED`) — aucune donnée
+   comptable n'est actée sans ce passage.
+6. Export CSV par catégorie (`COMPTABLE`/`ACHATS`/`STOCK`), uniquement les
+   documents validés.
 
-**Où ça vivrait dans l'outil existant** (esquisse, à confirmer une fois le
-volume/la sensibilité connus) :
-- Stockage du scan original : Supabase Storage, même mécanisme que
-  `src/lib/uploads.ts` (déjà utilisé pour les justificatifs d'absence et
-  les photos de main courante) — pas de nouveau système à inventer.
-- Accès : `requireRole(user, ["ADMIN", "PLANNER"])`, même garde que le
-  reste du back-office — pas d'accès agent envisagé ici.
-- Nouvel espace dans `(back-office)`, pas mêlé aux modules métier
-  existants (contrats, planning) tant que le volume et la nature réelle
-  des documents ne sont pas connus.
-- Modèle de données : à esquisser après samedi seulement — trop tôt pour
-  fixer des champs (`documentType`, montants, etc.) sans avoir vu la vraie
-  variété de documents.
+**Où ça vit dans l'outil** :
+- Stockage du scan original : Supabase Storage via `src/lib/uploads.ts`
+  (déjà utilisé pour les justificatifs d'absence et les photos de main
+  courante) — pas de nouveau système.
+- Accès : `requireRole(user, ["ADMIN", "PLANNER"])` pour le dépôt/OCR/
+  relecture, comme le reste du back-office. Un document marqué "sensible"
+  (RH/santé) n'est visible et listé que pour ADMIN — garde plus stricte,
+  cohérente avec la règle dure "pas de diagnostic médical".
+- Nouvel espace `(back-office)/documents`, séparé des modules métier
+  existants.
+- Modèle de données : `ScannedDocument` (statut, texte OCR, catégorie,
+  montant, date, référence, `isSensitive`) + `KnownSupplier` (boucle
+  d'apprentissage) — voir `docs/DATA-MODEL.md`.
+
+**Limitation connue et acceptée pour cette v1** : un PDF sans calque texte
+(scan pur image, cas le plus probable pour de vieux papiers) n'est pas
+rasterisé pour l'OCR — rasteriser demanderait `canvas`, une dépendance
+native fragile sur un hébergement serverless. Concrètement : l'OCR
+fonctionne sur les images (JPEG/PNG) et sur les PDF qui contiennent déjà un
+calque texte ; un PDF scan pur reste sans texte OCR et se complète
+entièrement à la main en relecture. Recommandation pratique : scanner en
+JPEG/PNG plutôt qu'en PDF quand c'est possible.
 
 ## Hors périmètre, au moins pour une première version
 
@@ -142,11 +159,11 @@ volume/la sensibilité connus) :
 
 ## Prochaines étapes
 
-1. Samedi : regarder les vrais documents apportés par Cassandre, retester
-   le spike dessus en direct, obtenir ses réponses aux questions 33-38.
-2. Une fois ces réponses connues : reprendre ce document, fixer un
-   périmètre v1 réaliste (quels types de documents, quel modèle de
-   données, quel écran de relecture).
-3. Passer par le mode plan habituel du dépôt avant tout code réel touchant
-   à l'outil ou à sa base de données — ce chantier qualifie clairement pour
-   ça (nouveau module, pas encore dans `docs/SPEC.md`).
+1. Vérifier la v1 avec de vrais documents (voir "Vérification" du plan
+   d'implémentation) : qualité de l'OCR sur de vieux papiers, présence
+   réelle de PDF sans calque texte, volume réel.
+2. Selon ce que ça donne : ajuster les motifs d'extraction (montant/date),
+   éventuellement une aide ponctuelle d'IA si les regex ne suffisent pas
+   (dernier recours, pas le point de départ).
+3. Fusionner sur `main` une fois validé dans le worktree
+   (`worktree-numerisation-documents`), après revue.
