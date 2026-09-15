@@ -1,7 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
-import type { SessionUser } from "@/server/auth/session";
-import { uploadScannedDocuments, validateScannedDocument, rejectScannedDocument } from "./actions";
+import { ForbiddenError, type SessionUser } from "@/server/auth/session";
+import {
+  uploadScannedDocuments,
+  validateScannedDocument,
+  rejectScannedDocument,
+  runOcr,
+} from "./actions";
 import { matchKnownSupplier } from "./ocr";
 
 // Boucle d'apprentissage fournisseur (docs/NUMERISATION-DOCUMENTS.md, spike
@@ -13,6 +18,7 @@ import { matchKnownSupplier } from "./ocr";
 describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", () => {
   const suffix = Date.now();
   let adminUser: SessionUser;
+  let plannerUser: SessionUser;
   let documentId: string;
   const knownSupplierIds: string[] = [];
   const documentIds: string[] = [];
@@ -29,6 +35,17 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
       },
     });
     adminUser = { id: admin.id, email: admin.email, role: "ADMIN", isActive: true };
+    const planner = await prisma.user.create({
+      data: {
+        email: `test-scanned-doc-planner-${suffix}@dlproprete.fr`,
+        name: "Planner Test",
+        firstName: "Planner",
+        lastName: "Test",
+        role: "PLANNER",
+        emailVerified: true,
+      },
+    });
+    plannerUser = { id: planner.id, email: planner.email, role: "PLANNER", isActive: true };
 
     const document = await prisma.scannedDocument.create({
       data: {
@@ -48,6 +65,7 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
     await prisma.scannedDocument.deleteMany({ where: { id: { in: documentIds } } });
     await prisma.knownSupplier.deleteMany({ where: { id: { in: knownSupplierIds } } });
     await prisma.user.delete({ where: { id: adminUser.id } });
+    await prisma.user.delete({ where: { id: plannerUser.id } });
   });
 
   it("un fournisseur inconnu n'est reconnu sur aucun texte", async () => {
@@ -104,5 +122,51 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
 
     const count = await prisma.scannedDocument.count({ where: { contentHash: firstBatch[0].contentHash } });
     expect(count).toBe(1);
+  });
+
+  // Un document sensible (RH/santé) n'est jamais accessible en écriture à
+  // un PLANNER, même en connaissant son ID (correction du 15/09).
+  describe("document marqué sensible — écriture réservée à ADMIN", () => {
+    let sensitiveDocId: string;
+
+    beforeAll(async () => {
+      const document = await prisma.scannedDocument.create({
+        data: {
+          filePath: `scanned-documents/test-sensible-${suffix}.pdf`,
+          originalName: `sensible-${suffix}.pdf`,
+          contentHash: `test-hash-sensible-${suffix}`,
+          status: "PENDING",
+          isSensitive: true,
+          uploadedByUserId: adminUser.id,
+        },
+      });
+      sensitiveDocId = document.id;
+      documentIds.push(document.id);
+    });
+
+    it("runOcr rejette un PLANNER", async () => {
+      await expect(runOcr(plannerUser, sensitiveDocId)).rejects.toBeInstanceOf(ForbiddenError);
+    });
+
+    it("validateScannedDocument rejette un PLANNER", async () => {
+      await expect(
+        validateScannedDocument(plannerUser, sensitiveDocId, { category: "COMPTABLE" }),
+      ).rejects.toBeInstanceOf(ForbiddenError);
+    });
+
+    it("rejectScannedDocument rejette un PLANNER", async () => {
+      await expect(rejectScannedDocument(plannerUser, sensitiveDocId)).rejects.toBeInstanceOf(
+        ForbiddenError,
+      );
+    });
+
+    it("un ADMIN peut toujours valider un document sensible", async () => {
+      const updated = await validateScannedDocument(adminUser, sensitiveDocId, {
+        category: "COMPTABLE",
+        isSensitive: true,
+      });
+      expect(updated.status).toBe("VALIDATED");
+      expect(updated.isSensitive).toBe(true);
+    });
   });
 });

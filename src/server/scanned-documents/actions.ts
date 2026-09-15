@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
-import { requireRole, type SessionUser } from "@/server/auth/session";
+import { ForbiddenError, requireRole, type SessionUser } from "@/server/auth/session";
 import { saveUpload, readUpload, InvalidUploadError } from "@/lib/uploads";
 import { scannedDocumentReviewSchema } from "@/lib/zod/scanned-document";
 import { parseDateOnly } from "@/lib/dates";
@@ -15,6 +15,17 @@ import {
 const MANAGE_ROLES = ["ADMIN", "PLANNER"] as const;
 
 export class ScannedDocumentNotPendingError extends Error {}
+
+// Un document sensible (RH/santé) n'est jamais listé ni téléchargeable
+// par un PLANNER (queries.ts, la route de fichier) — même garde ici, sur
+// les écritures : sans elle, un PLANNER connaissant l'ID d'un document
+// sensible pouvait le valider/rejeter en direct (trouvé en audit de
+// sécurité du 15/09).
+function assertCanWrite(user: SessionUser, document: { isSensitive: boolean }) {
+  if (document.isSensitive && user.role !== "ADMIN") {
+    throw new ForbiddenError("Document sensible réservé à l'administrateur.");
+  }
+}
 
 // Un fichier déjà déposé (même contenu, quel que soit son statut) est
 // ignoré silencieusement — permet de re-sélectionner tout le dossier local
@@ -56,6 +67,7 @@ export async function uploadScannedDocuments(user: SessionUser, files: File[]) {
 export async function runOcr(user: SessionUser, id: string) {
   requireRole(user, [...MANAGE_ROLES]);
   const document = await prisma.scannedDocument.findUniqueOrThrow({ where: { id } });
+  assertCanWrite(user, document);
   if (document.status !== "PENDING") {
     throw new ScannedDocumentNotPendingError("Ce document a déjà été traité.");
   }
@@ -83,6 +95,8 @@ export async function runOcr(user: SessionUser, id: string) {
 
 export async function validateScannedDocument(user: SessionUser, id: string, input: unknown) {
   requireRole(user, [...MANAGE_ROLES]);
+  const document = await prisma.scannedDocument.findUniqueOrThrow({ where: { id } });
+  assertCanWrite(user, document);
   const data = scannedDocumentReviewSchema.parse(input);
 
   if (data.rememberSupplier && data.supplierName?.trim()) {
@@ -102,7 +116,10 @@ export async function validateScannedDocument(user: SessionUser, id: string, inp
       amountTtc: data.amountTtc === "" || data.amountTtc === undefined ? null : data.amountTtc,
       documentDate: data.documentDate ? parseDateOnly(data.documentDate) : null,
       reference: data.reference || null,
-      isSensitive: data.isSensitive,
+      // Seul un ADMIN peut changer ce statut — le formulaire d'un PLANNER
+      // n'a jamais la case à cocher, donc data.isSensitive vaudrait false
+      // par défaut et effacerait silencieusement le marquage sensible.
+      isSensitive: user.role === "ADMIN" ? data.isSensitive : document.isSensitive,
       validatedByUserId: user.id,
       validatedAt: new Date(),
     },
@@ -111,6 +128,8 @@ export async function validateScannedDocument(user: SessionUser, id: string, inp
 
 export async function rejectScannedDocument(user: SessionUser, id: string) {
   requireRole(user, [...MANAGE_ROLES]);
+  const document = await prisma.scannedDocument.findUniqueOrThrow({ where: { id } });
+  assertCanWrite(user, document);
   return prisma.scannedDocument.update({
     where: { id },
     data: { status: "REJECTED", validatedByUserId: user.id, validatedAt: new Date() },
