@@ -232,6 +232,18 @@ unique dont l'id est repris de l'ancien `Contract.id`.
 ### AuditLog
 - id, createdAt, actorUserId, action, entityType, entityId
 - summary (texte court, lisible humainement)
+
+### ScannedDocument (numérisation des documents papier — docs/NUMERISATION-DOCUMENTS.md)
+- id, filePath (Supabase Storage, via src/lib/uploads.ts), originalName
+- status: PENDING | OCR_DONE | VALIDATED | REJECTED
+- ocrText (texte brut extrait, nullable — jamais de confiance avant relecture)
+- supplierName, category (COMPTABLE | ACHATS | STOCK), amountTtc, documentDate, reference (tous nullable, remplis au mieux puis confirmés/corrigés en relecture)
+- isSensitive (RH/santé — visible pour ADMIN uniquement, jamais PLANNER)
+- uploadedByUserId, validatedByUserId, validatedAt
+
+### KnownSupplier
+- id, name, matchPattern (unique — sous-chaîne recherchée dans ocrText, insensible à la casse)
+- s'enrichit à chaque validation d'un ScannedDocument ("mémoriser ce fournisseur")
 - metadata (JSON optionnel)
 - Jamais de mot de passe ni de contenu de justificatif dans summary/metadata.
 - Aucune suppression (règle dure) ; ADMIN uniquement en lecture (page `/audit`).
