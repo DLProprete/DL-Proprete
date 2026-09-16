@@ -192,6 +192,8 @@ model User {
   siteLogs             SiteLog[]
   uploadedScannedDocuments  ScannedDocument[] @relation("ScannedDocumentUploadedBy")
   validatedScannedDocuments ScannedDocument[] @relation("ScannedDocumentValidatedBy")
+  receivedCheckIns AgentSiteCheckIn[] @relation("CheckInAgent")
+  authoredCheckIns AgentSiteCheckIn[] @relation("CheckInAuthor")
   @@index([role])
 }
 
@@ -318,6 +320,7 @@ model Site {
   timeEntries       TimeEntry[]
   serviceExceptions ServiceException[]
   logs              SiteLog[]
+  checkIns          AgentSiteCheckIn[]
   @@index([clientId])
 }
 
@@ -607,6 +610,24 @@ model SiteLog {
   site Site @relation(fields: [siteId], references: [id])
   user User @relation(fields: [userId], references: [id])
   @@index([siteId, createdAt])
+}
+
+// Point d'information mensuel ADMIN/PLANNER <-> agent sur un site — retour
+// terrain informatif, distinct de la main courante (SiteLog) : jamais
+// visible du portail client, pas de notification e-mail (voir
+// docs/DATA-MODEL.md §SiteLog pour la raison de cette séparation).
+model AgentSiteCheckIn {
+  id         String   @id @default(cuid())
+  userId     String   // agent concerné
+  siteId     String
+  authorId   String   // ADMIN/PLANNER qui a fait le point
+  occurredOn DateTime @db.Date
+  note       String
+  createdAt  DateTime @default(now())
+  user   User @relation("CheckInAgent", fields: [userId], references: [id])
+  site   Site @relation(fields: [siteId], references: [id])
+  author User @relation("CheckInAuthor", fields: [authorId], references: [id])
+  @@index([siteId, userId, occurredOn])
 }
 
 enum ScannedDocumentStatus {

@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getSite } from "@/server/sites/queries";
-import { setSiteActiveAction, setSiteLogVisibilityAction, updateSiteAction } from "../actions";
-import { formatDateOnly } from "@/lib/dates";
+import { listCheckInsForSite, getOverdueAgentsForSite } from "@/server/checkins/queries";
+import { listAgents } from "@/server/planning/queries";
+import { setSiteActiveAction, setSiteLogVisibilityAction, updateSiteAction, createCheckInAction } from "../actions";
+import { dateOnlyUTC, formatDateOnly, parisToday } from "@/lib/dates";
 
 const LOG_TYPES: Record<string, string> = {
   ANOMALY: "Anomalie",
@@ -16,13 +18,21 @@ export default async function SiteDetailPage({
   searchParams,
 }: {
   params: Promise<{ siteId: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; checkInSaved?: string; checkInError?: string }>;
 }) {
   const { siteId } = await params;
-  const { saved } = await searchParams;
+  const { saved, checkInSaved, checkInError } = await searchParams;
   const user = await requireSession();
   const site = await getSite(user, siteId);
   if (!site) notFound();
+
+  const [checkIns, overdueAgents, agents] = await Promise.all([
+    listCheckInsForSite(user, siteId),
+    getOverdueAgentsForSite(user, siteId),
+    listAgents(user),
+  ]);
+  const today = parisToday();
+  const todayDateOnly = formatDateOnly(dateOnlyUTC(today.year, today.month, today.day));
 
   const toggleActive = setSiteActiveAction.bind(null, site.id, !site.isActive);
 
@@ -136,6 +146,79 @@ export default async function SiteDetailPage({
             </li>
           ))}
           {site.logs.length === 0 && <li className="text-zinc-500">Aucun événement.</li>}
+        </ul>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-medium text-zinc-700">Points d&apos;information</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Retour terrain informatif suite à un échange avec un agent — usage interne, jamais visible du client.
+        </p>
+
+        {overdueAgents.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {overdueAgents.map((a) => (
+              <p key={a.userId} className="alert alert-warning">
+                {a.agentName} — aucun point depuis{" "}
+                {a.lastCheckInOn ? `le ${formatDateOnly(a.lastCheckInOn)}` : "jamais"}
+              </p>
+            ))}
+          </div>
+        )}
+        {checkInError && <p className="mt-2 alert alert-danger">{checkInError}</p>}
+        {checkInSaved && <p className="mt-2 alert alert-info">Point enregistré.</p>}
+
+        <form action={createCheckInAction.bind(null, site.id)} className="mt-3 card space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm text-zinc-700" htmlFor="userId">
+                Agent
+              </label>
+              <select id="userId" name="userId" required className="mt-1 w-full field">
+                <option value="">— choisir —</option>
+                {agents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.firstName} {agent.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-zinc-700" htmlFor="occurredOn">
+                Date
+              </label>
+              <input
+                id="occurredOn"
+                name="occurredOn"
+                type="date"
+                required
+                defaultValue={todayDateOnly}
+                className="mt-1 w-full field"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm text-zinc-700" htmlFor="note">
+              Note
+            </label>
+            <textarea id="note" name="note" rows={3} required className="mt-1 w-full field" />
+          </div>
+          <button type="submit" className="btn btn-dark">
+            Enregistrer le point
+          </button>
+        </form>
+
+        <ul className="mt-3 space-y-3 text-sm">
+          {checkIns.map((c) => (
+            <li key={c.id} className="rounded-md border border-zinc-200 p-3">
+              <p className="text-xs text-zinc-500">
+                {c.user.firstName} {c.user.lastName} — {formatDateOnly(c.occurredOn)} — noté par{" "}
+                {c.author.firstName} {c.author.lastName}
+              </p>
+              <p className="mt-1">{c.note}</p>
+            </li>
+          ))}
+          {checkIns.length === 0 && <li className="text-zinc-500">Aucun point enregistré.</li>}
         </ul>
       </div>
     </div>
