@@ -5,11 +5,13 @@ import { getSiteMarginsForMonth } from "@/server/reports/margins";
 import { getMonthlyTrends } from "@/server/reports/trends";
 import { getSiteLogSummary } from "@/server/reports/site-logs";
 import { getSiteMarginAlerts, type SiteAlert } from "@/server/reports/alerts";
+import { getAgentHoursUtilization } from "@/server/reports/agent-hours";
 import { parisToday } from "@/lib/dates";
 import { BarChart } from "@/components/bar-chart";
 
 const currencyFormatter = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
 const percentFormatter = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 0 });
+const hoursFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 function describeAlert(alert: SiteAlert): string {
   switch (alert.kind) {
@@ -38,11 +40,12 @@ export default async function ReportsPage({
   const month = monthParam ? Number(monthParam) : today.month;
   const monthsBack = monthsParam === "12" ? 12 : 6;
 
-  const [margins, trends, siteLogs, alerts] = await Promise.all([
+  const [margins, trends, siteLogs, alerts, agentHours] = await Promise.all([
     getSiteMarginsForMonth(user, year, month),
     getMonthlyTrends(user, monthsBack),
     getSiteLogSummary(user, year, month),
     getSiteMarginAlerts(user, year, month),
+    getAgentHoursUtilization(user, year, month),
   ]);
 
   function periodHref(targetMonths?: number) {
@@ -197,6 +200,45 @@ export default async function ReportsPage({
                 <tr>
                   <td colSpan={5} className="text-zinc-500">
                     Aucune entrée de main courante pour ce mois.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-lg font-medium">Heures agent — réalisé vs contractuel</h2>
+        <div className="card-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Heures contractuelles</th>
+                <th>Heures validées</th>
+                <th>Écart</th>
+              </tr>
+            </thead>
+            <tbody>
+              {agentHours.map((a) => (
+                <tr key={a.userId}>
+                  <td>{a.agentName}</td>
+                  <td className="whitespace-nowrap text-zinc-600">
+                    {a.contractualHours != null ? `${hoursFormatter.format(a.contractualHours)} h` : "—"}
+                  </td>
+                  <td className="whitespace-nowrap text-zinc-600">{hoursFormatter.format(a.validatedHours)} h</td>
+                  <td className="whitespace-nowrap font-medium">
+                    {a.deltaHours != null
+                      ? `${a.deltaHours >= 0 ? "+" : ""}${hoursFormatter.format(a.deltaHours)} h`
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+              {agentHours.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-zinc-500">
+                    Aucun agent actif.
                   </td>
                 </tr>
               )}
