@@ -14,6 +14,7 @@ import {
   Settings,
   Mail,
   ScanText,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import { requireSession } from "@/server/auth/session";
@@ -50,6 +51,7 @@ const NAV_GROUPS: {
   {
     label: "Pilotage",
     items: [
+      { href: "/reports", label: "Rapports", icon: BarChart3, adminOnly: true },
       { href: "/documents", label: "Numérisation", icon: ScanText },
       { href: "/mail", label: "Messagerie", icon: Mail, adminOnly: true },
       { href: "/audit", label: "Audit", icon: ScrollText, adminOnly: true },

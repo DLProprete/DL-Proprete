@@ -23,6 +23,7 @@ type AgentProfileValues = {
   phone?: string | null;
   weeklyContractHours?: Prisma.Decimal | number | null;
   paidLeaveBalance?: Prisma.Decimal | number | null;
+  hourlyCostHT?: Prisma.Decimal | number | null;
   homeAddress?: string | null;
   homeCity?: string | null;
   homePostalCode?: string | null;
@@ -187,6 +188,23 @@ export function AgentProfileFields({
         />
         <p className="mt-1 text-xs text-zinc-500">
           Saisi à la main (ex. depuis le logiciel de paie) — non calculé ici.
+        </p>
+      </div>
+      <div>
+        <label htmlFor="hourlyCostHT" className="block text-sm text-zinc-700">
+          Coût horaire (€ HT)
+        </label>
+        <input
+          id="hourlyCostHT"
+          name="hourlyCostHT"
+          type="number"
+          step="0.01"
+          min="0"
+          defaultValue={v.hourlyCostHT != null ? Number(v.hourlyCostHT) : ""}
+          className="mt-1 w-40 field"
+        />
+        <p className="mt-1 text-xs text-zinc-500">
+          Taux actuel, sans historique — utilisé pour calculer la marge par site.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-4">

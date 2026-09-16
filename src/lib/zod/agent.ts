@@ -13,6 +13,9 @@ export const agentProfileSchema = z.object({
   weeklyContractHours: z.union([z.literal(""), z.coerce.number().nonnegative()]).optional(),
   // Solde acquis saisi à la main (Mo9) — même piège "" que ci-dessus.
   paidLeaveBalance: z.union([z.literal(""), z.coerce.number().nonnegative()]).optional(),
+  // Taux de coût horaire actuel, unique par agent (paie externalisée) —
+  // même piège "" que ci-dessus.
+  hourlyCostHT: z.union([z.literal(""), z.coerce.number().nonnegative()]).optional(),
   homeAddress: z.string().optional(),
   homeCity: z.string().optional(),
   homePostalCode: z.string().optional(),

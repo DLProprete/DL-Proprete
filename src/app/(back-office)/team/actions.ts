@@ -23,6 +23,7 @@ function profileFields(formData: FormData) {
     phone: field(formData, "phone"),
     weeklyContractHours: field(formData, "weeklyContractHours"),
     paidLeaveBalance: field(formData, "paidLeaveBalance"),
+    hourlyCostHT: field(formData, "hourlyCostHT"),
     homeAddress: field(formData, "homeAddress"),
     homeCity: field(formData, "homeCity"),
     homePostalCode: field(formData, "homePostalCode"),

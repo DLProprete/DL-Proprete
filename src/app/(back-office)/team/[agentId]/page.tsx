@@ -63,6 +63,7 @@ export default async function AgentDetailPage({
             ...agent,
             weeklyContractHours: agent.weeklyContractHours != null ? Number(agent.weeklyContractHours) : null,
             paidLeaveBalance: agent.paidLeaveBalance != null ? Number(agent.paidLeaveBalance) : null,
+            hourlyCostHT: agent.hourlyCostHT != null ? Number(agent.hourlyCostHT) : null,
           }}
           initialRole={agent.role === "PLANNER" ? "PLANNER" : "AGENT"}
         />

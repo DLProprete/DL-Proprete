@@ -58,6 +58,7 @@ async function toProfileData(
         : data.weeklyContractHours,
     paidLeaveBalance:
       data.paidLeaveBalance === "" || data.paidLeaveBalance === undefined ? null : data.paidLeaveBalance,
+    hourlyCostHT: data.hourlyCostHT === "" || data.hourlyCostHT === undefined ? null : data.hourlyCostHT,
     homeAddress: data.homeAddress || null,
     homeCity: data.homeCity || null,
     homePostalCode: data.homePostalCode || null,
