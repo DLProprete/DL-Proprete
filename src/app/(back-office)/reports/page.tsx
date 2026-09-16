@@ -4,10 +4,23 @@ import { requireSession } from "@/server/auth/session";
 import { getSiteMarginsForMonth } from "@/server/reports/margins";
 import { getMonthlyTrends } from "@/server/reports/trends";
 import { getSiteLogSummary } from "@/server/reports/site-logs";
+import { getSiteMarginAlerts, type SiteAlert } from "@/server/reports/alerts";
 import { parisToday } from "@/lib/dates";
 import { BarChart } from "@/components/bar-chart";
 
 const currencyFormatter = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const percentFormatter = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 0 });
+
+function describeAlert(alert: SiteAlert): string {
+  switch (alert.kind) {
+    case "LOW_MARGIN":
+      return `Marge faible (${percentFormatter.format(alert.marginRate)}) — ${alert.siteName}`;
+    case "DECLINING_MARGIN":
+      return `Marge en baisse (${percentFormatter.format(alert.previousRate)} → ${percentFormatter.format(alert.currentRate)}) — ${alert.siteName}`;
+    case "PARTIAL_COST":
+      return `Coût partiel — taux horaire manquant pour au moins un agent — ${alert.siteName}`;
+  }
+}
 
 export default async function ReportsPage({
   searchParams,
@@ -25,10 +38,11 @@ export default async function ReportsPage({
   const month = monthParam ? Number(monthParam) : today.month;
   const monthsBack = monthsParam === "12" ? 12 : 6;
 
-  const [margins, trends, siteLogs] = await Promise.all([
+  const [margins, trends, siteLogs, alerts] = await Promise.all([
     getSiteMarginsForMonth(user, year, month),
     getMonthlyTrends(user, monthsBack),
     getSiteLogSummary(user, year, month),
+    getSiteMarginAlerts(user, year, month),
   ]);
 
   function periodHref(targetMonths?: number) {
@@ -75,6 +89,16 @@ export default async function ReportsPage({
           Afficher
         </button>
       </form>
+
+      {alerts.length > 0 && (
+        <section className="space-y-2">
+          {alerts.map((alert, i) => (
+            <p key={i} className="alert alert-warning">
+              {describeAlert(alert)}
+            </p>
+          ))}
+        </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="text-lg font-medium">Marge par site</h2>

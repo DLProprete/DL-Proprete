@@ -29,7 +29,7 @@ describe("getMonthlyTrends (intégration DB)", () => {
     const contract = await prisma.contract.create({
       data: { clientId: client.id, reference: `C-TEST-TREND-${suffix}`, startsOn: new Date("2020-01-01"), endsOn: new Date("2030-12-31"), status: "ACTIVE" },
     });
-    const contractSite = await prisma.contractSite.create({
+    await prisma.contractSite.create({
       data: { contractId: contract.id, siteId: site.id, hourlyRateHT: 20 },
     });
     const [admin, agent] = await Promise.all([
