@@ -27,7 +27,7 @@ const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 };
 
 const STATS = [
-  { label: "Activité", value: "15+ ans" },
+  { label: "Activité", value: "Depuis 2011" },
   { label: "Zone couverte", value: "Caen et alentours", href: "/zone-intervention" },
   { label: "Basée à", value: "Colombelles", href: "/contact" },
   { label: "Domaines", value: "4 métiers", href: "/services" },
@@ -82,7 +82,7 @@ const FAQS = [
 const WHY_US = [
   {
     title: "Entreprise locale, depuis 2011",
-    text: "Plus de 15 ans d'activité à Caen et ses alentours : une équipe qui connaît le terrain et ses contraintes.",
+    text: "Depuis 2011 à Caen et ses alentours : une équipe qui connaît le terrain et ses contraintes.",
   },
   {
     title: "Le même contact du début à la fin",
@@ -321,7 +321,7 @@ export default function HomePage() {
         <Container className="flex flex-col items-start justify-between gap-8 rounded-2xl border border-accent/15 bg-surface-mint px-10 py-14 md:flex-row md:items-center">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight text-brand">
-              Discutons de votre projet
+              Demander un devis
             </h2>
             <p className="mt-2 max-w-md text-foreground/60">
               Décrivez-nous vos locaux : type de site, surface, fréquence souhaitée. On revient
