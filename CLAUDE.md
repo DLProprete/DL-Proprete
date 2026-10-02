@@ -35,6 +35,20 @@ déclaré (connexion hors pooler, utilisée par `prisma migrate` — voir
 "Hébergement" plus bas) : en local, même valeur que `DATABASE_URL`, pas de
 pooler sur un Postgres local.
 
+**Le `.env` local ne pointe jamais sur la production.** `npm test` et le
+seed refusent de tourner si `DATABASE_URL` n'est pas une base locale
+(`src/lib/local-database.ts`) : les tests créent et suppriment des données,
+consomment des numéros de facture, et le seed remet le mot de passe de
+démo sur l'admin. Base de dev : Postgres Homebrew,
+`postgresql://pierrenez@localhost:5432/dl_proprete`, sans les variables
+`SUPABASE_*` (fichiers sur le disque, `uploads/`). Les valeurs de
+production ne vivent que dans Vercel.
+
+Optionnel : `ERROR_ALERT_EMAIL="..."` — destinataire d'une alerte e-mail
+à chaque erreur serveur, au plus une par heure (`src/server/errors/report.ts`).
+Sans elle, les erreurs sont seulement journalisées (page Audit, « Erreur
+serveur »).
+
 Optionnel (envoi d'e-mail réel — lien magique du portail client, mail IMAP/SMTP,
 factures/relances par e-mail ; `src/lib/email.ts`, `src/server/mail/`) : sans ces
 variables, l'e-mail est journalisé en console au lieu d'être envoyé, testable de

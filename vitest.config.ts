@@ -1,6 +1,11 @@
 import "dotenv/config";
 import { defineConfig } from "vitest/config";
 import path from "node:path";
+import { assertLocalDatabase } from "./src/lib/local-database";
+
+// Les tests d'intégration écrivent dans la base (et consomment des numéros
+// de facture) : refus net si DATABASE_URL n'est pas une base locale.
+assertLocalDatabase(process.env.DATABASE_URL, "npm test");
 
 // Certains tests (règles OPEN/VALIDATED du pointage) sont des tests
 // d'intégration : ils créent/nettoient leurs propres données via Prisma
@@ -21,5 +26,8 @@ export default defineConfig({
     // pour éliminer cette source de flakiness — constaté en conditions
     // réelles (delta pollué de +170 sur getMonthlyRevenue).
     fileParallelism: false,
+    // Fichiers des tests toujours sur le disque local (src/lib/uploads.ts),
+    // jamais dans le bucket Supabase de production, même si le .env le configure.
+    env: { SUPABASE_URL: "", SUPABASE_SERVICE_ROLE_KEY: "" },
   },
 });

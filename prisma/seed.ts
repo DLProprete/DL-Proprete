@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "better-auth/crypto";
 import { createServiceTemplate } from "@/server/service-templates/actions";
@@ -5,6 +6,10 @@ import { generateShifts } from "@/server/planning/generate-shifts";
 import { assignAgent } from "@/server/planning/assignments";
 import { dateOnlyUTC, parisToday } from "@/lib/dates";
 import type { SessionUser } from "@/server/auth/session";
+import { assertLocalDatabase } from "@/lib/local-database";
+
+// Le seed remet le mot de passe de démo sur le compte admin : jamais en production.
+assertLocalDatabase(process.env.DATABASE_URL, "Seed");
 
 const prisma = new PrismaClient();
 
@@ -112,8 +117,10 @@ async function main() {
     },
   });
 
+  // Clé naturelle (contrat, site) plutôt que l'id : une base créée par une
+  // version antérieure du seed porte le même couple sous un autre id.
   const contractSite = await prisma.contractSite.upsert({
-    where: { id: "seed-contract-site-demo" },
+    where: { contractId_siteId: { contractId: contract.id, siteId: site.id } },
     update: {},
     create: {
       id: "seed-contract-site-demo",
