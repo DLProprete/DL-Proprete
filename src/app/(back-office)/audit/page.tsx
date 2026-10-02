@@ -152,7 +152,7 @@ export default async function AuditPage({
             {items.map((log) => (
               <tr key={log.id}>
                 <td className="whitespace-nowrap text-zinc-600">{dateTimeFormatter.format(log.createdAt)}</td>
-                <td className="whitespace-nowrap">{log.actorLabel ?? "Acteur supprimé"}</td>
+                <td className="whitespace-nowrap">{log.actorLabel ?? (log.action === "SERVER_ERROR" ? "Système" : "Acteur supprimé")}</td>
                 <td className="whitespace-nowrap text-zinc-600">
                   {AUDIT_ACTION_LABELS[log.action] ?? log.action}
                 </td>

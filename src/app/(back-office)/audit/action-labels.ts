@@ -20,4 +20,5 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   PASSWORD_RESET: "Mot de passe réinitialisé",
   ASSIGNMENT_CREATED: "Affectation créée",
   ASSIGNMENT_REMOVED: "Affectation retirée",
+  SERVER_ERROR: "Erreur serveur",
 };

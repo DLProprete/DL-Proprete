@@ -23,7 +23,8 @@ export type AuditAction =
   | "ACCOUNT_EMAIL_UPDATED"
   | "ASSIGNMENT_CREATED"
   | "ASSIGNMENT_REMOVED"
-  | "INVOICE_CREATED";
+  | "INVOICE_CREATED"
+  | "SERVER_ERROR"; // écrit par src/server/errors/report.ts, sans acteur
 
 type AuditEntry = {
   actorUserId: string;
