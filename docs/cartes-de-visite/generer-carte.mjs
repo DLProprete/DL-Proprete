@@ -1,12 +1,18 @@
 // Usage (depuis un dossier de travail, hors dépôt) :
 //   npm i pdf-lib opentype.js @fontsource/inter qrcode
-//   node generer-carte.mjs <chemin>/site/public/brand/dl-proprete-logo-blanc-web.svg carte-cassandre.pdf
+//   node generer-carte.mjs A <chemin>/site/public/brand carte-cassandre-A.pdf
+//   node generer-carte.mjs B <chemin>/site/public/brand carte-cassandre-B.pdf
 // Couleurs CMJN indicatives (charte : à caler sur BAT avec l'imprimeur).
-// Carte de visite DL Propreté — direction B — PDF imprimeur 91 x 61 mm (fond perdu 3 mm).
+// Carte de visite DL Propreté — directions A et B — PDF imprimeur 91 x 61 mm (fond perdu 3 mm).
 import fs from "node:fs";
 import { PDFDocument, cmyk } from "pdf-lib";
 import opentype from "opentype.js";
 import QR from "qrcode";
+
+const [direction, brandDir, outFile] = process.argv.slice(2);
+if (!["A", "B"].includes(direction) || !brandDir || !outFile) {
+  throw new Error("usage : node generer-carte.mjs A|B <dossier brand> <sortie.pdf>");
+}
 
 const MM = 72 / 25.4;
 const W = 91, H = 61, BLEED = 3;
@@ -111,16 +117,20 @@ function qrPath(url, leftMm, topMm, boxMm) {
     return p;
   };
 
-  // Recto : aplat marine plein (fond perdu), logo blanc officiel de 44 mm et,
-  // dessous, « DEPUIS 2011 » (mention séparée, pas une partie du signe) :
-  // écart logo → capitales = hauteur du D, l'ensemble centré sur la carte.
+  // Recto : logo officiel de 44 mm et, dessous, « DEPUIS 2011 » (mention
+  // séparée, pas une partie du signe) : écart logo → capitales = hauteur du D,
+  // l'ensemble centré sur la carte.
+  //   A : papier blanc, fichier logo marine, mention en gris.
+  //   B : aplat marine plein (fond perdu), fichier logo blanc, mention en blanc.
   const recto = page();
-  recto.drawRectangle({ x: 0, y: 0, width: Wpt, height: Hpt, color: C.marine });
+  const logoFile = `${brandDir}/${direction === "B" ? "dl-proprete-logo-blanc-web.svg" : "dl-proprete-logo-web.svg"}`;
+  const [logoColor, mentionColor] = direction === "B" ? [C.blanc, C.blanc] : [C.marine, C.gris];
+  if (direction === "B") recto.drawRectangle({ x: 0, y: 0, width: Wpt, height: Hpt, color: C.marine });
   const logoW = 44, logoH = logoW * 117.26 / 728.56, dHeight = logoW * 87.27 / 728.56;
   const mentionPt = 7, capMm = (regular.tables.os2.sCapHeight / regular.unitsPerEm) * mentionPt / MM;
   const blockTop = (H - (logoH + dHeight + capMm)) / 2;
-  draw(recto, logoPaths(process.argv[2], (W - logoW) / 2, blockTop, logoW), C.blanc);
-  text(recto, regular, "DEPUIS 2011", mentionPt, W / 2, blockTop + logoH + dHeight + capMm, C.blanc, "center", 0.14);
+  draw(recto, logoPaths(logoFile, (W - logoW) / 2, blockTop, logoW), logoColor);
+  text(recto, regular, "DEPUIS 2011", mentionPt, W / 2, blockTop + logoH + dHeight + capMm, mentionColor, "center", 0.14);
 
   // Verso : papier blanc. Zone de sécurité 7 → 84 mm (x), 7 → 54 mm (y).
   // Hiérarchie : nom (marine) > fonction (gris) > activité (gris, 2 lignes) >
@@ -152,6 +162,6 @@ function qrPath(url, leftMm, topMm, boxMm) {
   const codeCenter = qrLeft + quiet + qr.codeMm / 2, codeBottom = nameCapTop + qr.codeMm;
   text(verso, medium, "Contact", 8, codeCenter, codeBottom + 2 + capOf(medium, 8), C.marine, "center");
 
-  fs.writeFileSync(process.argv[3], await pdf.save());
+  fs.writeFileSync(outFile, await pdf.save());
   console.log(`OK — QR v${qr.version}, code ${qr.codeMm.toFixed(1)} mm`);
 })();
