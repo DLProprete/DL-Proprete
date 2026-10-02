@@ -24,7 +24,9 @@ export type AuditAction =
   | "ASSIGNMENT_CREATED"
   | "ASSIGNMENT_REMOVED"
   | "INVOICE_CREATED"
-  | "SERVER_ERROR"; // écrit par src/server/errors/report.ts, sans acteur
+  | "SERVER_ERROR" // écrit par src/server/errors/report.ts, sans acteur
+  | "RETENTION_PURGE" // src/server/retention/purge.ts ; sans acteur pour la tâche de nuit
+  | "RETENTION_UPDATED";
 
 type AuditEntry = {
   actorUserId: string;

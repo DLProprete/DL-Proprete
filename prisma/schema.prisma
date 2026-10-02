@@ -550,6 +550,15 @@ model InvoiceSequence {
   lastNumber Int @default(0)
 }
 
+// Durées de conservation modifiées par l'admin (en mois). Les règles, valeurs
+// par défaut et planchers légaux vivent dans src/server/retention/rules.ts :
+// une règle absente d'ici applique sa valeur par défaut.
+model RetentionSetting {
+  key       String   @id
+  months    Int
+  updatedAt DateTime @updatedAt
+}
+
 model CompanyProfile {
   id                 String   @id @default("default")
   legalName          String

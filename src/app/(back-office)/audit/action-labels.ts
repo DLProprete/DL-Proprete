@@ -21,4 +21,6 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   ASSIGNMENT_CREATED: "Affectation créée",
   ASSIGNMENT_REMOVED: "Affectation retirée",
   SERVER_ERROR: "Erreur serveur",
+  RETENTION_PURGE: "Purge de conservation",
+  RETENTION_UPDATED: "Durées de conservation modifiées",
 };

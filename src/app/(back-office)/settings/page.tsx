@@ -3,17 +3,26 @@ import { requireSession } from "@/server/auth/session";
 import { getCompanyProfile } from "@/server/settings/queries";
 import { describeMissingMentions, missingLegalMentions } from "@/server/billing/legal-mentions";
 import {
+  runPurgeNowAction,
   updateCompanyProfileAction,
   updateMyEmailAction,
   updateMyPasswordAction,
+  updateRetentionAction,
 } from "./actions";
+import { RetentionSection } from "./RetentionSection";
 
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ accountSaved?: string; accountError?: string }>;
+  searchParams: Promise<{
+    accountSaved?: string;
+    accountError?: string;
+    retentionSaved?: string;
+    retentionError?: string;
+    purged?: string;
+  }>;
 }) {
-  const { accountSaved, accountError } = await searchParams;
+  const { accountSaved, accountError, retentionSaved, retentionError, purged } = await searchParams;
   const user = await requireSession();
   if (user.role !== "ADMIN") {
     redirect("/");
@@ -260,6 +269,14 @@ export default async function SettingsPage({
           Changer le mot de passe
         </button>
       </form>
+
+      <RetentionSection
+        saveAction={updateRetentionAction}
+        runAction={runPurgeNowAction}
+        saved={Boolean(retentionSaved)}
+        error={retentionError}
+        purged={Boolean(purged)}
+      />
     </div>
   );
 }

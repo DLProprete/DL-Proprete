@@ -49,6 +49,11 @@ Optionnel : `ERROR_ALERT_EMAIL="..."` — destinataire d'une alerte e-mail
 Sans elle, les erreurs sont seulement journalisées (page Audit, « Erreur
 serveur »).
 
+`CRON_SECRET="valeur aléatoire longue"` — protège la purge de conservation
+nocturne (`/api/cron/retention`, voir `docs/CONSERVATION.md`). Sans elle, la
+route refuse tout et rien n'est purgé. En local, inutile sauf pour tester
+la route.
+
 Optionnel (envoi d'e-mail réel — lien magique du portail client, mail IMAP/SMTP,
 factures/relances par e-mail ; `src/lib/email.ts`, `src/server/mail/`) : sans ces
 variables, l'e-mail est journalisé en console au lieu d'être envoyé, testable de

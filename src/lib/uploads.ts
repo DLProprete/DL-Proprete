@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
@@ -65,6 +65,14 @@ export async function saveUpload(subdir: string, file: File): Promise<string> {
   return relativePath;
 }
 
+function localPath(relativePath: string): string {
+  const resolved = path.resolve(UPLOAD_ROOT, relativePath);
+  if (!resolved.startsWith(UPLOAD_ROOT + path.sep)) {
+    throw new InvalidUploadError("Chemin de fichier invalide.");
+  }
+  return resolved;
+}
+
 export async function readUpload(relativePath: string): Promise<Buffer> {
   const storage = supabaseStorage();
   if (storage) {
@@ -72,10 +80,22 @@ export async function readUpload(relativePath: string): Promise<Buffer> {
     if (error) throw new InvalidUploadError(`Fichier introuvable : ${error.message}`);
     return Buffer.from(await data.arrayBuffer());
   }
+  return readFile(localPath(relativePath));
+}
 
-  const resolved = path.resolve(UPLOAD_ROOT, relativePath);
-  if (!resolved.startsWith(UPLOAD_ROOT + path.sep)) {
-    throw new InvalidUploadError("Chemin de fichier invalide.");
+// Purge (src/server/retention) : un fichier déjà absent compte comme
+// supprimé ; toute autre erreur remonte, pour que la ligne qui le
+// référence ne soit pas effacée (pas de fichier orphelin).
+export async function deleteUpload(relativePath: string): Promise<void> {
+  const storage = supabaseStorage();
+  if (storage) {
+    const { error } = await storage.remove([relativePath]);
+    if (error) throw new Error(`Suppression Supabase impossible : ${error.message}`);
+    return;
   }
-  return readFile(resolved);
+  try {
+    await unlink(localPath(relativePath));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
 }
