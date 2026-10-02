@@ -86,14 +86,16 @@ describe("export CSV des documents validés (intégration DB)", () => {
     const csv = await exportScannedDocumentsCsv(adminUser);
     const lines = csv.split("\r\n");
     expect(lines[0]).toBe("﻿Date;Catégorie;Fournisseur;Référence;Montant TTC;Fichier");
-    expect(lines).toHaveLength(2); // en-tête + le seul document validé non sensible
-    expect(lines[1]).toContain("OVHcloud");
-    expect(lines[1]).toContain("120,00");
+    // Base partagée : on ne regarde que les lignes de ce test.
+    const ours = lines.filter((line) => line.includes(`-${suffix}.pdf`));
+    expect(ours).toHaveLength(1); // le seul document validé non sensible
+    expect(ours[0]).toContain(`valide-${suffix}.pdf`);
+    expect(ours[0]).toContain("OVHcloud");
+    expect(ours[0]).toContain("120,00");
   });
 
   it("filtre par catégorie", async () => {
     const csv = await exportScannedDocumentsCsv(adminUser, "STOCK");
-    const lines = csv.split("\r\n");
-    expect(lines).toHaveLength(1); // en-tête seulement, aucun document STOCK
+    expect(csv).not.toContain(`-${suffix}.pdf`); // nos documents sont tous ACHATS
   });
 });
