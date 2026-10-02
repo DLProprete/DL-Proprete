@@ -9,6 +9,9 @@ const ARCHIVE_DPI = 150; // archive lisible, ~100 Ko par page
 const ARCHIVE_JPEG_QUALITY = 0.6;
 // En dessous, la page n'a pas de vrai calque texte : c'est un scan.
 const MIN_TEXT_LAYER_CHARS = 40;
+// Une page normale se lit en quelques secondes ; au-delà, elle est
+// abandonnée pour qu'un lot ne se fige jamais sur une page illisible.
+const PAGE_TIMEOUT_MS = 60_000;
 
 export type OcrOutput = { text: string; pageCount: number; archive: File };
 
@@ -42,13 +45,31 @@ export async function sha256Hex(file: Blob): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+// Page trop longue à lire : le moteur est arrêté (le prochain appel en relance
+// un) et la page est signalée dans le texte, à compléter en relecture.
+async function recognizeWithin(source: HTMLCanvasElement | File, pageNumber: number): Promise<string> {
+  const recognition = getWorker().then((worker) => worker.recognize(source));
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), PAGE_TIMEOUT_MS);
+  });
+  const result = await Promise.race([recognition, timeout]);
+  clearTimeout(timer);
+  if (result) return result.data.text.trim();
+  recognition.catch(() => {}); // rejetée par l'arrêt du moteur ci-dessous
+  // Sans l'attendre : si c'est le chargement du moteur qui bloque, l'attendre bloquerait à nouveau.
+  const stuck = workerPromise;
+  workerPromise = null;
+  stuck?.then((worker) => worker.terminate()).catch(() => {});
+  return `[page ${pageNumber} illisible — à compléter]`;
+}
+
 export async function ocrDocument(file: File, onPage?: (done: number, total: number) => void): Promise<OcrOutput> {
   if (file.type === "application/pdf") return ocrPdf(file, onPage);
   const image = await compressImage(file, "document");
-  const worker = await getWorker();
-  const { data } = await worker.recognize(image);
+  const text = await recognizeWithin(image, 1);
   onPage?.(1, 1);
-  return { text: data.text.trim(), pageCount: 1, archive: image };
+  return { text, pageCount: 1, archive: image };
 }
 
 async function ocrPdf(file: File, onPage?: (done: number, total: number) => void): Promise<OcrOutput> {
@@ -73,8 +94,7 @@ async function ocrPdf(file: File, onPage?: (done: number, total: number) => void
     let text = layer.items.map((item) => ("str" in item ? item.str : "")).join(" ").trim();
     if (text.replace(/\s/g, "").length < MIN_TEXT_LAYER_CHARS) {
       scannedPages++;
-      const worker = await getWorker();
-      text = (await worker.recognize(canvas)).data.text.trim();
+      text = await recognizeWithin(canvas, number);
     }
     texts.push(text);
 

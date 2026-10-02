@@ -9,6 +9,7 @@ import { dateOnlyUTC } from "@/lib/dates";
 const TESSDATA_PATH = path.join(process.cwd(), "assets", "tessdata");
 
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png"]);
+const SERVER_OCR_TIMEOUT_MS = 40_000;
 
 function extensionOf(filePath: string): string {
   return (filePath.split(".").pop() ?? "").toLowerCase();
@@ -21,12 +22,21 @@ async function ocrImage(buffer: Buffer): Promise<string> {
     langPath: TESSDATA_PATH,
     cacheMethod: "none",
   });
+  // Plafond : une image illisible a déjà tourné plus d'une minute, au-delà du
+  // temps maximal d'une fonction serveur. Le document passe alors « à relire »
+  // sans texte au lieu de rester bloqué.
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const {
-      data: { text },
-    } = await worker.recognize(buffer);
-    return text;
+    const recognition = worker.recognize(buffer);
+    recognition.catch(() => {}); // rejetée par terminate() si le plafond est atteint
+    const timeout = new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), SERVER_OCR_TIMEOUT_MS);
+    });
+    const result = await Promise.race([recognition, timeout]);
+    if (!result) console.error(`[scanned-documents] OCR abandonné après ${SERVER_OCR_TIMEOUT_MS / 1000} s`);
+    return result?.data.text ?? "";
   } finally {
+    clearTimeout(timer);
     await worker.terminate();
   }
 }
