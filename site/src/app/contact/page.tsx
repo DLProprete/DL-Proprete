@@ -49,7 +49,7 @@ export default async function ContactPage({
             Contact
           </p>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight text-brand">
-            Parlons de votre projet
+            Demander un devis
           </h1>
           <p className="mt-4 max-w-md text-foreground/60">
             Décrivez-nous votre local et vos besoins, nous revenons vers vous sous 72 h ouvrées
