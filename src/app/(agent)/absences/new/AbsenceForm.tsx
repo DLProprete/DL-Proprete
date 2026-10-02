@@ -1,14 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { PendingButton } from "@/app/(back-office)/mail/PendingButton";
+import { compressImage, tooLargeMessage } from "@/lib/compress-image";
 import { declareAbsenceAction } from "../actions";
 
 export function AbsenceForm() {
   const [type, setType] = useState("PAID_LEAVE");
+  const [error, setError] = useState<string | null>(null);
   const isSick = type === "SICK";
 
+  async function submit(formData: FormData) {
+    setError(null);
+    const file = formData.get("document");
+    if (file instanceof File && file.size > 0) {
+      const prepared = await compressImage(file, "document");
+      const tooLarge = tooLargeMessage(prepared);
+      if (tooLarge) {
+        setError(tooLarge);
+        return;
+      }
+      formData.set("document", prepared);
+    }
+    await declareAbsenceAction(formData);
+  }
+
   return (
-    <form action={declareAbsenceAction} className="space-y-4">
+    <form action={submit} className="space-y-4">
       <div>
         <label htmlFor="type" className="block text-sm text-zinc-700">
           Type
@@ -55,13 +73,13 @@ export function AbsenceForm() {
       {isSick && (
         <div>
           <label htmlFor="document" className="block text-sm text-zinc-700">
-            Justificatif (PDF ou JPEG, 5 Mo max)
+            Justificatif (PDF ou photo, 4 Mo max)
           </label>
           <input
             id="document"
             name="document"
             type="file"
-            accept="application/pdf,image/jpeg"
+            accept="application/pdf,image/*"
             required={isSick}
             className="mt-1 w-full field"
           />
@@ -78,12 +96,10 @@ export function AbsenceForm() {
           className="mt-1 w-full field"
         />
       </div>
-      <button
-        type="submit"
-        className="btn btn-primary btn-field"
-      >
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <PendingButton className="btn btn-primary btn-field" pendingLabel="Envoi…">
         Déclarer
-      </button>
+      </PendingButton>
     </form>
   );
 }

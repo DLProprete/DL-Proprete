@@ -2,7 +2,6 @@ import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listScannedDocuments } from "@/server/scanned-documents/queries";
 import { formatDateOnly } from "@/lib/dates";
-import { uploadScannedDocumentsAction } from "./actions";
 import { ProcessQueueButton } from "./ProcessQueueButton";
 import { DocumentUploadField } from "./DocumentUploadField";
 
@@ -32,12 +31,7 @@ export default async function ScannedDocumentsPage() {
     <div className="max-w-3xl space-y-6">
       <h1 className="text-xl font-semibold">Numérisation des documents</h1>
 
-      <form action={uploadScannedDocumentsAction} className="card space-y-3">
-        <DocumentUploadField />
-        <button type="submit" className="btn btn-secondary">
-          Importer les fichiers
-        </button>
-      </form>
+      <DocumentUploadField />
 
       <ProcessQueueButton pendingIds={pendingIds} />
 

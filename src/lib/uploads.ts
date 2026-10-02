@@ -7,7 +7,10 @@ import { createClient } from "@supabase/supabase-js";
 // type/taille faite ici, pas différée à un futur "durcissement" (docs/
 // ARCHITECTURE.md section 4, remarque module 9).
 const UPLOAD_ROOT = path.join(process.cwd(), "uploads");
-const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+// Sous le plafond dur de Vercel (4,5 Mo par requête) et aligné sur
+// serverActions.bodySizeLimit (next.config.ts) et sur le contrôle
+// navigateur (MAX_UPLOAD_BYTES, src/lib/compress-image.ts).
+const MAX_SIZE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_EXTENSIONS: Record<string, string> = {
   "application/pdf": "pdf",
   "image/jpeg": "jpg",
@@ -36,7 +39,7 @@ export async function saveUpload(subdir: string, file: File): Promise<string> {
     throw new InvalidUploadError("Fichier manquant ou vide.");
   }
   if (file.size > MAX_SIZE_BYTES) {
-    throw new InvalidUploadError("Fichier trop volumineux (5 Mo maximum).");
+    throw new InvalidUploadError("Fichier trop volumineux (4 Mo maximum).");
   }
   const extension = ALLOWED_EXTENSIONS[file.type];
   if (!extension) {

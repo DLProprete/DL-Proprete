@@ -4,7 +4,7 @@ import { listTodayShiftsForAgent, getAgentGreetingName } from "@/server/time/que
 import { shiftState } from "@/server/time/agent-schedule";
 import { formatTimeInParis } from "@/lib/dates";
 import { ClockButton } from "@/components/clock-button";
-import { createSiteLogAction } from "../actions";
+import { SiteLogForm } from "./SiteLogForm";
 
 const END_BUTTON_CLASS = "btn btn-stop btn-field";
 
@@ -117,18 +117,7 @@ export default async function TodayPage({
 
           <ClockButton targetId={activeShift.id} className={END_BUTTON_CLASS} />
 
-          <form action={createSiteLogAction} className="card space-y-2">
-            <input type="hidden" name="siteId" value={activeShift.site.id} />
-            <p className="text-sm font-medium text-zinc-800">Main courante</p>
-            <select name="type" className="field field-sm w-full">
-              <option value="ANOMALY">Anomalie</option>
-              <option value="EQUIPMENT">Matériel manquant</option>
-              <option value="OTHER">Autre</option>
-            </select>
-            <textarea name="comment" required rows={3} placeholder="Commentaire" className="field w-full" />
-            <input type="file" name="photo" accept="image/*" capture="environment" className="text-sm" />
-            <button type="submit" className="btn btn-secondary w-full">Envoyer</button>
-          </form>
+          <SiteLogForm siteId={activeShift.site.id} />
 
           {upcomingAfterActive.length > 0 && (
             <div className="space-y-2">

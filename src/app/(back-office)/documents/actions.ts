@@ -11,11 +11,14 @@ import {
   rejectScannedDocument,
 } from "@/server/scanned-documents/actions";
 
-export async function uploadScannedDocumentsAction(formData: FormData) {
+// Un fichier par appel (le client boucle, voir DocumentUploadField) :
+// "skipped" = déjà déposé (même empreinte) ou refusé par saveUpload.
+export async function uploadScannedDocumentAction(formData: FormData): Promise<"created" | "skipped"> {
   const user = await requireSession();
-  const files = formData.getAll("files").filter((f): f is File => f instanceof File);
-  await uploadScannedDocuments(user, files);
-  revalidatePath("/documents");
+  const file = formData.get("file");
+  if (!(file instanceof File)) return "skipped";
+  const created = await uploadScannedDocuments(user, [file]);
+  return created.length > 0 ? "created" : "skipped";
 }
 
 export async function runOcrAction(id: string) {

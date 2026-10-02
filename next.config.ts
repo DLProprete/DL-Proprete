@@ -35,6 +35,14 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.22"],
   devIndicators: false,
   serverExternalPackages: ["imapflow", "mailparser", "nodemailer"],
+  experimental: {
+    serverActions: {
+      // 4 Mo de fichier (src/lib/uploads.ts) + marge multipart ; le défaut
+      // de 1 Mo refusait toute photo de téléphone. Reste sous le plafond
+      // Vercel de 4,5 Mo par requête.
+      bodySizeLimit: "4.4mb",
+    },
+  },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
