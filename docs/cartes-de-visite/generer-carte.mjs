@@ -29,39 +29,29 @@ const draw = (page, d, color) => page.drawSvgPath(d, { x: 0, y: Hpt, color, bord
 
 // Placement glyphe par glyphe avec crénage : contourne le GSUB d'Inter que
 // opentype.js ne sait pas lire (aucune ligature ni substitution dans ces textes).
-function layout(font, str, x, y, sizePt) {
+function layout(font, str, x, y, sizePt, trackEm = 0) {
   const scale = sizePt / font.unitsPerEm;
   let d = "", prev = null;
   const x0 = x;
   for (const ch of str) {
     const g = font.charToGlyph(ch);
     if (g.index === 0) throw new Error(`glyphe absent : « ${ch} »`);
-    if (prev) x += font.getKerningValue(prev, g) * scale;
+    if (prev) x += font.getKerningValue(prev, g) * scale + trackEm * sizePt;
     d += g.getPath(x, y, sizePt).toPathData(3);
     x += g.advanceWidth * scale;
     prev = g;
   }
   return { d, width: x - x0 };
 }
-const measure = (font, str, sizePt) => layout(font, str, 0, 0, sizePt).width;
+const measure = (font, str, sizePt, trackEm = 0) => layout(font, str, 0, 0, sizePt, trackEm).width;
 
 // Texte vectorisé : x, baseline en mm depuis le coin haut-gauche du document (fond perdu inclus).
-function text(page, font, str, sizePt, xMm, baseMm, color, align = "left") {
+function text(page, font, str, sizePt, xMm, baseMm, color, align = "left", trackEm = 0) {
   let x = xMm * MM;
-  if (align === "center") x -= measure(font, str, sizePt) / 2;
-  draw(page, layout(font, str, x, baseMm * MM, sizePt).d, color);
+  if (align === "center") x -= measure(font, str, sizePt, trackEm) / 2;
+  if (align === "right") x -= measure(font, str, sizePt, trackEm);
+  draw(page, layout(font, str, x, baseMm * MM, sizePt, trackEm).d, color);
 }
-function wrap(font, str, sizePt, maxMm) {
-  const lines = [];
-  let line = "";
-  for (const word of str.split(" ")) {
-    const test = line ? `${line} ${word}` : word;
-    if (measure(font, test, sizePt) > maxMm * MM && line) { lines.push(line); line = word; }
-    else line = test;
-  }
-  return [...lines, line];
-}
-
 // Logo : tracés du SVG officiel (version recadrée), replacés tels quels.
 function logoPaths(svgFile, leftMm, topMm, widthMm) {
   const svg = fs.readFileSync(svgFile, "utf8");
@@ -121,27 +111,47 @@ function qrPath(url, leftMm, topMm, boxMm) {
     return p;
   };
 
-  // Recto : aplat marine plein (fond perdu), logo blanc officiel centré, 44 mm.
+  // Recto : aplat marine plein (fond perdu), logo blanc officiel de 44 mm et,
+  // dessous, « DEPUIS 2011 » (mention séparée, pas une partie du signe) :
+  // écart logo → capitales = hauteur du D, l'ensemble centré sur la carte.
   const recto = page();
   recto.drawRectangle({ x: 0, y: 0, width: Wpt, height: Hpt, color: C.marine });
-  const logoW = 44, logoH = 44 * 117.26 / 728.56;
-  draw(recto, logoPaths(process.argv[2], (W - logoW) / 2, (H - logoH) / 2, logoW), C.blanc);
+  const logoW = 44, logoH = logoW * 117.26 / 728.56, dHeight = logoW * 87.27 / 728.56;
+  const mentionPt = 7, capMm = (regular.tables.os2.sCapHeight / regular.unitsPerEm) * mentionPt / MM;
+  const blockTop = (H - (logoH + dHeight + capMm)) / 2;
+  draw(recto, logoPaths(process.argv[2], (W - logoW) / 2, blockTop, logoW), C.blanc);
+  text(recto, regular, "DEPUIS 2011", mentionPt, W / 2, blockTop + logoH + dHeight + capMm, C.blanc, "center", 0.14);
 
   // Verso : papier blanc. Zone de sécurité 7 → 84 mm (x), 7 → 54 mm (y).
+  // Hiérarchie : nom (marine) > fonction (gris) > activité (gris, 2 lignes) >
+  // coordonnées (marine, blanc élargi au-dessus) > adresse + zone (gris).
+  // Ni filet, ni aplat, ni second logo au verso.
   const verso = page();
+  const qrBox = 23, qrLeft = 61, quiet = (qrBox / 37) * 4;
   text(verso, medium, "Cassandre Lemière", 12, 7, 10.3, C.marine);
   text(verso, regular, "Gérante · DL Propreté", 8, 7, 14.7, C.gris);
-  verso.drawRectangle({ x: 7 * MM, y: Hpt - 17.25 * MM, width: 6 * MM, height: 0.35 * MM, color: C.marine });
-  const services = wrap(regular, "Nettoyage de bureaux, locaux professionnels et industriels, parties communes · Caen et Calvados", 7, 50);
-  services.forEach((l, i) => text(verso, regular, l, 7, 7, 20.6 + i * 3.3, C.gris));
-  text(verso, regular, "06 33 58 18 34", 8, 7, 41.9, C.k100);
-  text(verso, regular, "cassandre@dlproprete.fr", 8, 7, 45.6, C.k100);
-  text(verso, regular, "www.dlproprete.fr", 8, 7, 49.3, C.k100);
-  text(verso, regular, "3 rue de Verdun, 14460 Colombelles", 7, 7, 53.3, C.gris);
-  const qr = qrPath("https://www.dlproprete.fr/c/cassandre", 61, 27.3, 23);
+  const activite = ["Nettoyage de bureaux, locaux professionnels", "et industriels, parties communes"];
+  for (const [i, l] of activite.entries()) {
+    const fin = 7 + measure(regular, l, 7) / MM;
+    // La marge blanche du QR (4 modules) doit rester vierge.
+    if (fin >= qrLeft) throw new Error(`activité trop longue (${fin.toFixed(2)} mm) : « ${l} »`);
+    text(verso, regular, l, 7, 7, 19.6 + i * 3.3, C.gris);
+  }
+  text(verso, regular, "06 33 58 18 34", 8, 7, 38.6, C.marine);
+  text(verso, regular, "cassandre@dlproprete.fr", 8, 7, 42.3, C.marine);
+  text(verso, regular, "www.dlproprete.fr", 8, 7, 46.0, C.marine);
+  text(verso, regular, "3 rue de Verdun, 14460 Colombelles", 7, 7, 50.0, C.gris);
+  text(verso, regular, "Caen et Calvados", 7, 7, 53.3, C.gris);
+  // QR en haut à droite : le haut visible du code (hors marge blanche de
+  // 4 modules) s'aligne sur le haut des capitales du nom. « Contact » centré
+  // sur la largeur du code, 2 mm sous le code, à la taille de la fonction.
+  const capOf = (font, pt) => (font.tables.os2.sCapHeight / font.unitsPerEm) * pt / MM;
+  const nameCapTop = 10.3 - capOf(medium, 12);
+  const qr = qrPath("https://www.dlproprete.fr/c/cassandre", qrLeft, nameCapTop - quiet, qrBox);
   draw(verso, qr.d, C.k100);
-  text(verso, regular, "Ajouter le contact", 7, 72.5, 53.3, C.gris, "center");
+  const codeCenter = qrLeft + quiet + qr.codeMm / 2, codeBottom = nameCapTop + qr.codeMm;
+  text(verso, medium, "Contact", 8, codeCenter, codeBottom + 2 + capOf(medium, 8), C.marine, "center");
 
   fs.writeFileSync(process.argv[3], await pdf.save());
-  console.log(`OK — ${services.length} lignes de services, QR v${qr.version}, code ${qr.codeMm.toFixed(1)} mm`);
+  console.log(`OK — QR v${qr.version}, code ${qr.codeMm.toFixed(1)} mm`);
 })();
