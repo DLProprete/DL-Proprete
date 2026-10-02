@@ -46,8 +46,11 @@ production ne vivent que dans Vercel.
 
 Optionnel : `ERROR_ALERT_EMAIL="..."` — destinataire d'une alerte e-mail
 à chaque erreur serveur, au plus une par heure (`src/server/errors/report.ts`).
-Sans elle, les erreurs sont seulement journalisées (page Audit, « Erreur
-serveur »).
+Sans destinataire, les erreurs sont seulement journalisées (page Audit,
+« Erreur serveur »). Le destinataire et le nom d'expéditeur des e-mails se
+règlent d'abord dans l'app (Paramètres > Alertes et e-mails, colonnes de
+`CompanyProfile`) ; `ERROR_ALERT_EMAIL` et `SMTP_FROM` ne servent que de
+secours quand le champ y est vide.
 
 `CRON_SECRET="valeur aléatoire longue"` — protège la purge de conservation
 nocturne (`/api/cron/retention`, voir `docs/CONSERVATION.md`). Sans elle, la

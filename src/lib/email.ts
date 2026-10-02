@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { prisma } from "@/lib/prisma";
 
 export type EmailAttachment = {
   filename: string;
@@ -31,14 +32,27 @@ function smtpTransport() {
   });
 }
 
-export function mailFromAddress() {
+function envMailFrom() {
   return process.env.SMTP_FROM || process.env.SMTP_USER || "DL Propreté <contact@dlproprete.fr>";
+}
+
+// Nom réglé dans Paramètres > Alertes et e-mails ; l'adresse reste celle de la
+// boîte SMTP (une autre serait refusée par OVH ou classée en spam). Nom validé
+// sans guillemets ni retours à la ligne (src/lib/zod/alert-settings.ts).
+export async function mailFromAddress() {
+  try {
+    const profile = await prisma.companyProfile.findUnique({ where: { id: "default" }, select: { mailFromName: true } });
+    if (profile?.mailFromName) return `"${profile.mailFromName}" <${process.env.SMTP_USER || "contact@dlproprete.fr"}>`;
+  } catch (error) {
+    console.error("[email] fiche entreprise illisible, expéditeur par défaut :", error);
+  }
+  return envMailFrom();
 }
 
 export async function sendEmail({
   to, subject, html, text, cc, inReplyTo, references, attachments,
 }: SendEmailInput) {
-  const from = mailFromAddress();
+  const from = await mailFromAddress();
   const bodyText = text ?? html?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() ?? "";
   const transport = smtpTransport();
   if (transport) {

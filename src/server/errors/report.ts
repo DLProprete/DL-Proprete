@@ -3,7 +3,8 @@ import { sendEmail } from "@/lib/email";
 
 // Remontée des erreurs serveur sans service tiers : une ligne « Erreur
 // serveur » dans le journal d'audit (visible et filtrable dans /audit) et,
-// si ERROR_ALERT_EMAIL est défini, un e-mail d'alerte — au plus un par heure.
+// si un destinataire est défini (Paramètres, sinon ERROR_ALERT_EMAIL), un
+// e-mail d'alerte — au plus un par heure.
 export const ALERT_INTERVAL_MS = 60 * 60 * 1000;
 
 export type ServerErrorReport = {
@@ -38,8 +39,22 @@ async function alertedElsewhere(now: Date): Promise<boolean> {
   }
 }
 
-async function shouldAlert(now: Date): Promise<boolean> {
-  if (!process.env.ERROR_ALERT_EMAIL || now.getTime() - lastAlertAt < ALERT_INTERVAL_MS) return false;
+// Destinataire réglé dans Paramètres > Alertes et e-mails, sinon variable
+// d'environnement — seule source restante si la base est en panne.
+export async function alertRecipient(): Promise<string | null> {
+  try {
+    const profile = await prisma.companyProfile.findUnique({ where: { id: "default" }, select: { errorAlertEmail: true } });
+    if (profile?.errorAlertEmail) return profile.errorAlertEmail;
+  } catch {
+    // base indisponible : variable d'environnement
+  }
+  return process.env.ERROR_ALERT_EMAIL || null;
+}
+
+// La réservation (lecture + écriture de lastAlertAt) reste synchrone, après
+// le seul await du destinataire : des erreurs simultanées n'envoient qu'un e-mail.
+async function shouldAlert(to: string | null, now: Date): Promise<boolean> {
+  if (!to || now.getTime() - lastAlertAt < ALERT_INTERVAL_MS) return false;
   lastAlertAt = now.getTime();
   return !(await alertedElsewhere(now));
 }
@@ -49,7 +64,8 @@ export async function reportServerError(report: ServerErrorReport, now = new Dat
   try {
     const path = report.path.split("?")[0]; // la requête peut contenir des termes de recherche
     const summary = `${report.method} ${path} — ${report.message}`.slice(0, 300);
-    const alert = await shouldAlert(now);
+    const to = await alertRecipient();
+    const alert = await shouldAlert(to, now);
     await prisma.auditLog
       .create({
         data: {
@@ -63,7 +79,6 @@ export async function reportServerError(report: ServerErrorReport, now = new Dat
       })
       .catch((error: unknown) => console.error("[erreurs] journalisation impossible :", error));
 
-    const to = process.env.ERROR_ALERT_EMAIL;
     if (!to || !alert) return { alerted: false };
     // Sans le message d'erreur : il peut recopier des données saisies
     // (erreurs Prisma) ; il reste consultable dans la page Audit.

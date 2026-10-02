@@ -571,6 +571,10 @@ model CompanyProfile {
   iban               String?
   latePenaltyRate    Decimal? @db.Decimal(5, 2)
   reminderWindowDays Int      @default(7)
+  // Réglés dans Paramètres > Alertes et e-mails ; vides = variable
+  // d'environnement (ERROR_ALERT_EMAIL, SMTP_FROM) en secours.
+  errorAlertEmail    String?
+  mailFromName       String?
   updatedAt          DateTime @updatedAt
 }
 

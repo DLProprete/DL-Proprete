@@ -3,11 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
-import { updateCompanyProfile } from "@/server/settings/actions";
+import { updateAlertSettings, updateCompanyProfile } from "@/server/settings/actions";
 import { InvalidCurrentPasswordError, updateMyEmail, updateMyPassword } from "@/server/account/actions";
 import { ZodError } from "zod";
 import { updateRetentionSettings } from "@/server/retention/settings";
 import { runPurge } from "@/server/retention/purge";
+
+export async function updateAlertSettingsAction(formData: FormData) {
+  const user = await requireSession();
+  try {
+    await updateAlertSettings(user, Object.fromEntries(formData));
+  } catch (error) {
+    if (error instanceof ZodError) {
+      redirect(`/settings?alertsError=${encodeURIComponent(error.issues[0]?.message ?? "Valeur invalide.")}#alertes`);
+    }
+    throw error;
+  }
+  revalidatePath("/settings");
+  redirect("/settings?alertsSaved=1#alertes");
+}
 
 export async function updateRetentionAction(formData: FormData) {
   const user = await requireSession();

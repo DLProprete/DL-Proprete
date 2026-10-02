@@ -5,8 +5,8 @@ import { invalidateMailCache } from "./cache";
 
 const WRITE_ROLES = ["ADMIN"] as const;
 
-function rawMessage({ to, subject, text, cc }: { to: string; subject: string; text: string; cc?: string }) {
-  const from = mailFromAddress();
+async function rawMessage({ to, subject, text, cc }: { to: string; subject: string; text: string; cc?: string }) {
+  const from = await mailFromAddress();
   const lines = [
     `From: ${from}`,
     `To: ${to}`,
@@ -37,7 +37,7 @@ export async function sendMailboxMessage(
 
   await withImap(async (client) => {
     const folders = await resolveFolders(client);
-    await client.append(folders.sent, rawMessage(input), ["\\Seen"]);
+    await client.append(folders.sent, await rawMessage(input), ["\\Seen"]);
     if (input.draftUid) {
       const lock = await client.getMailboxLock(folders.drafts);
       try {
@@ -57,7 +57,7 @@ export async function saveMailboxDraft(
   requireRole(user, [...WRITE_ROLES]);
   await withImap(async (client) => {
     const folders = await resolveFolders(client);
-    await client.append(folders.drafts, rawMessage(input), ["\\Draft"]);
+    await client.append(folders.drafts, await rawMessage(input), ["\\Draft"]);
     if (input.draftUid) {
       const lock = await client.getMailboxLock(folders.drafts);
       try {

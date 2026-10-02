@@ -4,12 +4,14 @@ import { getCompanyProfile } from "@/server/settings/queries";
 import { describeMissingMentions, missingLegalMentions } from "@/server/billing/legal-mentions";
 import {
   runPurgeNowAction,
+  updateAlertSettingsAction,
   updateCompanyProfileAction,
   updateMyEmailAction,
   updateMyPasswordAction,
   updateRetentionAction,
 } from "./actions";
 import { RetentionSection } from "./RetentionSection";
+import { AlertSettingsSection } from "./AlertSettingsSection";
 
 export default async function SettingsPage({
   searchParams,
@@ -20,9 +22,11 @@ export default async function SettingsPage({
     retentionSaved?: string;
     retentionError?: string;
     purged?: string;
+    alertsSaved?: string;
+    alertsError?: string;
   }>;
 }) {
-  const { accountSaved, accountError, retentionSaved, retentionError, purged } = await searchParams;
+  const { accountSaved, accountError, retentionSaved, retentionError, purged, alertsSaved, alertsError } = await searchParams;
   const user = await requireSession();
   if (user.role !== "ADMIN") {
     redirect("/");
@@ -269,6 +273,14 @@ export default async function SettingsPage({
           Changer le mot de passe
         </button>
       </form>
+
+      <AlertSettingsSection
+        action={updateAlertSettingsAction}
+        errorAlertEmail={company.errorAlertEmail}
+        mailFromName={company.mailFromName}
+        saved={Boolean(alertsSaved)}
+        error={alertsError}
+      />
 
       <RetentionSection
         saveAction={updateRetentionAction}
