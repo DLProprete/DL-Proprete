@@ -59,6 +59,19 @@ le logo ni à côté du wordmark.
   (`--color-brand-*`), favicon, icône Apple et icônes PWA depuis le
   monogramme officiel (`src/lib/brand-asset.ts`), `theme_color` du manifest.
 
+## Cartes de visite (QR code)
+
+Le QR code des cartes pointe vers `https://www.dlproprete.fr/c/<slug>`
+(page contact + bouton « Ajouter aux contacts » qui sert un `.vcf`). Les
+coordonnées vivent dans `site/src/lib/contact-cards.ts` : les modifier puis
+redéployer met à jour toutes les cartes déjà imprimées, sans service externe.
+
+- Fichiers à remettre à l'imprimeur : `docs/cartes-de-visite/qr-<slug>.svg`
+  (vectoriel, marine sur blanc, marge de 4 modules incluse à conserver).
+- **Le slug et le domaine sont gravés dans les cartes** : ne jamais renommer
+  `cassandre`, ni laisser expirer `dlproprete.fr`.
+- Taille imprimée conseillée : 18 mm de côté minimum.
+
 ## Écarts assumés (validés par l'utilisateur, 02/10/2026)
 
 - **Titres du site en Inter SemiBold**, pas Medium : hiérarchie lisible à
