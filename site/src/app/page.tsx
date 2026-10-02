@@ -4,14 +4,14 @@ import { business, services } from "@/lib/business";
 import { cities } from "@/lib/cities";
 import {
   ArrowRightIcon,
-  BottleIcon,
-  BuildingIcon,
+  ProduitsIcon,
+  BatimentIcon,
   CalendarCheckIcon,
   CheckIcon,
-  FactoryIcon,
+  IndustrielIcon,
   MessageIcon,
   SparkleIcon,
-  ToolboxIcon,
+  InterventionIcon,
   ZoneIcon,
 } from "@/components/icons";
 
@@ -20,10 +20,10 @@ const mapQuery = encodeURIComponent(
 );
 
 const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  "nettoyage-industriel": FactoryIcon,
-  "nettoyage-batiments": BuildingIcon,
-  "negoce-produits-entretien": BottleIcon,
-  "manutention-depannages": ToolboxIcon,
+  "nettoyage-industriel": IndustrielIcon,
+  "nettoyage-batiments": BatimentIcon,
+  "negoce-produits-entretien": ProduitsIcon,
+  "manutention-depannages": InterventionIcon,
 };
 
 const STATS = [
@@ -118,7 +118,7 @@ export default function HomePage() {
               <SparkleIcon className="h-4 w-4" />
               Nettoyage professionnel · {business.serviceArea.join(" & ")}
             </p>
-            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-brand sm:text-5xl">
+            <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-brand sm:text-5xl">
               Nettoyage professionnel pour entreprises et copropriétés de Caen et ses alentours.
             </h1>
             <p className="max-w-lg text-foreground/60">
@@ -170,7 +170,7 @@ export default function HomePage() {
       <section className="py-20">
         <Container>
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-brand">
+            <h2 className="text-3xl font-semibold tracking-tight text-brand">
               Nos domaines d&apos;intervention
             </h2>
             <p className="mt-3 text-foreground/60">
@@ -220,7 +220,7 @@ export default function HomePage() {
             />
           </div>
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-brand">
+            <h2 className="text-3xl font-semibold tracking-tight text-brand">
               Notre zone d&apos;intervention
             </h2>
             <p className="mt-3 text-foreground/60">
@@ -253,7 +253,7 @@ export default function HomePage() {
 
       <section className="border-b border-black/5 py-20">
         <Container>
-          <h2 className="text-3xl font-bold tracking-tight text-brand">
+          <h2 className="text-3xl font-semibold tracking-tight text-brand">
             Comment ça se passe
           </h2>
           <div className="relative mt-12 grid gap-10 md:grid-cols-3">
@@ -279,7 +279,7 @@ export default function HomePage() {
 
       <section className="py-20">
         <Container>
-          <h2 className="text-3xl font-bold tracking-tight text-brand">
+          <h2 className="text-3xl font-semibold tracking-tight text-brand">
             Pourquoi DL Propreté
           </h2>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
@@ -300,7 +300,7 @@ export default function HomePage() {
 
       <section className="border-t border-black/5 py-20">
         <Container className="max-w-3xl">
-          <h2 className="text-3xl font-bold tracking-tight text-brand">Questions fréquentes</h2>
+          <h2 className="text-3xl font-semibold tracking-tight text-brand">Questions fréquentes</h2>
           <div className="mt-8 divide-y divide-black/5">
             {FAQS.map((faq) => (
               <details key={faq.question} className="group py-5">
@@ -320,7 +320,7 @@ export default function HomePage() {
       <section className="pb-20">
         <Container className="flex flex-col items-start justify-between gap-8 rounded-2xl border border-accent/15 bg-surface-mint px-10 py-14 md:flex-row md:items-center">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-brand">
+            <h2 className="text-2xl font-semibold tracking-tight text-brand">
               Discutons de votre projet
             </h2>
             <p className="mt-2 max-w-md text-foreground/60">

@@ -20,7 +20,7 @@ export default function BlogIndexPage() {
     <section className="py-16">
       <Container>
         <p className="text-sm font-semibold uppercase tracking-wide text-accent-dark">Blog</p>
-        <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-brand">
           Conseils sur l&apos;entretien des locaux
         </h1>
         <p className="mt-4 max-w-2xl text-foreground/60">

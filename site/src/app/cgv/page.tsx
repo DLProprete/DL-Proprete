@@ -13,7 +13,7 @@ export default function CgvPage() {
   return (
     <section className="py-16">
       <Container className="max-w-2xl">
-        <h1 className="text-3xl font-bold tracking-tight text-brand">
+        <h1 className="text-3xl font-semibold tracking-tight text-brand">
           Conditions générales de vente
         </h1>
         <p className="mt-3 text-sm text-foreground/50">

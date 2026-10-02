@@ -13,7 +13,7 @@ export default function MentionsLegalesPage() {
   return (
     <section className="py-16">
       <Container className="max-w-2xl">
-        <h1 className="text-3xl font-bold tracking-tight text-brand">
+        <h1 className="text-3xl font-semibold tracking-tight text-brand">
           Mentions légales
         </h1>
 

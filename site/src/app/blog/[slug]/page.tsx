@@ -75,7 +75,7 @@ export default async function BlogPostPage({
         <time className="mt-4 block text-xs font-medium uppercase tracking-wide text-foreground/40">
           {formatDate(post.date)}
         </time>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-brand">{post.title}</h1>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-brand">{post.title}</h1>
         <div className="mt-8 space-y-5 text-foreground/70">
           {post.body.map((paragraph, index) => (
             <p key={index} className="leading-relaxed">

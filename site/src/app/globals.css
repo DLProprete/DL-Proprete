@@ -2,14 +2,16 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #0f2438;
-  --brand: #0f2a43;
-  --brand-dark: #081b2c;
-  --accent: #12a37a;
-  --accent-dark: #0c8563;
-  --accent-darker: #0a5f49;
-  --surface-muted: #f4f8f6;
-  --surface-mint: #edf9f4;
+  --foreground: #1a1a1a;
+  /* Charte v1.0 : marine seul (#243746). Les "accent" ne sont plus verts :
+     marine + deux nuances plus sombres pour les états de survol uniquement. */
+  --brand: #243746;
+  --brand-dark: #1a2833;
+  --accent: #243746;
+  --accent-dark: #243746;
+  --accent-darker: #1a2833;
+  --surface-muted: #f4f6f7;
+  --surface-mint: #f4f6f7;
 }
 
 @theme inline {
@@ -22,9 +24,8 @@
   --color-accent-darker: var(--accent-darker);
   --color-surface-muted: var(--surface-muted);
   --color-surface-mint: var(--surface-mint);
-  --font-sans: var(--font-plex-sans);
-  --font-mono: var(--font-plex-mono);
-  --font-display: var(--font-plex-sans);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-inter);
 }
 
 body {

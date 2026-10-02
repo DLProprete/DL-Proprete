@@ -15,16 +15,16 @@
  */
 
 @theme {
-  /* Accent unique — bleu marine de la marque DL Propreté (même valeur que
-     --brand/--brand-dark côté site vitrine). 700 = couleur active des
-     boutons/liens, 800 = un ton plus foncé pour le hover, même pattern que
-     l'ancien accent teal qu'il remplace. */
-  --color-brand-50: #eef2f6;
-  --color-brand-100: #dde5ec;
-  --color-brand-600: #1c4767;
-  --color-brand-700: #0f2a43;
-  --color-brand-800: #081b2c;
-  --color-brand-900: #050f19;
+  /* Accent unique — marine de la charte v1.0 (#243746, docs/BRAND.md).
+     700 = boutons/liens, 800/900 = survol et texte sur fond sélectionné,
+     50 = "Fond" de la charte, 100 = fond de sélection. États fonctionnels
+     uniquement, jamais une teinte décorative. */
+  --color-brand-50: #f4f6f7;
+  --color-brand-100: #e3e8eb;
+  --color-brand-600: #2f4759;
+  --color-brand-700: #243746;
+  --color-brand-800: #1a2833;
+  --color-brand-900: #111b23;
 
   /* Pile système : SF Pro sur le Mac de la direction, Roboto sur les
      téléphones Android des agents. Aucun téléchargement, aucun décalage de

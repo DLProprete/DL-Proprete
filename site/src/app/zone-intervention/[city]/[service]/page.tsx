@@ -6,17 +6,17 @@ import { business, services, site } from "@/lib/business";
 import { cities, getCity } from "@/lib/cities";
 import {
   ArrowRightIcon,
-  BottleIcon,
-  BuildingIcon,
-  FactoryIcon,
-  ToolboxIcon,
+  ProduitsIcon,
+  BatimentIcon,
+  IndustrielIcon,
+  InterventionIcon,
 } from "@/components/icons";
 
 const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  "nettoyage-industriel": FactoryIcon,
-  "nettoyage-batiments": BuildingIcon,
-  "negoce-produits-entretien": BottleIcon,
-  "manutention-depannages": ToolboxIcon,
+  "nettoyage-industriel": IndustrielIcon,
+  "nettoyage-batiments": BatimentIcon,
+  "negoce-produits-entretien": ProduitsIcon,
+  "manutention-depannages": InterventionIcon,
 };
 
 function getService(slug: string) {
@@ -105,7 +105,7 @@ export default async function CityServicePage({
           <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-accent-dark">
             {city.name}
           </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-brand">
             {service.title} à {city.name}
           </h1>
           <p className="mt-4 max-w-2xl text-foreground/60">{service.summary}</p>

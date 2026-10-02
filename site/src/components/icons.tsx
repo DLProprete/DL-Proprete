@@ -1,7 +1,5 @@
 type IconProps = { className?: string };
 
-const ACCENT = "#3E6B8C";
-
 const base = {
   viewBox: "0 0 24 24",
   fill: "none",
@@ -11,46 +9,42 @@ const base = {
   strokeLinejoin: "round" as const,
 };
 
-export function FactoryIcon({ className }: IconProps) {
+// Les quatre pictogrammes métier : tracés officiels de la charte v1.0
+// (docs/brand/icone-*.svg), marine seul via currentColor.
+export function BatimentIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <path d="M3 19v-7l4 3.2V12l4 3.2V12l4 3.2V12l4 3.2V19" />
-      <line x1="2" y1="19" x2="22" y2="19" />
-      <line x1="6" y1="12" x2="6" y2="6" />
-      <rect x="9.5" y="15.5" width="5" height="3.5" fill={ACCENT} stroke="none" />
+      <path d="M4 20V9l8-5 8 5v11" />
+      <path d="M9 20v-6h6v6" />
+      <path d="M4 20h16" />
     </svg>
   );
 }
 
-export function BuildingIcon({ className }: IconProps) {
+export function IndustrielIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <rect x="4" y="3" width="16" height="18" />
-      <line x1="12" y1="3" x2="12" y2="21" />
-      <line x1="4" y1="9" x2="20" y2="9" />
-      <line x1="4" y1="15" x2="20" y2="15" />
-      <rect x="13" y="10" width="6" height="4" fill={ACCENT} stroke="none" />
+      <path d="M3 20V11.2L7.2 13.4V11.2L11.4 13.4V9.2H17.5V20H3" />
     </svg>
   );
 }
 
-export function BottleIcon({ className }: IconProps) {
+export function ProduitsIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <path d="M10 3h4v3l3 3v12H7V9l3-3z" />
-      <rect x="10" y="13" width="4" height="3" fill={ACCENT} stroke="none" />
+      <path d="M8 7h8v13H8z" />
+      <path d="M10 7V4h4v3" />
+      <path d="M8 12h8" />
     </svg>
   );
 }
 
-export function ToolboxIcon({ className }: IconProps) {
+export function InterventionIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>
-      <path d="M20 3v14H6" />
-      <rect x="8" y="7" width="9" height="7" />
-      <line x1="8" y1="10.5" x2="17" y2="10.5" stroke={ACCENT} />
-      <circle cx="7" cy="20" r="1.7" />
-      <circle cx="18" cy="20" r="1.7" />
+      <rect x="4" y="5" width="16" height="15" rx="1.5" />
+      <path d="M8 3v4M16 3v4M4 9h16" />
+      <path d="M8 14l2.2 2.2L16 11" />
     </svg>
   );
 }
@@ -88,7 +82,7 @@ export function ZoneIcon({ className }: IconProps) {
       <line x1="12" y1="19" x2="12" y2="22.5" />
       <line x1="1.5" y1="12" x2="5" y2="12" />
       <line x1="19" y1="12" x2="22.5" y2="12" />
-      <circle cx="12" cy="12" r="2.4" fill={ACCENT} stroke="none" />
+      <circle cx="12" cy="12" r="2.4" />
     </svg>
   );
 }

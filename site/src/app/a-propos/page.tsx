@@ -17,7 +17,7 @@ export default function AProposPage() {
         <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-accent-dark">
           <SparkleIcon className="h-4 w-4" />À propos
         </p>
-        <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-brand">
           Une entreprise familiale, à Colombelles depuis {business.foundedYear}
         </h1>
 

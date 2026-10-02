@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { business, services } from "@/lib/business";
-import { BottleIcon, BuildingIcon, FactoryIcon, ToolboxIcon } from "@/components/icons";
+import { ProduitsIcon, BatimentIcon, IndustrielIcon, InterventionIcon } from "@/components/icons";
 
 const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  "nettoyage-industriel": FactoryIcon,
-  "nettoyage-batiments": BuildingIcon,
-  "negoce-produits-entretien": BottleIcon,
-  "manutention-depannages": ToolboxIcon,
+  "nettoyage-industriel": IndustrielIcon,
+  "nettoyage-batiments": BatimentIcon,
+  "negoce-produits-entretien": ProduitsIcon,
+  "manutention-depannages": InterventionIcon,
 };
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default function ServicesPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-accent-dark">
             Nos services
           </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-brand">
             Une offre complète pour l&apos;entretien de vos locaux
           </h1>
           <p className="mt-4 max-w-2xl text-foreground/60">
@@ -67,7 +67,7 @@ export default function ServicesPage() {
       <section className="border-t border-black/5 bg-surface-muted py-16">
         <Container className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <h2 className="text-2xl font-bold text-brand">
+            <h2 className="text-2xl font-semibold text-brand">
               Une demande spécifique ?
             </h2>
             <p className="mt-2 text-foreground/60">

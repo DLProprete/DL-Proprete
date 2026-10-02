@@ -48,7 +48,7 @@ export default async function ContactPage({
             <SparkleIcon className="h-4 w-4" />
             Contact
           </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-brand">
             Parlons de votre projet
           </h1>
           <p className="mt-4 max-w-md text-foreground/60">

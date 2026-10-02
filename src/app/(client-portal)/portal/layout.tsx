@@ -27,7 +27,7 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
       <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-5">
           <Logo />
           <span className="text-sm text-zinc-500">Espace client</span>
         </div>

@@ -6,17 +6,17 @@ import { business, services, site } from "@/lib/business";
 import { cities, getCity } from "@/lib/cities";
 import {
   ArrowRightIcon,
-  BottleIcon,
-  BuildingIcon,
-  FactoryIcon,
-  ToolboxIcon,
+  ProduitsIcon,
+  BatimentIcon,
+  IndustrielIcon,
+  InterventionIcon,
 } from "@/components/icons";
 
 const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  "nettoyage-industriel": FactoryIcon,
-  "nettoyage-batiments": BuildingIcon,
-  "negoce-produits-entretien": BottleIcon,
-  "manutention-depannages": ToolboxIcon,
+  "nettoyage-industriel": IndustrielIcon,
+  "nettoyage-batiments": BatimentIcon,
+  "negoce-produits-entretien": ProduitsIcon,
+  "manutention-depannages": InterventionIcon,
 };
 
 export function generateStaticParams() {
@@ -84,7 +84,7 @@ export default async function CityPage({
           <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-accent-dark">
             {city.name}
           </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand">
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-brand">
             Nettoyage professionnel à {city.name}
           </h1>
           <p className="mt-4 max-w-2xl text-foreground/60">{city.intro}</p>
@@ -133,7 +133,7 @@ export default async function CityPage({
       <section className="border-t border-black/5 bg-surface-muted py-16">
         <Container className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <h2 className="text-2xl font-bold text-brand">
+            <h2 className="text-2xl font-semibold text-brand">
               Un site hors de {city.name} ?
             </h2>
             <p className="mt-2 text-foreground/60">

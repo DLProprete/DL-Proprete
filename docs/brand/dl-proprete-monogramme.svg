@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="293.1" height="293.1" viewBox="0 0 293.1 293.1" role="img" aria-label="DL">
+  <title>DL</title>
+  <desc>Rayon de coin 12 px sur un carré de 168 px. Zone de protection égale à la hauteur du D (62.5 px).</desc>
+  <g id="clear-space" data-clear-space="62.55" transform="translate(62.55,62.55)">
+    <rect x="0" y="0" width="168" height="168" rx="12" fill="#243746"/>
+    <path fill="#FFFFFF" transform="translate(28.54,115.27) scale(0.030540,-0.030540)" d="M920 0C1544 0 1940 384 1940 1024C1940 1664 1544 2048 912 2048H132V0ZM688 472V1576H884C1204 1576 1380 1452 1380 1024C1380 596 1204 472 900 472Z"/><path fill="#FFFFFF" transform="translate(90.96,115.27) scale(0.030540,-0.030540)" d="M132 0H1516V448H688V2048H132Z"/>
+  </g>
+</svg>

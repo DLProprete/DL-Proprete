@@ -1,28 +1,10 @@
 import { ImageResponse } from "next/og";
+import { brandSvgDataUri } from "@/lib/brand-asset";
 
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-export default function Icon() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#0f2a43",
-          color: "#ffffff",
-          fontSize: 15,
-          fontWeight: 700,
-          borderRadius: 6,
-        }}
-      >
-        DL
-      </div>
-    ),
-    size,
-  );
+export default async function Icon() {
+  const src = await brandSvgDataUri("dl-proprete-monogramme-web.svg");
+  return new ImageResponse(<img src={src} width={32} height={32} alt="" />, size);
 }
