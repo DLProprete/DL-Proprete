@@ -8,7 +8,9 @@ export const contactCards = [
     slug: "cassandre",
     firstName: "Cassandre",
     lastName: "Lemière",
-    title: "Dirigeante",
+    title: "Gérante",
+    services: "Nettoyage de bureaux, locaux professionnels et industriels, parties communes",
+    zone: "Caen et Calvados",
     email: "cassandre@dlproprete.fr",
     phone: business.phone,
   },
@@ -22,20 +24,24 @@ export function getContactCard(slug: string): ContactCard | undefined {
 
 const toIntlPhone = (phone: string) => `+33${phone.replace(/\s/g, "").slice(1)}`;
 
+// RFC 2426 : virgule, point-virgule et antislash sont des séparateurs en vCard.
+const esc = (value: string) => value.replace(/[\\,;]/g, (c) => `\\${c}`);
+
 // vCard 3.0 : la version lue sans surprise par iOS et Android.
 export function toVCard(card: ContactCard): string {
   const { street, postalCode, city } = business.address;
   return [
     "BEGIN:VCARD",
     "VERSION:3.0",
-    `N:${card.lastName};${card.firstName};;;`,
-    `FN:${card.firstName} ${card.lastName}`,
-    `ORG:${business.name}`,
-    `TITLE:${card.title}`,
+    `N:${esc(card.lastName)};${esc(card.firstName)};;;`,
+    `FN:${esc(`${card.firstName} ${card.lastName}`)}`,
+    `ORG:${esc(business.name)}`,
+    `TITLE:${esc(card.title)}`,
     `TEL;TYPE=WORK,VOICE:${toIntlPhone(card.phone)}`,
     `EMAIL;TYPE=INTERNET,WORK:${card.email}`,
-    `ADR;TYPE=WORK:;;${street};${city};;${postalCode};France`,
+    `ADR;TYPE=WORK:;;${esc(street)};${esc(city)};;${postalCode};France`,
     `URL:${site.url}`,
+    `NOTE:${esc(`${card.services}. Zone d'intervention : ${card.zone}.`)}`,
     "END:VCARD",
     "",
   ].join("\r\n");

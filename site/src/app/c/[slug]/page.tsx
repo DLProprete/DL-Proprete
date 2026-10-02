@@ -45,6 +45,8 @@ export default async function ContactCardPage({
         <p className="mt-1 text-foreground/60">
           {card.title} · {business.name}
         </p>
+        <p className="mt-4 text-sm text-foreground/80">{card.services}</p>
+        <p className="mt-1 text-sm text-foreground/60">Zone d&apos;intervention : {card.zone}</p>
 
         <a
           href={`/c/${card.slug}/vcard`}
