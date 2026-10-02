@@ -82,7 +82,7 @@ const FAQS = [
 const WHY_US = [
   {
     title: "Entreprise locale, depuis 2011",
-    text: "Depuis 2011 à Caen et ses alentours : une équipe qui connaît le terrain et ses contraintes.",
+    text: "À Caen et ses alentours : une équipe qui connaît le terrain et ses contraintes.",
   },
   {
     title: "Le même contact du début à la fin",
@@ -332,7 +332,7 @@ export default function HomePage() {
             href="/contact"
             className="shrink-0 rounded-lg bg-accent-dark px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-darker"
           >
-            Nous contacter
+            Demander un devis
           </Link>
         </Container>
       </section>
