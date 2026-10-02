@@ -3,8 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Upload } from "lucide-react";
-import { compressImage, tooLargeMessage } from "@/lib/compress-image";
-import { uploadScannedDocumentAction } from "./actions";
+import { tooLargeMessage } from "@/lib/compress-image";
+import { ocrDocument, sha256Hex, stopOcr } from "@/lib/browser-ocr";
+import { isScannedDocumentKnownAction, uploadScannedDocumentAction } from "./actions";
 
 type Report = { created: number; skipped: number; rejected: string[] };
 
@@ -16,44 +17,60 @@ const isAccepted = (file: File) => file.type === "application/pdf" || file.type.
 // le même input, rendu invisible mais toujours fonctionnel (comportement
 // HTML natif, htmlFor/id, aucune logique de clic à écrire).
 //
-// Envoi fichier par fichier (une Server Action chacun, même principe que
-// ProcessQueueButton) : un lot entier dans une seule requête dépassait le
-// plafond de taille des Server Actions et de Vercel.
+// Chaque fichier est lu dans le navigateur (src/lib/browser-ocr.ts : PDF
+// scanné page par page, aucune limite de durée serveur), puis envoyé seul
+// avec son texte : un lot entier dans une requête dépasserait les plafonds.
 export function DocumentUploadField() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  async function importOne(file: File, index: number, total: number, result: Report) {
+    const label = `Fichier ${index + 1}/${total}`;
+    if (!isAccepted(file)) {
+      result.rejected.push(`« ${file.name} » : format non pris en charge (PDF ou image).`);
+      return;
+    }
+    setProgress(`${label} — vérification…`);
+    const contentHash = await sha256Hex(file);
+    if (await isScannedDocumentKnownAction(contentHash)) {
+      result.skipped += 1;
+      return;
+    }
+    const ocr = await ocrDocument(file, (page, pages) => setProgress(`${label} — lecture page ${page}/${pages}`));
+    const tooLarge = tooLargeMessage(ocr.archive);
+    if (tooLarge) {
+      result.rejected.push(`${tooLarge} Rescanner en 150-200 dpi, niveaux de gris.`);
+      return;
+    }
+    setProgress(`${label} — envoi…`);
+    const formData = new FormData();
+    formData.set("file", ocr.archive);
+    formData.set("contentHash", contentHash);
+    formData.set("ocrText", ocr.text);
+    formData.set("pageCount", String(ocr.pageCount));
+    const status = await uploadScannedDocumentAction(formData);
+    if (status === "created") result.created += 1;
+    else if (status === "duplicate") result.skipped += 1;
+    else result.rejected.push(`« ${file.name} » : refusé par le serveur (format ou taille).`);
+  }
 
   function handleImport() {
     startTransition(async () => {
       const result: Report = { created: 0, skipped: 0, rejected: [] };
       setReport(null);
-      setProgress({ done: 0, total: files.length });
       for (const [index, file] of files.entries()) {
-        if (!isAccepted(file)) {
-          result.rejected.push(`« ${file.name} » : format non pris en charge (PDF ou image).`);
-        } else {
-          const prepared = await compressImage(file, "document");
-          const tooLarge = tooLargeMessage(prepared);
-          if (tooLarge) {
-            result.rejected.push(tooLarge);
-          } else {
-            const formData = new FormData();
-            formData.set("file", prepared);
-            try {
-              const status = await uploadScannedDocumentAction(formData);
-              result[status] += 1;
-            } catch (error) {
-              console.error(`[documents] échec de l'envoi de ${file.name} :`, error);
-              result.rejected.push(`« ${file.name} » : échec de l'envoi, à réessayer.`);
-            }
-          }
+        try {
+          await importOne(file, index, files.length, result);
+        } catch (error) {
+          console.error(`[documents] échec pour ${file.name} :`, error);
+          result.rejected.push(`« ${file.name} » : lecture ou envoi impossible, à réessayer.`);
         }
-        setProgress({ done: index + 1, total: files.length });
       }
+      await stopOcr();
       setReport(result);
       setProgress(null);
       setFiles([]);
@@ -72,7 +89,10 @@ export function DocumentUploadField() {
         <span>
           <span className="font-medium text-zinc-900">Cliquer pour ajouter un fichier ou un dossier</span>
           <br />
-          <span className="text-xs text-zinc-500">PDF ou images, 4 Mo max par fichier — sélectionner un dossier dépose tout son contenu</span>
+          <span className="text-xs text-zinc-500">
+            Factures, contrats (PDF multipage) ou images — lus sur cet ordinateur, puis envoyés. Sélectionner un dossier
+            dépose tout son contenu.
+          </span>
         </span>
       </label>
       <input
@@ -98,8 +118,11 @@ export function DocumentUploadField() {
         disabled={isPending || files.length === 0}
         className="btn btn-secondary"
       >
-        {progress ? `Envoi… ${progress.done}/${progress.total}` : "Importer les fichiers"}
+        {progress ?? "Importer les fichiers"}
       </button>
+      {isPending && (
+        <p className="text-xs text-zinc-500">Laisser cette page ouverte pendant la lecture (quelques secondes par page).</p>
+      )}
       {report && (
         <div className="text-sm text-zinc-700">
           <p>

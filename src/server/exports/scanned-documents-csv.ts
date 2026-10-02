@@ -24,6 +24,8 @@ export async function exportScannedDocumentsCsv(
     where: {
       status: "VALIDATED",
       isSensitive: false,
+      // Export comptable : les contrats scannés n'y ont pas leur place.
+      documentType: { not: "CONTRAT" },
       ...(category ? { category } : {}),
     },
     orderBy: [{ documentDate: "asc" }, { createdAt: "asc" }],

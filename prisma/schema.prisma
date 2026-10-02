@@ -145,55 +145,56 @@ enum ContractType {
 }
 
 model User {
-  id                  String    @id @default(cuid())
-  email               String    @unique
-  emailVerified       Boolean   @default(false)
-  name                String
-  image               String?
-  firstName           String
-  lastName            String
-  phone               String?
-  role                Role      @default(AGENT)
-  weeklyContractHours Decimal?  @db.Decimal(5, 2)
-  paidLeaveBalance    Decimal?  @db.Decimal(5, 2)
+  id                        String             @id @default(cuid())
+  email                     String             @unique
+  emailVerified             Boolean            @default(false)
+  name                      String
+  image                     String?
+  firstName                 String
+  lastName                  String
+  phone                     String?
+  role                      Role               @default(AGENT)
+  weeklyContractHours       Decimal?           @db.Decimal(5, 2)
+  paidLeaveBalance          Decimal?           @db.Decimal(5, 2)
   // Taux de coût horaire actuel — pas d'historique, une valeur unique par
   // agent (paie externalisée, jamais eu besoin de plus finement jusqu'ici).
   // Sert au calcul de marge par site (src/server/reports/margins.ts).
-  hourlyCostHT        Decimal?  @db.Decimal(6, 2)
-  classification      String?
-  isActive            Boolean   @default(true)
-  hiredAt             DateTime?
-  endedAt             DateTime?
-  homeAddress         String?
-  homeCity            String?
-  homePostalCode      String?
-  homeLat             Float?
-  homeLng             Float?
-  hasDrivingLicense   Boolean   @default(false)
-  experienceLevel     ExperienceLevel?
-  contractType        ContractType?
-  contractEndDate     DateTime?
+  hourlyCostHT              Decimal?           @db.Decimal(6, 2)
+  classification            String?
+  isActive                  Boolean            @default(true)
+  hiredAt                   DateTime?
+  endedAt                   DateTime?
+  homeAddress               String?
+  homeCity                  String?
+  homePostalCode            String?
+  homeLat                   Float?
+  homeLng                   Float?
+  hasDrivingLicense         Boolean            @default(false)
+  experienceLevel           ExperienceLevel?
+  contractType              ContractType?
+  contractEndDate           DateTime?
   // Array<{ weekdays: number[]; notBefore?: "HH:mm"; notAfter?: "HH:mm" }>
   // (1=lundi..7=dimanche) — remplace les anciens minStartTime/maxEndTime
   // (une seule plage, tous les jours) et noWorkWeekdays (jour entier
   // seulement) : plusieurs règles combinables, chacune sur ses propres
   // jours. Voir src/server/planning/agent-constraints.ts.
-  scheduleExceptions  Json      @default("[]")
-  notes               String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  sessions             Session[]
-  accounts             Account[]
-  assignments          Assignment[]
-  timeEntries          TimeEntry[]
-  absences             Absence[]
-  validatedTimeEntries TimeEntry[]  @relation("TimeEntryValidatedBy")
-  auditLogs            AuditLog[]
-  siteLogs             SiteLog[]
-  uploadedScannedDocuments  ScannedDocument[] @relation("ScannedDocumentUploadedBy")
-  validatedScannedDocuments ScannedDocument[] @relation("ScannedDocumentValidatedBy")
-  receivedCheckIns AgentSiteCheckIn[] @relation("CheckInAgent")
-  authoredCheckIns AgentSiteCheckIn[] @relation("CheckInAuthor")
+  scheduleExceptions        Json               @default("[]")
+  notes                     String?
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+  sessions                  Session[]
+  accounts                  Account[]
+  assignments               Assignment[]
+  timeEntries               TimeEntry[]
+  absences                  Absence[]
+  validatedTimeEntries      TimeEntry[]        @relation("TimeEntryValidatedBy")
+  auditLogs                 AuditLog[]
+  siteLogs                  SiteLog[]
+  uploadedScannedDocuments  ScannedDocument[]  @relation("ScannedDocumentUploadedBy")
+  validatedScannedDocuments ScannedDocument[]  @relation("ScannedDocumentValidatedBy")
+  receivedCheckIns          AgentSiteCheckIn[] @relation("CheckInAgent")
+  authoredCheckIns          AgentSiteCheckIn[] @relation("CheckInAuthor")
+
   @@index([role])
 }
 
@@ -206,7 +207,8 @@ model Session {
   userAgent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
@@ -225,7 +227,8 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([issuer, accountId])
   @@index([userId])
 }
@@ -237,27 +240,29 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
   @@index([identifier])
 }
 
 model Client {
-  id              String   @id @default(cuid())
-  legalName       String
-  tradeName       String?
-  siret           String?
-  vatNumber       String?
-  billingAddress  String
-  email           String?
-  phone           String?
-  paymentTermDays Int      @default(30)
-  notes           String?
-  clientSince     DateTime? @db.Date
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  sites     Site[]
-  contracts Contract[]
-  invoices  Invoice[]
+  id               String            @id @default(cuid())
+  legalName        String
+  tradeName        String?
+  siret            String?
+  vatNumber        String?
+  billingAddress   String
+  email            String?
+  phone            String?
+  paymentTermDays  Int               @default(30)
+  notes            String?
+  clientSince      DateTime?         @db.Date
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  sites            Site[]
+  contracts        Contract[]
+  invoices         Invoice[]
+  scannedDocuments ScannedDocument[]
 }
 
 model ClientPortalToken {
@@ -290,12 +295,13 @@ model Prospect {
   convertedClientId String?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  quotes Quote[]
+  quotes            Quote[]
+
   @@index([status])
 }
 
 model Site {
-  id                 String   @id @default(cuid())
+  id                 String             @id @default(cuid())
   clientId           String
   name               String
   address            String
@@ -307,101 +313,107 @@ model Site {
   protocolNotes      String?
   onSiteContactName  String?
   onSiteContactPhone String?
-  surfaceM2          Decimal? @db.Decimal(8, 2)
-  activeSince        DateTime? @db.Date
+  surfaceM2          Decimal?           @db.Decimal(8, 2)
+  activeSince        DateTime?          @db.Date
   lat                Float?
   lng                Float?
-  isActive           Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  client            Client             @relation(fields: [clientId], references: [id])
-  contractSites     ContractSite[]
-  shifts            Shift[]
-  timeEntries       TimeEntry[]
-  serviceExceptions ServiceException[]
-  logs              SiteLog[]
-  checkIns          AgentSiteCheckIn[]
+  isActive           Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  client             Client             @relation(fields: [clientId], references: [id])
+  contractSites      ContractSite[]
+  shifts             Shift[]
+  timeEntries        TimeEntry[]
+  serviceExceptions  ServiceException[]
+  logs               SiteLog[]
+  checkIns           AgentSiteCheckIn[]
+
   @@index([clientId])
 }
 
 model Contract {
-  id                String         @id @default(cuid())
+  id                String                  @id @default(cuid())
   clientId          String
   reference         String
-  startsOn          DateTime       @db.Date
-  endsOn            DateTime       @db.Date
-  billingDayOfMonth Int            @default(1)
-  status            ContractStatus @default(DRAFT)
-  renewalNoticeDays Int            @default(60)
+  startsOn          DateTime                @db.Date
+  endsOn            DateTime                @db.Date
+  billingDayOfMonth Int                     @default(1)
+  status            ContractStatus          @default(DRAFT)
+  renewalNoticeDays Int                     @default(60)
   notes             String?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  signatureStatus ContractSignatureStatus @default(NOT_SENT)
-  signatureSentAt DateTime?
-  signedAt        DateTime?
-  client        Client         @relation(fields: [clientId], references: [id])
-  contractSites ContractSite[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  signatureStatus   ContractSignatureStatus @default(NOT_SENT)
+  signatureSentAt   DateTime?
+  signedAt          DateTime?
+  client            Client                  @relation(fields: [clientId], references: [id])
+  contractSites     ContractSite[]
+  scannedDocument   ScannedDocument?
+
   @@index([endsOn, status])
 }
 
 model ContractSite {
-  id                     String       @id @default(cuid())
+  id                     String            @id @default(cuid())
   contractId             String
   siteId                 String
-  billingMode            BillingMode  @default(TIME_AND_MATERIALS_PLANNED)
-  billingBasis           BillingBasis @default(FLAT_INDICATIVE_HOURS)
-  hourlyRateHT           Decimal      @db.Decimal(8, 2)
-  indicativeMonthlyHours Decimal?     @db.Decimal(7, 2)
-  vatRate                Decimal      @default(20) @db.Decimal(4, 2)
-  createdAt              DateTime     @default(now())
-  updatedAt              DateTime     @updatedAt
-  contract         Contract          @relation(fields: [contractId], references: [id])
-  site             Site              @relation(fields: [siteId], references: [id])
-  serviceTemplates ServiceTemplate[]
-  shifts           Shift[]
-  invoices         Invoice[]
+  billingMode            BillingMode       @default(TIME_AND_MATERIALS_PLANNED)
+  billingBasis           BillingBasis      @default(FLAT_INDICATIVE_HOURS)
+  hourlyRateHT           Decimal           @db.Decimal(8, 2)
+  indicativeMonthlyHours Decimal?          @db.Decimal(7, 2)
+  vatRate                Decimal           @default(20) @db.Decimal(4, 2)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  contract               Contract          @relation(fields: [contractId], references: [id])
+  site                   Site              @relation(fields: [siteId], references: [id])
+  serviceTemplates       ServiceTemplate[]
+  shifts                 Shift[]
+  invoices               Invoice[]
+
   @@unique([contractId, siteId])
   @@index([siteId])
 }
 
 model ServiceTemplate {
-  id              String   @id @default(cuid())
-  contractSiteId  String
-  name            String
-  daysOfWeek      Int[]
-  startTime       DateTime @db.Time
-  endTime         DateTime @db.Time
-  durationMinutes Int
-  requiredAgents  Int      @default(1)
-  instructions    String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String             @id @default(cuid())
+  contractSiteId    String
+  name              String
+  daysOfWeek        Int[]
+  startTime         DateTime           @db.Time
+  endTime           DateTime           @db.Time
+  durationMinutes   Int
+  requiredAgents    Int                @default(1)
+  instructions      String?
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   contractSite      ContractSite       @relation(fields: [contractSiteId], references: [id])
   shifts            Shift[]
   serviceExceptions ServiceException[]
+
   @@index([contractSiteId])
 }
 
 model Shift {
-  id                    String      @id @default(cuid())
+  id                    String           @id @default(cuid())
   serviceTemplateId     String?
   siteId                String
   contractSiteId        String
-  date                  DateTime    @db.Date
+  date                  DateTime         @db.Date
   startAt               DateTime
   endAt                 DateTime
   requiredAgents        Int
   billableMinutes       Int
-  status                ShiftStatus @default(UNSTAFFED)
-  generatedFromTemplate Boolean     @default(true)
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-  serviceTemplate ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
-  site            Site             @relation(fields: [siteId], references: [id])
-  contractSite    ContractSite     @relation(fields: [contractSiteId], references: [id])
-  assignments     Assignment[]
-  timeEntries     TimeEntry[]
+  status                ShiftStatus      @default(UNSTAFFED)
+  generatedFromTemplate Boolean          @default(true)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  serviceTemplate       ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
+  site                  Site             @relation(fields: [siteId], references: [id])
+  contractSite          ContractSite     @relation(fields: [contractSiteId], references: [id])
+  assignments           Assignment[]
+  timeEntries           TimeEntry[]
+
   @@unique([serviceTemplateId, date, startAt], name: "uniq_generated_occurrence")
   @@index([date, siteId])
   @@index([contractSiteId, date])
@@ -415,10 +427,11 @@ model Assignment {
   replacedByAssignmentId String?          @unique
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
-  shift                Shift        @relation(fields: [shiftId], references: [id])
-  user                 User         @relation(fields: [userId], references: [id])
-  replacedByAssignment Assignment?  @relation("Replacement", fields: [replacedByAssignmentId], references: [id])
-  replacementOf        Assignment[] @relation("Replacement")
+  shift                  Shift            @relation(fields: [shiftId], references: [id])
+  user                   User             @relation(fields: [userId], references: [id])
+  replacedByAssignment   Assignment?      @relation("Replacement", fields: [replacedByAssignmentId], references: [id])
+  replacementOf          Assignment[]     @relation("Replacement")
+
   @@index([userId, shiftId])
 }
 
@@ -437,10 +450,11 @@ model TimeEntry {
   payrollExportable Boolean         @default(true)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
-  user        User   @relation(fields: [userId], references: [id])
-  site        Site   @relation(fields: [siteId], references: [id])
-  shift       Shift? @relation(fields: [shiftId], references: [id])
-  validatedBy User?  @relation("TimeEntryValidatedBy", fields: [validatedById], references: [id])
+  user              User            @relation(fields: [userId], references: [id])
+  site              Site            @relation(fields: [siteId], references: [id])
+  shift             Shift?          @relation(fields: [shiftId], references: [id])
+  validatedBy       User?           @relation("TimeEntryValidatedBy", fields: [validatedById], references: [id])
+
   @@index([userId, clockInAt])
 }
 
@@ -455,7 +469,8 @@ model Absence {
   comment      String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  user User @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+
   @@index([userId, startsOn])
 }
 
@@ -475,10 +490,11 @@ model Invoice {
   amountTTC        Decimal          @default(0) @db.Decimal(10, 2)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
-  client       Client        @relation(fields: [clientId], references: [id])
-  contractSite ContractSite? @relation(fields: [contractSiteId], references: [id])
-  lines        InvoiceLine[]
-  payments     Payment[]
+  client           Client           @relation(fields: [clientId], references: [id])
+  contractSite     ContractSite?    @relation(fields: [contractSiteId], references: [id])
+  lines            InvoiceLine[]
+  payments         Payment[]
+
   @@index([status, issuedOn])
   @@index([contractSiteId, periodYear, periodMonth])
 }
@@ -493,7 +509,8 @@ model InvoiceLine {
   source      InvoiceLineSource
   hours       Decimal?          @db.Decimal(7, 2)
   createdAt   DateTime          @default(now())
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  invoice     Invoice           @relation(fields: [invoiceId], references: [id])
+
   @@index([invoiceId])
 }
 
@@ -505,7 +522,8 @@ model Payment {
   method    PaymentMethod
   reference String?
   createdAt DateTime      @default(now())
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id])
+
   @@index([invoiceId])
 }
 
@@ -519,7 +537,8 @@ model AuditLog {
   entityId    String
   summary     String
   metadata    Json?
-  actor User? @relation(fields: [actorUserId], references: [id])
+  actor       User?    @relation(fields: [actorUserId], references: [id])
+
   @@index([entityType, entityId])
   @@index([createdAt])
   @@index([actorUserId])
@@ -532,18 +551,18 @@ model InvoiceSequence {
 }
 
 model CompanyProfile {
-  id        String   @id @default("default")
-  legalName String
-  address   String
-  legalForm String?
-  shareCapital Decimal? @db.Decimal(12, 2)
-  rcsCity   String?
-  siret     String?
-  vatNumber String?
-  iban      String?
-  latePenaltyRate Decimal? @db.Decimal(5, 2)
-  reminderWindowDays Int @default(7)
-  updatedAt DateTime @updatedAt
+  id                 String   @id @default("default")
+  legalName          String
+  address            String
+  legalForm          String?
+  shareCapital       Decimal? @db.Decimal(12, 2)
+  rcsCity            String?
+  siret              String?
+  vatNumber          String?
+  iban               String?
+  latePenaltyRate    Decimal? @db.Decimal(5, 2)
+  reminderWindowDays Int      @default(7)
+  updatedAt          DateTime @updatedAt
 }
 
 model Holiday {
@@ -551,6 +570,7 @@ model Holiday {
   date  DateTime     @db.Date
   name  String
   scope HolidayScope @default(COMPANY)
+
   @@unique([date, scope])
 }
 
@@ -562,28 +582,30 @@ model ServiceException {
   type              ServiceExceptionType
   notes             String?
   createdAt         DateTime             @default(now())
-  serviceTemplate ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
-  site            Site?            @relation(fields: [siteId], references: [id])
+  serviceTemplate   ServiceTemplate?     @relation(fields: [serviceTemplateId], references: [id])
+  site              Site?                @relation(fields: [siteId], references: [id])
+
   @@index([date])
 }
 
 model Quote {
-  id          String      @id @default(cuid())
-  prospectId  String
-  reference   String
-  status      QuoteStatus @default(DRAFT)
-  validUntil  DateTime?   @db.Date
-  amountHT    Decimal     @default(0) @db.Decimal(10, 2)
-  vatAmount   Decimal     @default(0) @db.Decimal(10, 2)
-  amountTTC   Decimal     @default(0) @db.Decimal(10, 2)
-  notes       String?
-  sentAt      DateTime?
-  acceptedAt  DateTime?
-  contractId  String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  prospect Prospect    @relation(fields: [prospectId], references: [id])
-  lines    QuoteLine[]
+  id         String      @id @default(cuid())
+  prospectId String
+  reference  String
+  status     QuoteStatus @default(DRAFT)
+  validUntil DateTime?   @db.Date
+  amountHT   Decimal     @default(0) @db.Decimal(10, 2)
+  vatAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  amountTTC  Decimal     @default(0) @db.Decimal(10, 2)
+  notes      String?
+  sentAt     DateTime?
+  acceptedAt DateTime?
+  contractId String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  prospect   Prospect    @relation(fields: [prospectId], references: [id])
+  lines      QuoteLine[]
+
   @@index([prospectId])
 }
 
@@ -594,7 +616,8 @@ model QuoteLine {
   quantity    Decimal @db.Decimal(8, 2)
   unitPriceHT Decimal @db.Decimal(10, 2)
   vatRate     Decimal @default(20) @db.Decimal(4, 2)
-  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quote       Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
   @@index([quoteId])
 }
 
@@ -607,8 +630,9 @@ model SiteLog {
   photoPath       String?
   visibleToClient Boolean     @default(true)
   createdAt       DateTime    @default(now())
-  site Site @relation(fields: [siteId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  site            Site        @relation(fields: [siteId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+
   @@index([siteId, createdAt])
 }
 
@@ -618,15 +642,16 @@ model SiteLog {
 // docs/DATA-MODEL.md §SiteLog pour la raison de cette séparation).
 model AgentSiteCheckIn {
   id         String   @id @default(cuid())
-  userId     String   // agent concerné
+  userId     String // agent concerné
   siteId     String
-  authorId   String   // ADMIN/PLANNER qui a fait le point
+  authorId   String // ADMIN/PLANNER qui a fait le point
   occurredOn DateTime @db.Date
   note       String
   createdAt  DateTime @default(now())
-  user   User @relation("CheckInAgent", fields: [userId], references: [id])
-  site   Site @relation(fields: [siteId], references: [id])
-  author User @relation("CheckInAuthor", fields: [authorId], references: [id])
+  user       User     @relation("CheckInAgent", fields: [userId], references: [id])
+  site       Site     @relation(fields: [siteId], references: [id])
+  author     User     @relation("CheckInAuthor", fields: [authorId], references: [id])
+
   @@index([siteId, userId, occurredOn])
 }
 
@@ -641,6 +666,14 @@ enum ScannedDocumentCategory {
   COMPTABLE
   ACHATS
   STOCK
+}
+
+// Type de pièce, proposé à partir du texte OCR puis confirmé en relecture.
+// La catégorie comptable (ci-dessus) ne concerne que les factures.
+enum ScannedDocumentType {
+  FACTURE
+  CONTRAT
+  AUTRE
 }
 
 // Numérisation des documents papier (docs/NUMERISATION-DOCUMENTS.md) —
@@ -661,14 +694,33 @@ model ScannedDocument {
   documentDate      DateTime?                @db.Date
   reference         String?
   isSensitive       Boolean                  @default(false)
+  documentType      ScannedDocumentType      @default(FACTURE)
+  pageCount         Int?
+  // Champs propres aux contrats papier (archive + reprise dans l'outil),
+  // suggérés depuis le texte OCR, jamais actés sans relecture humaine.
+  clientId          String?
+  clientNameRaw     String?
+  signedOn          DateTime?                @db.Date
+  contractStartsOn  DateTime?                @db.Date
+  contractEndsOn    DateTime?                @db.Date
+  tacitRenewal      Boolean?
+  noticeDays        Int?
+  pricing           String?
+  siteAddresses     String?
+  // Contrat créé dans l'outil à partir de ce scan (reprise d'un contrat en cours).
+  contractId        String?                  @unique
   uploadedByUserId  String
   validatedByUserId String?
   validatedAt       DateTime?
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
-  uploadedBy  User  @relation("ScannedDocumentUploadedBy", fields: [uploadedByUserId], references: [id])
-  validatedBy User? @relation("ScannedDocumentValidatedBy", fields: [validatedByUserId], references: [id])
+  uploadedBy        User                     @relation("ScannedDocumentUploadedBy", fields: [uploadedByUserId], references: [id])
+  validatedBy       User?                    @relation("ScannedDocumentValidatedBy", fields: [validatedByUserId], references: [id])
+  client            Client?                  @relation(fields: [clientId], references: [id])
+  contract          Contract?                @relation(fields: [contractId], references: [id])
+
   @@index([status])
+  @@index([documentType, contractEndsOn])
 }
 
 // Table de correspondance qui s'enrichit à chaque validation (boucle

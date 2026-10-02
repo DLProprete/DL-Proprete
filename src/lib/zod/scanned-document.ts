@@ -17,6 +17,17 @@ export const scannedDocumentReviewSchema = z.object({
   // correspond à aucun KnownSupplier, on le mémorise pour la prochaine
   // fois (boucle d'apprentissage validée par le spike du 10/09).
   rememberSupplier: z.coerce.boolean().default(false),
+  documentType: z.enum(["FACTURE", "CONTRAT", "AUTRE"]).default("FACTURE"),
+  // Champs contrat (pris en compte seulement si documentType = CONTRAT).
+  clientId: z.string().optional(),
+  clientNameRaw: z.string().optional(),
+  signedOn: optionalDate,
+  contractStartsOn: optionalDate,
+  contractEndsOn: optionalDate,
+  tacitRenewal: z.enum(["", "true", "false"]).optional(),
+  noticeDays: z.union([z.literal(""), z.coerce.number().int().nonnegative().max(3650)]).optional(),
+  pricing: z.string().max(300).optional(),
+  siteAddresses: z.string().max(2000).optional(),
 });
 
 export type ScannedDocumentReviewInput = z.infer<typeof scannedDocumentReviewSchema>;
