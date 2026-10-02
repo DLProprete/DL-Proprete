@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Projet Next.js séparé, son propre eslint config/tsconfig s'applique.
     "site/**",
+    // Moteur OCR tiers minifié, copié depuis node_modules (scripts/copy-tesseract-assets.mjs).
+    "public/tesseract/**",
   ]),
 ]);
 

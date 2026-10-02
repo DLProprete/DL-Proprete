@@ -42,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers Tesseract copiés depuis node_modules (scripts/copy-tesseract-assets.mjs)
+/public/tesseract

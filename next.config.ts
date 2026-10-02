@@ -5,7 +5,9 @@ import type { NextConfig } from "next";
 // donc img-src 'self' suffit — pas besoin d'ouvrir vers Supabase.
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // wasm-unsafe-eval : moteur OCR Tesseract (WebAssembly) exécuté dans le
+  // navigateur, fichiers servis depuis notre origine (public/tesseract).
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
