@@ -10,12 +10,14 @@ import {
   markContractSignatureSigned,
 } from "@/server/contracts/actions";
 import { ContractOverlapError } from "@/server/contracts/overlap";
+import { linkScannedContract, ScannedContractLinkError } from "@/server/scanned-documents/actions";
 import { createContractSite } from "@/server/contract-sites/actions";
 import { createServiceTemplate, setServiceTemplateActive } from "@/server/service-templates/actions";
 import { createServiceException } from "@/server/service-templates/exceptions";
 
 export async function createContractAction(formData: FormData) {
   const user = await requireSession();
+  const fromDocument = String(formData.get("fromDocument") ?? "");
   let contractId: string;
   try {
     const contract = await createContract(user, Object.fromEntries(formData));
@@ -23,9 +25,21 @@ export async function createContractAction(formData: FormData) {
   } catch (error) {
     if (error instanceof ZodError) {
       const message = error.issues[0]?.message ?? "Données invalides.";
-      redirect(`/contracts/new?error=${encodeURIComponent(message)}`);
+      const back = fromDocument ? `&fromDocument=${encodeURIComponent(fromDocument)}` : "";
+      redirect(`/contracts/new?error=${encodeURIComponent(message)}${back}`);
     }
     throw error;
+  }
+  // Reprise d'un contrat papier : le contrat reste créé même si la liaison
+  // au scan échoue (scan lié entre-temps…) ; le motif s'affiche sur sa fiche.
+  if (fromDocument) {
+    try {
+      await linkScannedContract(user, fromDocument, contractId);
+    } catch (error) {
+      if (!(error instanceof ScannedContractLinkError)) throw error;
+      revalidatePath("/contracts");
+      redirect(`/contracts/${contractId}?error=${encodeURIComponent(error.message)}`);
+    }
   }
   revalidatePath("/contracts");
   redirect(`/contracts/${contractId}`);
