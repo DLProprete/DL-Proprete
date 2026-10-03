@@ -144,6 +144,18 @@ enum ContractType {
   CDD
 }
 
+enum DisplayTextSize {
+  NORMAL
+  LARGE
+  XLARGE
+}
+
+enum DisplayTheme {
+  SYSTEM
+  LIGHT
+  DARK
+}
+
 model User {
   id                        String             @id @default(cuid())
   email                     String             @unique
@@ -162,6 +174,12 @@ model User {
   hourlyCostHT              Decimal?           @db.Decimal(6, 2)
   classification            String?
   isActive                  Boolean            @default(true)
+  // Réglages « Mon affichage », propres à chaque utilisateur (page /display).
+  displayTextSize           DisplayTextSize    @default(NORMAL)
+  displayContrast           Boolean            @default(false)
+  displayTheme              DisplayTheme       @default(SYSTEM)
+  displayReducedMotion      Boolean            @default(false)
+  displayDyslexicFont       Boolean            @default(false)
   hiredAt                   DateTime?
   endedAt                   DateTime?
   homeAddress               String?

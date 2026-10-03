@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { AgentBottomNav } from "@/components/agent-nav";
@@ -23,9 +24,12 @@ export default async function AgentLayout({ children }: { children: React.ReactN
         <OfflineBanner />
         {children}
         <form action={logoutAction} className="mx-auto mt-8 w-full max-w-md text-center">
-          <button type="submit" className="text-sm text-zinc-600 underline">
+          <button type="submit" className="inline-flex min-h-[var(--tap-min)] items-center text-sm text-zinc-600 underline">
             Déconnexion
-          </button>
+          </button>{" "}
+          <Link href="/display" className="inline-flex min-h-[var(--tap-min)] items-center text-sm text-zinc-600 underline">
+            Mon affichage
+          </Link>
         </form>
       </main>
       <AgentBottomNav />

@@ -287,17 +287,19 @@ export default async function DashboardPage({
           return (
             <li
               key={invoice.id}
-              className={`flex items-baseline justify-between gap-4 px-4 py-2.5 text-sm ${
+              className={`flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-sm ${
                 overdue ? "border-l-2 border-l-red-500" : ""
               }`}
             >
-              <span>
+              <span className="min-w-0">
                 <Link href={`/invoices/${invoice.id}`} className="font-medium underline">
                   {invoice.number}
                 </Link>{" "}
                 <span className="text-zinc-600">{invoice.client.legalName}</span>
               </span>
-              <span className="num shrink-0 text-right">
+              {/* Pas de shrink-0 : sur petit écran + gros texte, le bloc passe à la ligne
+                  (flex-wrap) puis son texte peut lui-même se replier au lieu de déborder. */}
+              <span className="num ml-auto max-w-full text-right">
                 {Number(invoice.amountTTC).toFixed(2)} €{" "}
                 <span className={overdue ? "text-red-700" : "text-zinc-600"}>
                   · échéance {invoice.dueOn ? formatDate(invoice.dueOn) : "—"}

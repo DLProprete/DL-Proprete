@@ -39,6 +39,13 @@ export const auth = betterAuth({
         defaultValue: true,
         input: false,
       },
+      // Réglages d'affichage : lus avec la session (aucune requête en plus),
+      // modifiés seulement par l'action de la page /display.
+      displayTextSize: { type: "string", required: false, defaultValue: "NORMAL", input: false },
+      displayContrast: { type: "boolean", required: false, defaultValue: false, input: false },
+      displayTheme: { type: "string", required: false, defaultValue: "SYSTEM", input: false },
+      displayReducedMotion: { type: "boolean", required: false, defaultValue: false, input: false },
+      displayDyslexicFont: { type: "boolean", required: false, defaultValue: false, input: false },
     },
   },
   // Doit rester le dernier plugin : permet d'appeler auth.api.* depuis une

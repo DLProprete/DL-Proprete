@@ -86,7 +86,16 @@ export function Sidebar({
             </div>
           ))}
         </nav>
-        <form action={logoutAction} className="border-t border-white/15 p-3">
+        <div className="border-t border-white/15 px-3 pt-3">
+          <Link
+            href="/display"
+            onClick={() => setOpen(false)}
+            className="block w-full rounded px-2 py-1.5 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white focus-visible:outline-white"
+          >
+            Mon affichage
+          </Link>
+        </div>
+        <form action={logoutAction} className="p-3 pt-0.5">
           <button
             type="submit"
             className="w-full rounded px-2 py-1.5 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white focus-visible:outline-white"

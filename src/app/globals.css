@@ -96,6 +96,76 @@
     background: var(--color-brand-100);
     color: var(--color-brand-900);
   }
+
+  /* ---- Réglages « Mon affichage » (attributs posés par src/app/layout.tsx) ---- */
+
+  /* Taille du texte : tout l'outil est en rem, y compris les cibles tactiles. */
+  html[data-text="large"] {
+    font-size: 112.5%;
+  }
+  html[data-text="xlarge"] {
+    font-size: 125%;
+  }
+
+  /* Police dyslexie : remplace Inter partout, la pile système reste en repli.
+     Même couche (base) que la règle `body` et placée après, avec une
+     spécificité plus forte : elle l'emporte. */
+  html[data-font="dyslexic"] body {
+    font-family: var(--font-dyslexic), var(--font-sans);
+  }
+
+  /* Contraste renforcé : gris foncés (≥ 7:1 sur blanc et sur #F4F6F7) et
+     bordures nettes. Valeurs littérales (copiées de tailwindcss/theme.css) :
+     un var() vers une autre variable zinc remappée serait résolu après remappage
+     (200 → 500 → 800 au lieu de 200 → 500). */
+  html[data-contrast="high"] {
+    --color-zinc-100: oklch(87.1% 0.006 286.286); /* zinc-300 */
+    --color-zinc-200: oklch(55.2% 0.016 285.938); /* zinc-500 : bordures 4,8:1 */
+    --color-zinc-400: oklch(37% 0.013 285.805); /* zinc-700 */
+    --color-zinc-500: oklch(27.4% 0.006 286.033); /* zinc-800 */
+    --color-zinc-600: oklch(27.4% 0.006 286.033); /* zinc-800 */
+    --color-zinc-700: oklch(21% 0.006 285.885); /* zinc-900 */
+  }
+
+  /* Mouvements réduits : réglage du compte ou réglage du système. */
+  html[data-motion="reduce"] *,
+  html[data-motion="reduce"] *::before,
+  html[data-motion="reduce"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Contraste renforcé, en couche utilities pour l'emporter sur `.text-white/60`
+   et `.text-white/80` (sinon la règle serait sans effet) : textes de la barre
+   latérale marine en blanc plein, et fond `bg-zinc-200` (pastille « muted »)
+   resté clair, car son fond remappé en zinc-500 donnerait 3,7:1 au texte. */
+@layer utilities {
+  /* Placeholders : zinc-500 est remappé en zinc-800, ce qui les rendrait
+     identiques à une valeur saisie. Couleur littérale (zinc-600 d'origine, 7,6:1
+     sur blanc), plus claire que le texte zinc-900. Spécificité (0,1,2) > celle de
+     `placeholder:text-zinc-500` (0,1,1), même couche. */
+  html[data-contrast="high"] ::placeholder {
+    color: oklch(44.2% 0.017 285.786); /* zinc-600 */
+  }
+  html[data-contrast="high"] aside :is(.text-white\/60, .text-white\/80) {
+    color: #fff;
+  }
+  html[data-contrast="high"] .bg-zinc-200 {
+    background-color: oklch(87.1% 0.006 286.286); /* zinc-300 */
+  }
 }
 
 @layer components {
