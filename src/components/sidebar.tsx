@@ -94,6 +94,13 @@ export function Sidebar({
           >
             Mon affichage
           </Link>
+          <Link
+            href="/compte"
+            onClick={() => setOpen(false)}
+            className="block w-full rounded px-2 py-1.5 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white focus-visible:outline-white"
+          >
+            Mon compte
+          </Link>
         </div>
         <form action={logoutAction} className="p-3 pt-0.5">
           <button

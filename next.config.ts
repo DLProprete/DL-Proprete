@@ -48,6 +48,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
+  // URL standard (W3C) : le bouton « Changer le mot de passe » des
+  // trousseaux Apple, Google et des gestionnaires mène directement ici.
+  async redirects() {
+    return [{ source: "/.well-known/change-password", destination: "/compte", permanent: false }];
+  },
 };
 
 export default nextConfig;

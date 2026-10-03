@@ -5,7 +5,10 @@ import { exportScannedDocumentsCsv } from "@/server/exports/scanned-documents-cs
 const CATEGORIES = ["COMPTABLE", "ACHATS", "STOCK"] as const;
 
 export async function GET(request: Request) {
-  const user = await requireSession();
+  const user = await requireSession().catch(() => null);
+  if (!user) {
+    return NextResponse.json({ error: "Session requise" }, { status: 401 });
+  }
   if (user.role !== "ADMIN") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
@@ -23,6 +26,7 @@ export async function GET(request: Request) {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
+      "Cache-Control": "private, no-store",
       "Content-Disposition": `attachment; filename="documents-numerises${suffix}.csv"`,
     },
   });

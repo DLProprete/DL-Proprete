@@ -1,12 +1,13 @@
+import Link from "next/link";
 import { loginAction } from "./actions";
 import { Logo } from "@/components/logo";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, reset } = await searchParams;
 
   return (
     <div className="flex flex-1 items-center justify-center bg-zinc-50">
@@ -16,6 +17,11 @@ export default async function LoginPage({
       >
         <Logo />
         <h1 className="text-lg font-semibold text-zinc-900">Connexion</h1>
+        {reset === "1" && (
+          <p role="status" className="text-sm text-green-700">
+            Mot de passe changé. Connectez-vous avec le nouveau.
+          </p>
+        )}
         {error === "rate_limit" && (
           <p className="text-sm text-red-600">Trop de tentatives, réessayez plus tard.</p>
         )}
@@ -31,7 +37,7 @@ export default async function LoginPage({
             name="email"
             type="email"
             required
-            autoComplete="email"
+            autoComplete="username"
             className="mt-1 w-full field"
           />
         </div>
@@ -54,6 +60,9 @@ export default async function LoginPage({
         >
           Se connecter
         </button>
+        <Link href="/mot-de-passe-oublie" className="block text-center text-sm text-zinc-600 underline">
+          Mot de passe oublié ?
+        </Link>
       </form>
     </div>
   );

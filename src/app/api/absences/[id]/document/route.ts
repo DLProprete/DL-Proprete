@@ -10,9 +10,15 @@ const CONTENT_TYPES: Record<string, string> = {
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const user = await requireSession();
+  const user = await requireSession().catch(() => null);
+  if (!user) {
+    return NextResponse.json({ error: "Session requise" }, { status: 401 });
+  }
 
-  const absence = await prisma.absence.findUniqueOrThrow({ where: { id } });
+  const absence = await prisma.absence.findUnique({ where: { id } });
+  if (!absence) {
+    return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+  }
   // Document sensible (justificatif d'arrêt maladie) : ADMIN ou l'agent
   // concerné uniquement, pas PLANNER (règle plus stricte que la
   // restriction "own data" générale, qui ne vaut que pour AGENT).
@@ -27,6 +33,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const extension = absence.documentPath.split(".").pop() ?? "";
 
   return new NextResponse(new Uint8Array(buffer), {
-    headers: { "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream" },
+    headers: {
+      "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream",
+      "Cache-Control": "private, no-store",
+    },
   });
 }

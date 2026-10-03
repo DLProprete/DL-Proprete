@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { revokePortalSessions } from "@/server/client-portal/session";
 import { requireRole, type SessionUser } from "@/server/auth/session";
 import { clientInputSchema } from "@/lib/zod/client";
 import { parseDateOnly } from "@/lib/dates";
@@ -37,5 +38,7 @@ export async function updateClient(user: SessionUser, id: string, input: unknown
 
 export async function setClientActive(user: SessionUser, id: string, isActive: boolean) {
   requireRole(user, [...MANAGE_ROLES]);
-  return prisma.client.update({ where: { id }, data: { isActive } });
+  const client = await prisma.client.update({ where: { id }, data: { isActive } });
+  if (!isActive) await revokePortalSessions(id);
+  return client;
 }

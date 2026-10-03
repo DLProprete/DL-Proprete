@@ -30,6 +30,9 @@ export default async function AgentLayout({ children }: { children: React.ReactN
           <Link href="/display" className="inline-flex min-h-[var(--tap-min)] items-center text-sm text-zinc-600 underline">
             Mon affichage
           </Link>
+          <Link href="/compte" className="inline-flex min-h-[var(--tap-min)] items-center text-sm text-zinc-600 underline">
+            Mon compte
+          </Link>
         </form>
       </main>
       <AgentBottomNav />

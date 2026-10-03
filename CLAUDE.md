@@ -134,6 +134,9 @@ pour les trois — **à changer avant tout déploiement au-delà du poste local*
   - `npx prisma generate` — régénère le client (pas besoin de base connectée)
   - `npx prisma migrate dev` — applique les migrations en attente sur une base locale
   - `npm run prisma:seed` — rejoue `prisma/seed.ts` (1 admin, 2 agents, 1 client, 1 site, 1 contrat)
+- Compte bloqué (mot de passe oublié, SMTP indisponible) : `npm run password:reset -- <email>`
+  affiche un mot de passe temporaire (cible `DATABASE_URL` ; pour la production, la passer
+  sur la ligne de commande, jamais dans `.env`).
 - Config Prisma centralisée dans `prisma.config.ts` (Prisma 6.19+, remplace `package.json#prisma`).
 
 ## Architecture

@@ -13,6 +13,11 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true,
   },
+  // La connexion ne passe que par loginAction (src/app/(auth)/login), qui
+  // applique la limite de tentatives en base. La route HTTP équivalente de
+  // Better Auth la contournerait : elle est fermée. Les appels serveur
+  // (auth.api.signInEmail) ne sont pas concernés.
+  disabledPaths: ["/sign-in/email"],
   user: {
     additionalFields: {
       role: {
@@ -21,17 +26,23 @@ export const auth = betterAuth({
         defaultValue: "AGENT",
         input: false,
       },
+      // input: false partout : sans ça, POST /api/auth/update-user laisse
+      // n'importe quel compte (agent compris) changer son nom ou son
+      // téléphone. Ces champs ne s'écrivent que par nos actions (/team).
       firstName: {
         type: "string",
         required: true,
+        input: false,
       },
       lastName: {
         type: "string",
         required: true,
+        input: false,
       },
       phone: {
         type: "string",
         required: false,
+        input: false,
       },
       isActive: {
         type: "boolean",
@@ -46,6 +57,22 @@ export const auth = betterAuth({
       displayTheme: { type: "string", required: false, defaultValue: "SYSTEM", input: false },
       displayReducedMotion: { type: "boolean", required: false, defaultValue: false, input: false },
       displayDyslexicFont: { type: "boolean", required: false, defaultValue: false, input: false },
+    },
+  },
+  // Un compte désactivé ne peut plus ouvrir de session, par aucun chemin
+  // (formulaire de connexion ou route /api/auth/sign-in/email). Les
+  // sessions déjà ouvertes sont supprimées par setAgentActive.
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          const owner = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { isActive: true },
+          });
+          if (!owner?.isActive) return false;
+        },
+      },
     },
   },
   // Doit rester le dernier plugin : permet d'appeler auth.api.* depuis une

@@ -17,9 +17,15 @@ export async function GET(
   { params }: { params: Promise<{ logId: string }> },
 ) {
   const { logId } = await params;
-  const user = await requireSession();
+  const user = await requireSession().catch(() => null);
+  if (!user) {
+    return NextResponse.json({ error: "Session requise" }, { status: 401 });
+  }
 
-  const log = await prisma.siteLog.findUniqueOrThrow({ where: { id: logId } });
+  const log = await prisma.siteLog.findUnique({ where: { id: logId } });
+  if (!log) {
+    return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+  }
   // Un AGENT ne voit que la main courante des sites où il est (ou a été)
   // affecté — sans ça, changer l'id dans l'URL donnait accès aux photos de
   // n'importe quel client.
@@ -34,6 +40,9 @@ export async function GET(
   const extension = log.photoPath.split(".").pop() ?? "";
 
   return new NextResponse(new Uint8Array(buffer), {
-    headers: { "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream" },
+    headers: {
+      "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream",
+      "Cache-Control": "private, no-store",
+    },
   });
 }

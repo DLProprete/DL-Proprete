@@ -67,7 +67,7 @@ export async function getPlaceAddressComponents(placeId: string): Promise<PlaceA
   if (!apiKey || !placeId.trim()) return null;
 
   try {
-    const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    const response = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {
       headers: { "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": "addressComponents" },
     });
     if (!response.ok) return null;

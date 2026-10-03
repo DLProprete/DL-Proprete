@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/server/auth/session";
 import { getCompanyProfile } from "@/server/settings/queries";
@@ -6,8 +7,6 @@ import {
   runPurgeNowAction,
   updateAlertSettingsAction,
   updateCompanyProfileAction,
-  updateMyEmailAction,
-  updateMyPasswordAction,
   updateRetentionAction,
 } from "./actions";
 import { RetentionSection } from "./RetentionSection";
@@ -17,8 +16,6 @@ export default async function SettingsPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    accountSaved?: string;
-    accountError?: string;
     retentionSaved?: string;
     retentionError?: string;
     purged?: string;
@@ -26,7 +23,7 @@ export default async function SettingsPage({
     alertsError?: string;
   }>;
 }) {
-  const { accountSaved, accountError, retentionSaved, retentionError, purged, alertsSaved, alertsError } = await searchParams;
+  const { retentionSaved, retentionError, purged, alertsSaved, alertsError } = await searchParams;
   const user = await requireSession();
   if (user.role !== "ADMIN") {
     redirect("/");
@@ -212,67 +209,12 @@ export default async function SettingsPage({
 
       <h2 className="pt-4 text-xl font-semibold">Mes identifiants</h2>
       <p className="text-sm text-zinc-600">
-        E-mail et mot de passe de connexion à cet outil — remplace les identifiants de
-        démonstration.
+        E-mail et mot de passe de connexion :{" "}
+        <Link href="/compte" className="underline">
+          Mon compte
+        </Link>
+        .
       </p>
-
-      {accountSaved === "email" && <p className="alert alert-info">E-mail mis à jour.</p>}
-      {accountSaved === "password" && <p className="alert alert-info">Mot de passe changé.</p>}
-      {accountError === "current_password" && (
-        <p className="alert alert-danger">Mot de passe actuel incorrect.</p>
-      )}
-
-      <form action={updateMyEmailAction} className="card space-y-3">
-        <div>
-          <label htmlFor="email" className="block text-sm text-zinc-700">
-            E-mail de connexion
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            defaultValue={user.email}
-            className="mt-1 w-full field"
-          />
-        </div>
-        <button type="submit" className="btn btn-secondary btn-sm">
-          Changer l&apos;e-mail
-        </button>
-      </form>
-
-      <form action={updateMyPasswordAction} className="card space-y-3">
-        <div>
-          <label htmlFor="currentPassword" className="block text-sm text-zinc-700">
-            Mot de passe actuel
-          </label>
-          <input
-            id="currentPassword"
-            name="currentPassword"
-            type="password"
-            required
-            autoComplete="current-password"
-            className="mt-1 w-full field"
-          />
-        </div>
-        <div>
-          <label htmlFor="newPassword" className="block text-sm text-zinc-700">
-            Nouveau mot de passe
-          </label>
-          <input
-            id="newPassword"
-            name="newPassword"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            className="mt-1 w-full field"
-          />
-        </div>
-        <button type="submit" className="btn btn-secondary btn-sm">
-          Changer le mot de passe
-        </button>
-      </form>
 
       <AlertSettingsSection
         action={updateAlertSettingsAction}

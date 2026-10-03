@@ -15,7 +15,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
-    "geocode:backfill": "tsx scripts/backfill-geocoding.ts"
+    "geocode:backfill": "tsx scripts/backfill-geocoding.ts",
+    "password:reset": "tsx scripts/reset-password.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^6.19.3",
@@ -25,8 +26,8 @@
     "imapflow": "^1",
     "lucide-react": "^1.38.0",
     "mailparser": "^3",
-    "next": "16.3.3",
-    "nodemailer": "^10",
+    "next": "^16.3.8",
+    "nodemailer": "^10.0.13",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.20.1",
     "pg": "^8.23.0",
@@ -46,7 +47,7 @@
     "@types/react-dom": "^19",
     "dotenv": "^16",
     "eslint": "^9",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "^16.3.8",
     "prisma": "^6",
     "tailwindcss": "^4",
     "tsx": "^4",

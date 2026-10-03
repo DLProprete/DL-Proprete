@@ -66,5 +66,10 @@ export async function sendEmail({
     });
     return;
   }
+  // En production, jamais le contenu dans les journaux (lien magique et son
+  // jeton, factures, relances) : un SMTP absent est une panne, pas un repli.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("E-mail non envoyé : variables SMTP_* absentes en production.");
+  }
   console.log(`[email] non envoyé\nÀ : ${to}\nSujet : ${subject}\n${bodyText}`);
 }

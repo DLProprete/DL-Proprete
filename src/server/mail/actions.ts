@@ -5,13 +5,16 @@ import { invalidateMailCache } from "./cache";
 
 const WRITE_ROLES = ["ADMIN"] as const;
 
+// Un retour à la ligne dans une valeur ajouterait un en-tête au message.
+const oneLine = (value: string) => value.replace(/[\r\n]+/g, " ");
+
 async function rawMessage({ to, subject, text, cc }: { to: string; subject: string; text: string; cc?: string }) {
   const from = await mailFromAddress();
   const lines = [
     `From: ${from}`,
-    `To: ${to}`,
-    cc ? `Cc: ${cc}` : null,
-    `Subject: ${subject}`,
+    `To: ${oneLine(to)}`,
+    cc ? `Cc: ${oneLine(cc)}` : null,
+    `Subject: ${oneLine(subject)}`,
     `Date: ${new Date().toUTCString()}`,
     "MIME-Version: 1.0",
     "Content-Type: text/plain; charset=utf-8",
