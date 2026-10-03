@@ -58,11 +58,11 @@ export default async function WeekPage({
       <div className="space-y-3">
         {days.map(({ date, shifts: dayShifts }) => (
           <div key={date.toISOString()} className="card">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
               {DAY_LABEL.format(date)}
             </p>
             {dayShifts.length === 0 ? (
-              <p className="mt-1 text-sm text-zinc-500">Aucune vacation</p>
+              <p className="mt-1 text-sm text-zinc-600">Aucune vacation</p>
             ) : (
               <ul className="mt-2 space-y-2">
                 {dayShifts.map((shift) => (

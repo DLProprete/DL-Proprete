@@ -41,14 +41,14 @@ export default async function InvoicesPage({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold">Factures</h1>
           <Link href="/invoices/reminders" className="text-sm underline">
             Relances
           </Link>
         </div>
-        <form action={generateInvoicesAction} className="flex items-center gap-2">
+        <form action={generateInvoicesAction} className="flex flex-wrap items-center gap-2">
           <input type="number" name="year" defaultValue={today.year} className="w-24 field field-sm" />
           <input
             type="number"
@@ -67,7 +67,7 @@ export default async function InvoicesPage({
         </form>
       </div>
 
-      <form action="/api/exports/sales-journal" method="get" className="flex items-center gap-2 text-sm">
+      <form action="/api/exports/sales-journal" method="get" className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-zinc-600">Export journal des ventes</span>
         <input
           type="number"

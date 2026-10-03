@@ -183,13 +183,18 @@
   }
 
   /* Table de liste dans une carte : même surface que .card, sans le padding
-     interne — la table porte déjà le sien par cellule. */
+     interne — la table porte déjà le sien par cellule. Défilement horizontal
+     dans la carte sur petit écran (overflow-hidden coupait les dernières
+     colonnes sur mobile) ; les coins arrondis restent découpés. */
   .card-table {
-    @apply overflow-hidden rounded-lg border border-zinc-200 bg-white;
+    @apply overflow-x-auto rounded-lg border border-zinc-200 bg-white;
   }
 
   .card-table table {
     @apply w-full text-left text-sm;
+    /* En dessous, la table défile (voir .card-table) au lieu de couper les
+       mots lettre par lettre. Sans effet sur ordinateur. */
+    min-width: 36rem;
   }
 
   .card-table thead tr {

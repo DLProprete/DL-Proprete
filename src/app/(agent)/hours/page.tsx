@@ -71,7 +71,7 @@ export default async function HoursPage({
           </div>
         ))}
         {entries.length === 0 && (
-          <p className="rounded-lg border border-zinc-200 bg-white px-3 py-4 text-center text-sm text-zinc-500">
+          <p className="rounded-lg border border-zinc-200 bg-white px-3 py-4 text-center text-sm text-zinc-600">
             Aucun pointage validé pour ce mois.
           </p>
         )}

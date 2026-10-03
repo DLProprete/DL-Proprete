@@ -22,7 +22,7 @@ export default async function MyAbsencesPage() {
       <h1 className="text-xl font-semibold">Mes absences</h1>
 
       <div className="card text-sm">
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
           Congés payés {currentYear}
         </p>
         {leaveBalance.acquired !== null ? (

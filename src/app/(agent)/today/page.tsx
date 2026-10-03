@@ -31,7 +31,7 @@ function Consignes({
   if (!instructions && !accessNotes && !alarmCode && !keyNotes && !protocolNotes && !contactPhone) return null;
   return (
     <div className="mt-4 space-y-1 border-t border-zinc-100 pt-4 text-sm text-zinc-700">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Consignes</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-600">Consignes</p>
       {instructions && <p>{instructions}</p>}
       {accessNotes && <p>{accessNotes}</p>}
       {alarmCode && <p>Alarme : {alarmCode}</p>}
