@@ -9,11 +9,11 @@ const MAX_PER_EMAIL = 10;
 
 export class RateLimitedError extends Error {}
 
-// Compte une tentative sur une clé, ou lève RateLimitedError si la limite
+// Compte une tentative sur une clé (connexion, demande de réinitialisation…), ou lève RateLimitedError si la limite
 // de la fenêtre en cours est atteinte. L'incrément est conditionnel en une
 // seule requête SQL : deux tentatives simultanées ne passent pas toutes les
 // deux sous la limite.
-async function consume(key: string, max: number, now: Date): Promise<void> {
+export async function consumeAttempt(key: string, max: number, now: Date): Promise<void> {
   const windowStillOpen = await prisma.loginAttempt.updateMany({
     where: { key, resetAt: { gt: now }, count: { lt: max } },
     data: { count: { increment: 1 } },
@@ -40,8 +40,8 @@ export async function consumeLoginAttempt(
   await prisma.loginAttempt.deleteMany({
     where: { resetAt: { lt: new Date(now.getTime() - 24 * 60 * 60 * 1000) } },
   });
-  await consume(`ip:${ip}`, MAX_PER_IP, now);
-  await consume(`email:${email.trim().toLowerCase()}`, MAX_PER_EMAIL, now);
+  await consumeAttempt(`ip:${ip}`, MAX_PER_IP, now);
+  await consumeAttempt(`email:${email.trim().toLowerCase()}`, MAX_PER_EMAIL, now);
 }
 
 // Connexion réussie : les fautes de frappe précédentes ne comptent plus
