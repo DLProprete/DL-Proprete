@@ -11,7 +11,10 @@ export async function GET(
   { params }: { params: Promise<{ contractId: string }> },
 ) {
   const { contractId } = await params;
-  const user = await requireSession();
+  const user = await requireSession().catch(() => null);
+  if (!user) {
+    return NextResponse.json({ error: "Session requise" }, { status: 401 });
+  }
   if (!MANAGE_ROLES.includes(user.role)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
@@ -30,6 +33,7 @@ export async function GET(
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
+      "Cache-Control": "private, no-store",
       "Content-Disposition": `inline; filename="${contract.reference}.pdf"`,
     },
   });

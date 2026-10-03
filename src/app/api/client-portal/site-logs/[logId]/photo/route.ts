@@ -40,6 +40,9 @@ export async function GET(
   const extension = log.photoPath.split(".").pop() ?? "";
 
   return new NextResponse(new Uint8Array(buffer), {
-    headers: { "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream" },
+    headers: {
+      "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream",
+      "Cache-Control": "private, no-store",
+    },
   });
 }

@@ -28,6 +28,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ inv
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
+      "Cache-Control": "private, no-store",
       "Content-Disposition": `inline; filename="${invoice.number ?? "brouillon"}.pdf"`,
     },
   });

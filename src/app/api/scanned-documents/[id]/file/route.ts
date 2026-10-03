@@ -12,12 +12,18 @@ const CONTENT_TYPES: Record<string, string> = {
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const user = await requireSession();
+  const user = await requireSession().catch(() => null);
+  if (!user) {
+    return NextResponse.json({ error: "Session requise" }, { status: 401 });
+  }
   if (user.role !== "ADMIN" && user.role !== "PLANNER") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
 
-  const document = await prisma.scannedDocument.findUniqueOrThrow({ where: { id } });
+  const document = await prisma.scannedDocument.findUnique({ where: { id } });
+  if (!document) {
+    return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+  }
   if (document.isSensitive && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
@@ -26,6 +32,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const extension = document.filePath.split(".").pop() ?? "";
 
   return new NextResponse(new Uint8Array(buffer), {
-    headers: { "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream" },
+    headers: {
+      "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream",
+      "Cache-Control": "private, no-store",
+    },
   });
 }
