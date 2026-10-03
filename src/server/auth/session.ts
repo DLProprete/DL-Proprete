@@ -3,8 +3,11 @@ import { headers } from "next/headers";
 import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { DEFAULT_DISPLAY_PREFS, type DisplayPrefs } from "@/lib/display-prefs";
+import { isSessionTwoFactorVerified, requiresTwoFactor } from "./two-factor";
 
 export class UnauthorizedError extends Error {}
+// Mot de passe correct, code de double authentification pas encore saisi.
+export class TwoFactorPendingError extends UnauthorizedError {}
 export class ForbiddenError extends Error {}
 
 export type SessionUser = {
@@ -47,13 +50,20 @@ export const requireSession = cache(async (): Promise<SessionUser> => {
   // role/isActive viennent des additionalFields Better Auth (typés "string"/
   // "boolean" côté auth.ts) ; le cast vers le type Prisma reste correct tant
   // que le seed/les créations d'utilisateurs passent par nos Server Actions.
-  if (!user || !(user as { isActive?: boolean }).isActive) {
+  if (!user || !session || !(user as { isActive?: boolean }).isActive) {
     throw new UnauthorizedError("Session requise");
+  }
+  const role = (user as { role: string }).role as Role;
+  // Double authentification : sans code saisi, la session d'un rôle qui
+  // l'exige ne donne accès à rien (la page de connexion renvoie vers la
+  // saisie du code, src/app/(auth)/connexion/verification).
+  if (requiresTwoFactor(role) && !(await isSessionTwoFactorVerified(session.session.id))) {
+    throw new TwoFactorPendingError("Code de double authentification requis");
   }
   return {
     id: user.id,
     email: user.email,
-    role: (user as { role: string }).role as Role,
+    role,
     isActive: true,
   };
 });
@@ -70,4 +80,15 @@ export function assertOwnData(user: SessionUser, ownerId: string): void {
   if (user.role === "AGENT" && user.id !== ownerId) {
     throw new ForbiddenError("Un agent ne peut accéder qu'à ses propres données");
   }
+}
+
+// Session ouverte par le mot de passe mais en attente du code de double
+// authentification, ou null (pas de session, ou rien à vérifier).
+export async function pendingTwoFactorSession(): Promise<{ userId: string; sessionId: string; email: string } | null> {
+  const raw = await getSessionRaw().catch(() => null);
+  const user = raw?.user as (Record<string, unknown> & { id: string; email: string }) | undefined;
+  if (!raw || !user || user.isActive !== true) return null;
+  if (!requiresTwoFactor(user.role as Role)) return null;
+  if (await isSessionTwoFactorVerified(raw.session.id)) return null;
+  return { userId: user.id, sessionId: raw.session.id, email: user.email };
 }

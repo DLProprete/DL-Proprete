@@ -213,6 +213,13 @@ model User {
   receivedCheckIns          AgentSiteCheckIn[] @relation("CheckInAgent")
   authoredCheckIns          AgentSiteCheckIn[] @relation("CheckInAuthor")
 
+  // Double authentification : secret TOTP chiffré (src/lib/secret-box.ts),
+  // date d'activation (null = à enregistrer à la prochaine connexion), et
+  // dernier pas de temps accepté (un code ne sert qu'une fois).
+  totpSecret    String?
+  totpEnabledAt DateTime?
+  totpLastStep  Int?
+
   @@index([role])
 }
 
@@ -221,6 +228,9 @@ model Session {
   token     String   @unique
   userId    String
   expiresAt DateTime
+  // Double authentification (src/server/auth/two-factor.ts) : pour un rôle
+  // qui l'exige, la session n'ouvre aucune page tant que ce champ est nul.
+  twoFactorVerifiedAt DateTime?
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())

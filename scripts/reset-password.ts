@@ -1,6 +1,7 @@
 // Secours : réinitialise le mot de passe d'un compte quand plus personne ne
-// peut se connecter (ADMIN qui a oublié le sien, SMTP indisponible pour le
-// lien « Mot de passe oublié »).
+// peut se connecter (ADMIN qui a oublié le sien ou perdu le téléphone de sa
+// double authentification, SMTP indisponible pour le lien « Mot de passe
+// oublié »). La double authentification est aussi remise à zéro.
 //
 //   npm run password:reset -- cassandre@dlproprete.fr
 //
@@ -58,6 +59,12 @@ async function main() {
       create: { userId: user.id, accountId: user.id, providerId: "credential", issuer: CREDENTIAL_ISSUER, password: hashed },
     });
     await prisma.session.deleteMany({ where: { userId: user.id } });
+    // Téléphone perdu : la double authentification est à réenregistrer à
+    // la prochaine connexion.
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { totpSecret: null, totpEnabledAt: null, totpLastStep: null },
+    });
     // Table absente tant que la migration login_attempts n'est pas appliquée.
     await prisma.loginAttempt
       .deleteMany({ where: { key: `email:${user.email.toLowerCase()}` } })
@@ -74,6 +81,7 @@ async function main() {
 
     console.log(`\nMot de passe temporaire (affiché une seule fois) : ${temporary}`);
     console.log("Connectez-vous avec, puis changez-le tout de suite dans « Mon compte ».");
+    console.log("Pour un ADMIN, la double authentification sera à réenregistrer à cette connexion.");
   } finally {
     await prisma.$disconnect();
   }
