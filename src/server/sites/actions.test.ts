@@ -131,16 +131,16 @@ describe("createSiteLog — un AGENT ne logue que sur ses propres sites (intégr
     expect(log.siteId).toBe(siteWorkedId);
   });
 
-  it("visibleToClient vaut true par défaut, et se désactive/réactive via setSiteLogVisibility", async () => {
+  it("masquée au client par défaut, publiée puis remasquée via setSiteLogVisibility", async () => {
     const admin: SessionUser = { id: "u-admin", email: "admin@dlproprete.fr", role: "ADMIN", isActive: true };
     const log = await createSiteLog(agentUser, { siteId: siteWorkedId, type: "OTHER", comment: "Test visibilité" });
-    expect(log.visibleToClient).toBe(true);
-
-    const hidden = await setSiteLogVisibility(admin, log.id, false);
-    expect(hidden.visibleToClient).toBe(false);
+    expect(log.visibleToClient).toBe(false);
 
     const shown = await setSiteLogVisibility(admin, log.id, true);
     expect(shown.visibleToClient).toBe(true);
+
+    const hidden = await setSiteLogVisibility(admin, log.id, false);
+    expect(hidden.visibleToClient).toBe(false);
 
     await prisma.siteLog.delete({ where: { id: log.id } });
   });

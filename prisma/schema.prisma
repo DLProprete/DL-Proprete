@@ -659,9 +659,13 @@ model SiteLog {
   type            SiteLogType @default(ANOMALY)
   comment         String
   photoPath       String?
-  visibleToClient Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-  site            Site        @relation(fields: [siteId], references: [id])
+  // Masquée par défaut : un ADMIN/PLANNER relit puis publie (décision du
+  // 03/10/2026). clientNotifiedAt : e-mail « nouveau rapport » déjà envoyé,
+  // jamais deux fois pour la même entrée.
+  visibleToClient  Boolean     @default(false)
+  clientNotifiedAt DateTime?
+  createdAt        DateTime    @default(now())
+  site             Site        @relation(fields: [siteId], references: [id])
   user            User        @relation(fields: [userId], references: [id])
 
   @@index([siteId, createdAt])

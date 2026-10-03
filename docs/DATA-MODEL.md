@@ -96,13 +96,15 @@ commentaire, avec une photo optionnelle.
 - type: ANOMALY | EQUIPMENT | OTHER (défaut ANOMALY)
 - comment (obligatoire), photoPath (optionnel — stocké via Supabase
   Storage ou disque local, voir `src/lib/uploads.ts`)
-- `visibleToClient` (défaut `true`, ajouté le 07/09/2026, extension
-  approuvée — voir `docs/SPEC.md`) : visible par défaut dans l'espace
-  client (`/portal/rapports`, ses propres sites uniquement), un
-  ADMIN/PLANNER peut le masquer au cas par cas depuis la fiche site.
-  Une notification e-mail (sans lien de connexion — voir
-  `ClientPortalToken` ci-dessus pour pourquoi) est envoyée au client si
-  son e-mail est renseigné et l'entrée reste visible.
+- `visibleToClient` (défaut `false` depuis le 03/10/2026 — `true` à
+  l'origine, ajouté le 07/09/2026, extension approuvée, voir
+  `docs/SPEC.md`) : masquée par défaut ; un ADMIN/PLANNER relit l'entrée
+  puis la publie depuis la fiche site. Une fois publiée, elle est visible
+  dans l'espace client (`/portal/rapports`, ses propres sites uniquement).
+- `clientNotifiedAt` : à la première publication, une notification
+  e-mail (sans lien de connexion — voir `ClientPortalToken` ci-dessus
+  pour pourquoi) est envoyée au client si son e-mail est renseigné ;
+  jamais deux fois pour la même entrée.
 - createdAt
 
 ### Contract (contrat-cadre)

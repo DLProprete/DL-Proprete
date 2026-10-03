@@ -27,6 +27,10 @@ export function SiteLogForm({ siteId }: { siteId: string }) {
     <form action={submit} className="card space-y-2">
       <input type="hidden" name="siteId" value={siteId} />
       <p className="text-sm font-medium text-zinc-800">Main courante</p>
+      <p className="text-xs text-zinc-600">
+        Relu par DL Propreté avant d&apos;être transmis au client. Pas d&apos;information de santé ni de nom de
+        collègue.
+      </p>
       <select name="type" className="field field-sm w-full">
         <option value="ANOMALY">Anomalie</option>
         <option value="EQUIPMENT">Matériel manquant</option>
