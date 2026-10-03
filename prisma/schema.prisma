@@ -763,3 +763,14 @@ model KnownSupplier {
   matchPattern String   @unique
   createdAt    DateTime @default(now())
 }
+
+// Tentatives de connexion (src/server/auth/rate-limit.ts) : en base pour
+// que la limite tienne entre les instances serverless et après un
+// redémarrage. key = "ip:<adresse>" ou "email:<adresse>".
+model LoginAttempt {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+
+  @@index([resetAt])
+}

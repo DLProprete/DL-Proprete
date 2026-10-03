@@ -13,6 +13,11 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true,
   },
+  // La connexion ne passe que par loginAction (src/app/(auth)/login), qui
+  // applique la limite de tentatives en base. La route HTTP équivalente de
+  // Better Auth la contournerait : elle est fermée. Les appels serveur
+  // (auth.api.signInEmail) ne sont pas concernés.
+  disabledPaths: ["/sign-in/email"],
   user: {
     additionalFields: {
       role: {
