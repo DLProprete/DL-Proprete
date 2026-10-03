@@ -76,8 +76,10 @@ redéployer met à jour toutes les cartes déjà imprimées, sans service extern
 
 - **Titres du site en Inter SemiBold**, pas Medium : hiérarchie lisible à
   l'écran ; le Black reste réservé au logo.
-- **Outil interne en police système** pour le texte (réseau faible sur le
-  terrain) ; le logo, lui, est en tracés vectoriels donc conforme.
+- **Outil interne en Inter depuis le 03/10/2026** (auparavant police
+  système) : servie par l'application via next/font, sans appel externe,
+  conservée par le cache du navigateur après la première visite (la page
+  hors connexion reste en police système).
 - **Nuances fonctionnelles du marine** (survol, fond de sélection) dans les
   deux applications : états d'interface, pas des teintes décoratives.
 - **Joints arrondis des pictogrammes** conservés tels que fournis dans les

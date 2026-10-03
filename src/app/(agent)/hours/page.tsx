@@ -31,7 +31,7 @@ export default async function HoursPage({
 
   return (
     <div className="mx-auto w-full max-w-md space-y-4">
-      <h1 className="text-lg font-semibold text-zinc-900">Mes heures</h1>
+      <h1 className="text-lg font-semibold">Mes heures</h1>
 
       <div className="flex items-center justify-between text-sm">
         <Link href={`/hours?year=${prev.year}&month=${prev.month}`} className="underline">

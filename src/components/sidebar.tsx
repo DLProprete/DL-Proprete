@@ -11,6 +11,9 @@ export type NavGroup = {
   items: { href: string; label: string; icon: ReactNode }[];
 };
 
+// Aplat marine de la charte : l'identité DL Propreté au premier coup d'œil.
+// Contrastes calculés sur #243746 : blanc 12,3:1, blanc/80 ≈ 8,5:1,
+// blanc/60 ≈ 5,6:1 (AA texte courant).
 export function Sidebar({
   groups,
   logoutAction,
@@ -23,13 +26,13 @@ export function Sidebar({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
-        <Logo />
+      <div className="flex items-center justify-between bg-brand-700 px-4 py-3 lg:hidden">
+        <Logo tone="blanc" />
         <button
           type="button"
           aria-label="Ouvrir le menu"
           onClick={() => setOpen(true)}
-          className="rounded p-1.5 text-zinc-600 hover:bg-zinc-100"
+          className="rounded p-1.5 text-white hover:bg-white/10 focus-visible:outline-white"
         >
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -46,17 +49,17 @@ export function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-zinc-200 bg-white transition-transform lg:sticky lg:top-0 lg:bottom-auto lg:z-auto lg:h-screen lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-brand-700 transition-transform lg:sticky lg:top-0 lg:bottom-auto lg:z-auto lg:h-screen lg:translate-x-0 ${
           open ? "translate-x-0" : ""
         }`}
       >
         <div className="hidden px-4 py-4 lg:block">
-          <Logo />
+          <Logo tone="blanc" />
         </div>
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
           {groups.map((group) => (
             <div key={group.label}>
-              <h2 className="px-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <h2 className="px-2 text-xs font-semibold uppercase tracking-wide text-white/60">
                 {group.label}
               </h2>
               <ul className="mt-1 space-y-0.5">
@@ -67,10 +70,10 @@ export function Sidebar({
                       <Link
                         href={item.href}
                         onClick={() => setOpen(false)}
-                        className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm font-medium ${
+                        className={`flex items-center gap-2.5 rounded px-2 py-1.5 text-sm font-medium focus-visible:outline-white ${
                           active
-                            ? "bg-brand-50 text-brand-700"
-                            : "text-zinc-700 hover:bg-zinc-100"
+                            ? "bg-white/15 text-white"
+                            : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                       >
                         {item.icon}
@@ -83,10 +86,10 @@ export function Sidebar({
             </div>
           ))}
         </nav>
-        <form action={logoutAction} className="border-t border-zinc-200 p-3">
+        <form action={logoutAction} className="border-t border-white/15 p-3">
           <button
             type="submit"
-            className="w-full rounded px-2 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+            className="w-full rounded px-2 py-1.5 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white focus-visible:outline-white"
           >
             Déconnexion
           </button>

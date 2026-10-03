@@ -5,6 +5,7 @@ import { formatDateOnly } from "@/lib/dates";
 import { ProcessQueueButton } from "./ProcessQueueButton";
 import { DocumentUploadField } from "./DocumentUploadField";
 import { ContractStateBadge } from "./ContractStateBadge";
+import { EmptyState } from "@/components/empty-state";
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "En attente d'OCR",
@@ -173,7 +174,7 @@ export default async function ScannedDocumentsPage({ searchParams }: { searchPar
             </li>
           ))}
           {documents.length === 0 && (
-            <li className="py-3 text-zinc-500">{isFiltered ? "Aucun document ne correspond." : "Aucun document déposé."}</li>
+            <li><EmptyState icon="produits">{isFiltered ? "Aucun document ne correspond." : "Aucun document déposé."}</EmptyState></li>
           )}
         </ul>
       </div>

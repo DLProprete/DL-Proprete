@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/server/auth/session";
 import { listTodayShiftsForAgent, getAgentGreetingName } from "@/server/time/queries";
 import { shiftState } from "@/server/time/agent-schedule";
-import { formatTimeInParis } from "@/lib/dates";
+import { formatLongDateParis, formatTimeInParis } from "@/lib/dates";
 import { ClockButton } from "@/components/clock-button";
 import { SiteLogForm } from "./SiteLogForm";
 
@@ -71,9 +71,9 @@ export default async function TodayPage({
     <div className="mx-auto w-full max-w-md space-y-4">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900">Bonjour, {greetingName}</h1>
+          <h1 className="text-lg font-semibold">Bonjour, {greetingName}</h1>
           <p className="text-sm text-zinc-600">
-            {shifts.length} vacation{shifts.length > 1 ? "s" : ""} aujourd&apos;hui
+            {formatLongDateParis(new Date())} · {shifts.length} vacation{shifts.length > 1 ? "s" : ""} aujourd&apos;hui
           </p>
         </div>
         <Link href="/today/week" className="pt-1 text-sm text-brand-700 underline">Voir la semaine →</Link>

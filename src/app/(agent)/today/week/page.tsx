@@ -36,7 +36,7 @@ export default async function WeekPage({
     <div className="mx-auto w-full max-w-md space-y-4">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900">Cette semaine</h1>
+          <h1 className="text-lg font-semibold">Cette semaine</h1>
           <p className="text-sm text-zinc-600">
             {shifts.length} vacation{shifts.length > 1 ? "s" : ""}
           </p>

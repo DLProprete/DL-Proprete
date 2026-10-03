@@ -85,9 +85,9 @@ export default async function BackOfficeLayout({
   })).filter((group) => group.items.length > 0);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 lg:flex-row">
+    <div className="flex min-h-full flex-1 flex-col bg-brand-50 lg:flex-row">
       <Sidebar groups={groups} logoutAction={logoutAction} />
-      <main className="flex-1 px-6 py-6">{children}</main>
+      <main className="app-main flex-1 px-6 py-6">{children}</main>
     </div>
   );
 }

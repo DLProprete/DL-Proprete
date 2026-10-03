@@ -10,8 +10,10 @@ import {
   suggestAgentsForShift,
 } from "@/server/dashboard/queries";
 import { listAgents } from "@/server/planning/queries";
-import { formatTimeInParis } from "@/lib/dates";
+import { formatLongDateParis, formatTimeInParis } from "@/lib/dates";
+import { prisma } from "@/lib/prisma";
 import { assignAgentAction } from "../planning/actions";
+import { EmptyState } from "@/components/empty-state";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("fr-FR").format(date);
@@ -45,10 +47,12 @@ function describeSuggestion(agent: {
 function Section({
   title,
   count,
+  icon,
   children,
 }: {
   title: string;
   count: number;
+  icon: "batiment" | "industriel" | "produits" | "intervention";
   children: React.ReactNode;
 }) {
   return (
@@ -58,7 +62,7 @@ function Section({
         {count > 0 && <span className="num text-xs font-normal text-zinc-500">{count}</span>}
       </h2>
       {count === 0 ? (
-        <p className="px-4 py-3 text-sm text-zinc-500">Rien à signaler.</p>
+        <EmptyState icon={icon}>Rien à signaler.</EmptyState>
       ) : (
         <ul className="divide-y divide-zinc-100">{children}</ul>
       )}
@@ -77,13 +81,14 @@ export default async function DashboardPage({
     redirect("/clients");
   }
 
-  const [unstaffedShifts, unpaidInvoices, endingContracts, revenue, agents] =
+  const [unstaffedShifts, unpaidInvoices, endingContracts, revenue, agents, me] =
     await Promise.all([
       getUnstaffedShiftsTodayTomorrow(user),
       getUnpaidIssuedInvoices(user),
       getContractsEndingSoon(user),
       getMonthlyRevenue(user),
       listAgents(user),
+      prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { firstName: true } }),
     ]);
 
   const today = new Date();
@@ -97,14 +102,12 @@ export default async function DashboardPage({
       : null;
 
   // La couleur d'état (ambre sur la valeur) ne sort que quand il y a quelque
-  // chose à faire : un compteur à zéro reste en encre neutre. La pastille de
-  // catégorie, elle, est toujours affichée — c'est une identité de carte, pas
-  // une alerte (voir docs/DESIGN.md).
+  // chose à faire : un compteur à zéro reste en encre neutre. La pastille
+  // d'icône est monochrome marine : une identité de carte, pas une alerte.
   const counters = [
     {
       href: "/planning",
       icon: UserX,
-      badge: "stat-badge-blue",
       value: String(unstaffedShifts.length),
       label: "Vacations non pourvues (J / J+1)",
       alert: unstaffedShifts.length > 0,
@@ -112,7 +115,6 @@ export default async function DashboardPage({
     {
       href: "/invoices",
       icon: ReceiptEuro,
-      badge: "stat-badge-aqua",
       value: `${unpaidTotal.toFixed(2)} €`,
       label: overdueCount > 0 ? `Impayées, dont ${overdueCount} en retard` : "Factures impayées",
       alert: overdueCount > 0,
@@ -120,7 +122,6 @@ export default async function DashboardPage({
     {
       href: "/contracts",
       icon: FileClock,
-      badge: "stat-badge-magenta",
       value: String(endingContracts.length),
       label: "Contrats à renouveler",
       alert: endingContracts.length > 0,
@@ -138,7 +139,10 @@ export default async function DashboardPage({
   return (
     <div className="max-w-5xl space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold">Tableau de bord</h1>
+        <div>
+          <p className="text-sm text-zinc-600">Tableau de bord · {formatLongDateParis(today)}</p>
+          <h1 className="text-2xl font-semibold">Bonjour, {me.firstName}</h1>
+        </div>
         <form
           action="/api/exports/time-entries"
           method="get"
@@ -176,7 +180,7 @@ export default async function DashboardPage({
       )}
 
       <div className="stat-card max-w-xs !cursor-default hover:bg-white">
-        <span className="stat-badge stat-badge-terracotta">
+        <span className="stat-badge">
           <Wallet size={18} strokeWidth={2} aria-hidden />
         </span>
         <span className="num text-2xl font-semibold text-zinc-900">
@@ -197,7 +201,7 @@ export default async function DashboardPage({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {counters.map((counter) => (
           <Link key={counter.href} href={counter.href} className="stat-card">
-            <span className={`stat-badge ${counter.badge}`}>
+            <span className="stat-badge">
               <counter.icon size={18} strokeWidth={2} aria-hidden />
             </span>
             <span
@@ -215,6 +219,7 @@ export default async function DashboardPage({
       <Section
         title="Vacations non pourvues — aujourd'hui et demain"
         count={unstaffedShifts.length}
+        icon="intervention"
       >
         {unstaffedShifts.map((shift) => {
           const suggestions = suggestionsByShiftId.get(shift.id) ?? [];
@@ -276,7 +281,7 @@ export default async function DashboardPage({
         })}
       </Section>
 
-      <Section title="Factures émises impayées" count={unpaidInvoices.length}>
+      <Section title="Factures émises impayées" count={unpaidInvoices.length} icon="produits">
         {unpaidInvoices.map((invoice) => {
           const overdue = invoice.dueOn && invoice.dueOn < today;
           return (
@@ -303,7 +308,7 @@ export default async function DashboardPage({
         })}
       </Section>
 
-      <Section title="Contrats qui expirent bientôt" count={endingContracts.length}>
+      <Section title="Contrats qui expirent bientôt" count={endingContracts.length} icon="batiment">
         {endingContracts.map((contract) => (
           <li key={contract.id} className="px-4 py-2.5 text-sm">
             <Link href={`/contracts/${contract.id}`} className="font-medium underline">

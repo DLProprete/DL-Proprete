@@ -53,7 +53,7 @@ export default async function MyAbsencesPage() {
           </li>
         ))}
         {absences.length === 0 && (
-          <li className="py-3 text-zinc-500">Aucune absence déclarée.</li>
+          <li className="py-3 text-zinc-600">Aucune absence déclarée.</li>
         )}
       </ul>
       <Link

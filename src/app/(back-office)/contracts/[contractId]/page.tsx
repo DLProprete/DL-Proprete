@@ -155,7 +155,7 @@ export default async function ContractDetailPage({
               </dl>
               <div className="grid grid-cols-2 gap-3">
                 <div className="stat-card">
-                  <span className="stat-badge stat-badge-blue">
+                  <span className="stat-badge">
                     <Clock size={18} strokeWidth={2} aria-hidden />
                   </span>
                   <span className="num text-2xl font-semibold text-zinc-900">
@@ -164,7 +164,7 @@ export default async function ContractDetailPage({
                   <span className="text-sm text-zinc-600">Volume mensuel</span>
                 </div>
                 <div className="stat-card">
-                  <span className="stat-badge stat-badge-aqua">
+                  <span className="stat-badge">
                     <Euro size={18} strokeWidth={2} aria-hidden />
                   </span>
                   <span className="num text-2xl font-semibold text-zinc-900">

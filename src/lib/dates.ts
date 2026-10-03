@@ -124,3 +124,10 @@ export function monthRange(year: number, month: number): { start: Date; end: Dat
 export function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / DAY_MS);
 }
+
+const longDateParis = new Intl.DateTimeFormat("fr-FR", { timeZone: PARIS_TZ, weekday: "long", day: "numeric", month: "long" });
+
+// « samedi 3 octobre » — accueil du tableau de bord et de l'app agent.
+export function formatLongDateParis(date: Date): string {
+  return longDateParis.format(date);
+}
