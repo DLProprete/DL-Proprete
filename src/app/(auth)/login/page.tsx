@@ -31,7 +31,7 @@ export default async function LoginPage({
             name="email"
             type="email"
             required
-            autoComplete="email"
+            autoComplete="username"
             className="mt-1 w-full field"
           />
         </div>

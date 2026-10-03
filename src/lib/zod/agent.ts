@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { passwordSchema } from "@/lib/password-policy";
 
 const timeRegex = /^\d{2}:\d{2}$/;
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -54,14 +55,14 @@ export const agentProfileSchema = z.object({
 
 export const createAgentInputSchema = agentProfileSchema.extend({
   email: z.email(),
-  password: z.string().min(8, "8 caractères minimum"),
+  password: passwordSchema,
   // Le rôle ne se change qu'à la création — le modifier après coup n'est
   // pas demandé (hors scope Mo6 de l'audit du 31/08/2026).
   role: z.enum(["AGENT", "PLANNER"]).default("AGENT"),
 });
 
 export const resetPasswordSchema = z.object({
-  password: z.string().min(8, "8 caractères minimum"),
+  password: passwordSchema,
 });
 
 export type AgentProfileInput = z.infer<typeof agentProfileSchema>;

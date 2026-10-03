@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { passwordSchema } from "@/lib/password-policy";
 
 export const changeMyEmailSchema = z.object({
   email: z.string().email("E-mail invalide"),
@@ -7,5 +8,5 @@ export const changeMyEmailSchema = z.object({
 
 export const changeMyPasswordSchema = z.object({
   currentPassword: z.string().min(1, "Mot de passe actuel requis"),
-  newPassword: z.string().min(8, "8 caractères minimum"),
+  newPassword: passwordSchema,
 });

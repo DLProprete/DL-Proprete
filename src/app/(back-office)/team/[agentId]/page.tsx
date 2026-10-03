@@ -5,6 +5,7 @@ import { getAgentLeaveBalance } from "@/server/absences/queries";
 import { parisToday } from "@/lib/dates";
 import { AgentProfileFields } from "../AgentProfileFields";
 import { setAgentActiveAction, updateAgentProfileAction, resetAgentPasswordAction } from "../actions";
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PASSWORD_RULES_ATTRIBUTE } from "@/lib/password-policy";
 
 export default async function AgentDetailPage({
   params,
@@ -92,8 +93,11 @@ export default async function AgentDetailPage({
               name="password"
               type="password"
               required
-              minLength={8}
+              minLength={PASSWORD_MIN_LENGTH}
+              maxLength={PASSWORD_MAX_LENGTH}
+              autoComplete="new-password"
               className="mt-1 w-full field"
+              {...PASSWORD_RULES_ATTRIBUTE}
             />
           </div>
           <button
