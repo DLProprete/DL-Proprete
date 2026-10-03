@@ -123,6 +123,8 @@ export async function setAgentActive(user: SessionUser, id: string, isActive: bo
     data: { isActive },
   });
   if (!isActive) {
+    // Déconnexion immédiate de tous ses appareils.
+    await prisma.session.deleteMany({ where: { userId: id } });
     await logAudit(prisma, {
       actorUserId: user.id,
       action: "AGENT_DEACTIVATED",
@@ -147,6 +149,8 @@ export async function resetAgentPassword(user: SessionUser, id: string, input: u
     update: { password: hashed },
     create: { userId: id, accountId: id, providerId: "credential", issuer: CREDENTIAL_ISSUER, password: hashed },
   });
+  // L'ancien mot de passe ne doit laisser aucune session derrière lui.
+  await prisma.session.deleteMany({ where: { userId: id } });
   // Jamais le mot de passe dans le résumé/metadata (règle dure).
   await logAudit(prisma, {
     actorUserId: user.id,

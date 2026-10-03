@@ -236,6 +236,19 @@ export default async function SettingsPage({
             className="mt-1 w-full field"
           />
         </div>
+        <div>
+          <label htmlFor="emailCurrentPassword" className="block text-sm text-zinc-700">
+            Mot de passe actuel
+          </label>
+          <input
+            id="emailCurrentPassword"
+            name="currentPassword"
+            type="password"
+            required
+            autoComplete="current-password"
+            className="mt-1 w-full field"
+          />
+        </div>
         <button type="submit" className="btn btn-secondary btn-sm">
           Changer l&apos;e-mail
         </button>

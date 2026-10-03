@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireSession } from "@/server/auth/session";
+import { getSessionRaw, requireSession } from "@/server/auth/session";
 import { updateAlertSettings, updateCompanyProfile } from "@/server/settings/actions";
 import { InvalidCurrentPasswordError, updateMyEmail, updateMyPassword } from "@/server/account/actions";
 import { ZodError } from "zod";
@@ -53,17 +53,34 @@ export async function updateCompanyProfileAction(formData: FormData) {
 
 export async function updateMyEmailAction(formData: FormData) {
   const user = await requireSession();
-  await updateMyEmail(user, { email: formData.get("email") });
+  const current = await getSessionRaw();
+  try {
+    await updateMyEmail(
+      user,
+      { email: formData.get("email"), currentPassword: formData.get("currentPassword") },
+      current?.session.id,
+    );
+  } catch (error) {
+    if (error instanceof InvalidCurrentPasswordError) {
+      redirect("/settings?accountError=current_password");
+    }
+    throw error;
+  }
   redirect("/settings?accountSaved=email");
 }
 
 export async function updateMyPasswordAction(formData: FormData) {
   const user = await requireSession();
+  const current = await getSessionRaw();
   try {
-    await updateMyPassword(user, {
-      currentPassword: formData.get("currentPassword"),
-      newPassword: formData.get("newPassword"),
-    });
+    await updateMyPassword(
+      user,
+      {
+        currentPassword: formData.get("currentPassword"),
+        newPassword: formData.get("newPassword"),
+      },
+      current?.session.id,
+    );
   } catch (error) {
     if (error instanceof InvalidCurrentPasswordError) {
       redirect("/settings?accountError=current_password");
