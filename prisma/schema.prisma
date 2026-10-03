@@ -728,7 +728,10 @@ model ScannedDocument {
   amountTtc         Decimal?                 @db.Decimal(10, 2)
   documentDate      DateTime?                @db.Date
   reference         String?
-  isSensitive       Boolean                  @default(false)
+  // Masqué aux planificateurs tant que l'ADMIN ne l'a pas validé et décoché
+  // (décision du 03/10/2026) : un arrêt maladie scanné n'est jamais visible
+  // d'un PLANNER par erreur.
+  isSensitive       Boolean                  @default(true)
   documentType      ScannedDocumentType      @default(FACTURE)
   pageCount         Int?
   // Champs propres aux contrats papier (archive + reprise dans l'outil),

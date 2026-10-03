@@ -250,7 +250,7 @@ export default async function ScannedDocumentDetailPage({
         {user.role === "ADMIN" && (
           <label className="flex items-center gap-2 text-sm text-zinc-700">
             <input type="checkbox" name="isSensitive" defaultChecked={document.isSensitive} />
-            Document sensible (RH / santé) — masqué aux planificateurs
+            Document sensible (RH / santé) — masqué aux planificateurs. Décocher pour le leur rendre visible.
           </label>
         )}
         <div className="flex flex-wrap items-center gap-3">

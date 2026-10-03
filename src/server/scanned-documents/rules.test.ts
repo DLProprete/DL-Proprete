@@ -117,6 +117,9 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
     expect(firstBatch).toHaveLength(1);
     documentIds.push(firstBatch[0].id);
 
+    // Nouveau document : masqué aux planificateurs tant que l'ADMIN ne l'a pas libéré.
+    expect(firstBatch[0].isSensitive).toBe(true);
+
     const secondBatch = await uploadScannedDocuments(adminUser, [makeFile()]);
     expect(secondBatch).toHaveLength(0); // même contenu -> ignoré, pas de doublon
 

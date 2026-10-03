@@ -40,6 +40,7 @@ describe("export CSV des documents validés (intégration DB)", () => {
         originalName: `valide-${suffix}.pdf`,
         contentHash: `test-hash-valide-${suffix}`,
         status: "VALIDATED",
+        isSensitive: false,
         category: "ACHATS",
         supplierName: "OVHcloud",
         amountTtc: 120,
