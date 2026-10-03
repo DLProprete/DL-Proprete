@@ -15,7 +15,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
-    "geocode:backfill": "tsx scripts/backfill-geocoding.ts"
+    "geocode:backfill": "tsx scripts/backfill-geocoding.ts",
+    "password:reset": "tsx scripts/reset-password.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^6.19.3",
