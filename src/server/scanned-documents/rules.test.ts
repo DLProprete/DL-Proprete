@@ -110,7 +110,7 @@ describe("boucle d'apprentissage fournisseur et relecture (intégration DB)", ()
   });
 
   it("uploadScannedDocuments ignore silencieusement un fichier déjà déposé (même contenu)", async () => {
-    const content = `contenu unique ${suffix}`;
+    const content = `%PDF-1.4\ncontenu unique ${suffix}`;
     const makeFile = () => new File([content], `scan-${suffix}.pdf`, { type: "application/pdf" });
 
     const firstBatch = await uploadScannedDocuments(adminUser, [makeFile()]);

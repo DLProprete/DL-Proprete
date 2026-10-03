@@ -16,7 +16,19 @@ const ALLOWED_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
 };
+// Signature binaire attendue en tête de fichier : le type MIME vient du
+// navigateur et se falsifie, le contenu non.
+const SIGNATURES: Record<string, number[]> = {
+  pdf: [0x25, 0x50, 0x44, 0x46, 0x2d], // %PDF-
+  jpg: [0xff, 0xd8, 0xff],
+  png: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+};
 const SUPABASE_BUCKET = "uploads";
+
+export function hasExpectedSignature(buffer: Uint8Array, extension: string): boolean {
+  const signature = SIGNATURES[extension];
+  return Boolean(signature) && signature.every((byte, index) => buffer[index] === byte);
+}
 
 export class InvalidUploadError extends Error {}
 
@@ -46,8 +58,11 @@ export async function saveUpload(subdir: string, file: File): Promise<string> {
     throw new InvalidUploadError("Format non autorisé (PDF, JPEG ou PNG uniquement).");
   }
 
-  const relativePath = `${subdir}/${randomUUID()}.${extension}`;
   const buffer = Buffer.from(await file.arrayBuffer());
+  if (!hasExpectedSignature(buffer, extension)) {
+    throw new InvalidUploadError("Le contenu du fichier ne correspond pas à son format.");
+  }
+  const relativePath = `${subdir}/${randomUUID()}.${extension}`;
 
   const storage = supabaseStorage();
   if (storage) {

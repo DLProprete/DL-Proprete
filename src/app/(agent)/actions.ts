@@ -6,6 +6,7 @@ import { requireSession } from "@/server/auth/session";
 import { completeTimeEntry, TimeEntryAlreadyExistsError, NotAssignedError } from "@/server/time/actions";
 import { createSiteLog } from "@/server/sites/actions";
 import { saveUpload, InvalidUploadError } from "@/lib/uploads";
+import { agentHasWorkedAtSite } from "@/server/sites/access";
 
 export async function completeTimeEntryAction(shiftId: string, note: string) {
   const user = await requireSession();
@@ -27,6 +28,11 @@ export async function createSiteLogAction(formData: FormData) {
   const comment = String(formData.get("comment") ?? "");
   const type = String(formData.get("type") ?? "ANOMALY") as "ANOMALY" | "EQUIPMENT" | "OTHER";
   if (!siteId || !comment.trim()) redirect("/today?error=log");
+  // Droits vérifiés avant d'écrire la photo : un refus ne doit laisser aucun
+  // fichier orphelin dans le stockage (createSiteLog revérifie ensuite).
+  if (user.role === "AGENT" && !(await agentHasWorkedAtSite(user.id, siteId))) {
+    redirect("/today?error=log");
+  }
 
   let photoPath: string | null = null;
   const photo = formData.get("photo");
