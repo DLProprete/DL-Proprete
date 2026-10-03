@@ -18,6 +18,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   AGENT_CREATED: "Agent créé",
   AGENT_DEACTIVATED: "Agent désactivé",
   PASSWORD_RESET: "Mot de passe réinitialisé",
+  TWO_FACTOR_ENABLED: "Double authentification activée",
   ASSIGNMENT_CREATED: "Affectation créée",
   ASSIGNMENT_REMOVED: "Affectation retirée",
   SERVER_ERROR: "Erreur serveur",

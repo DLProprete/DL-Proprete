@@ -131,7 +131,7 @@ export default async function SiteDetailPage({
                 </p>
                 <form action={setSiteLogVisibilityAction.bind(null, site.id, log.id, !log.visibleToClient)}>
                   <button type="submit" className="shrink-0 text-xs text-zinc-500 underline">
-                    {log.visibleToClient ? "Masquer au client" : "Rendre visible"}
+                    {log.visibleToClient ? "Masquer au client" : "Publier au client"}
                   </button>
                 </form>
               </div>
@@ -141,7 +141,9 @@ export default async function SiteDetailPage({
                 <img src={`/api/site-logs/${log.id}/photo`} alt="" className="mt-2 max-h-48 rounded" />
               )}
               {!log.visibleToClient && (
-                <p className="mt-1 text-xs text-amber-700">Masqué au client</p>
+                <p className="mt-1 text-xs text-amber-700">
+                  {log.clientNotifiedAt ? "Masqué au client" : "À relire avant publication au client"}
+                </p>
               )}
             </li>
           ))}

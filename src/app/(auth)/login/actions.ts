@@ -30,5 +30,7 @@ export async function loginAction(formData: FormData) {
   }
 
   await clearLoginAttempts(email);
-  redirect("/");
+  // ADMIN : la page de vérification demande le code ; pour les autres
+  // rôles, elle renvoie aussitôt vers l'accueil.
+  redirect("/connexion/verification");
 }

@@ -134,9 +134,13 @@ pour les trois — **à changer avant tout déploiement au-delà du poste local*
   - `npx prisma generate` — régénère le client (pas besoin de base connectée)
   - `npx prisma migrate dev` — applique les migrations en attente sur une base locale
   - `npm run prisma:seed` — rejoue `prisma/seed.ts` (1 admin, 2 agents, 1 client, 1 site, 1 contrat)
-- Compte bloqué (mot de passe oublié, SMTP indisponible) : `npm run password:reset -- <email>`
-  affiche un mot de passe temporaire (cible `DATABASE_URL` ; pour la production, la passer
-  sur la ligne de commande, jamais dans `.env`).
+- Compte bloqué (mot de passe oublié, téléphone de double authentification perdu, SMTP
+  indisponible) : `npm run password:reset -- <email>` affiche un mot de passe temporaire et
+  remet à zéro la double authentification (cible `DATABASE_URL` ; pour la production, la
+  passer sur la ligne de commande, jamais dans `.env`).
+- Double authentification (code à 6 chiffres, `src/server/auth/two-factor.ts`) obligatoire
+  pour ADMIN : enregistrement de l'application au premier passage sur
+  `/connexion/verification`. Secret chiffré avec `BETTER_AUTH_SECRET`.
 - Config Prisma centralisée dans `prisma.config.ts` (Prisma 6.19+, remplace `package.json#prisma`).
 
 ## Architecture

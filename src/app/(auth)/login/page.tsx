@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { pendingTwoFactorSession } from "@/server/auth/session";
 import { loginAction } from "./actions";
 import { Logo } from "@/components/logo";
 
@@ -8,6 +10,8 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string; reset?: string }>;
 }) {
   const { error, reset } = await searchParams;
+  // Mot de passe déjà accepté, code pas encore saisi : directement au code.
+  if (await pendingTwoFactorSession()) redirect("/connexion/verification");
 
   return (
     <div className="flex flex-1 items-center justify-center bg-zinc-50">
